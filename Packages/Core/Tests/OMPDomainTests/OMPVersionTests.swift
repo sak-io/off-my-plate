@@ -5,7 +5,7 @@ import OMPDomain
 struct OMPVersionTests {
     @Test("current is a MAJOR.MINOR.PATCH version made of ASCII digits")
     func currentIsSemanticVersion() {
-        let parts = OMPVersion.current.split(separator: ".", omitEmptySubsequences: false)
+        let parts = OMPVersion.current.split(separator: ".", omittingEmptySubsequences: false)
         #expect(parts.count == 3)
         for part in parts {
             #expect(!part.isEmpty)
