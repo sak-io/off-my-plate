@@ -1,6 +1,6 @@
 # Status
 
-**Phase:** Kickoff, step 1 (spec) — waiting for owner approval
+**Phase:** Kickoff, step 2 (plan) — architect and UX designer working
 **Branch:** `claude/build-v1`
 
 ## Owner decisions at kickoff (2026-10-12)
@@ -12,8 +12,9 @@
 5. **Team:** lean (starter + architect + qa-engineer) plus ux-designer. GitHub handle for `--owner`: to be confirmed.
 
 ## Done
-- Spec drafted: `docs/specs/offmyplate-v1.md` (16 user stories, 12 gaps G1–G12 with defaults).
+- Spec approved by owner ("AGREED", 2026-10-12): `docs/specs/offmyplate-v1.md`. All gap defaults G1–G12 accepted.
 
 ## Next
-- Owner: answer the starred gaps G1–G5 (or accept defaults) and reply "AGREED".
-- Then architect: adopt the technical spec, validate it against the spec, and write the plan and task breakdown.
+- Architect (adopt mode): `docs/architecture/plan.md`, ADRs in `docs/adr/`, task breakdown.
+- UX designer: `docs/design/` flows, screens, states and copy for v1.
+- Then owner approves the plan.
