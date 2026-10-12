@@ -1,0 +1,10 @@
+// Copy to App/Config/Local.xcconfig (git-ignored) and fill in. Never commit the copy.
+// Then run: (cd App && xcodegen generate) and open App/OffMyPlate.xcodeproj.
+
+// Your Apple Developer Team ID (Xcode > Settings > Accounts, or developer.apple.com).
+DEVELOPMENT_TEAM = ABCDE12345
+
+// Optional: bundle IDs and App Group IDs are globally unique across Apple, so if the
+// defaults are taken, use your own reverse-DNS prefix and a matching App Group.
+// OMP_BUNDLE_ID_PREFIX = com.example.offmyplate
+// OMP_APP_GROUP_ID = group.com.example.offmyplate

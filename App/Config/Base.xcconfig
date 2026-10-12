@@ -1,0 +1,16 @@
+// Shared build settings for every target and configuration (ADR 0006, plan R6).
+// Machine-specific values (signing team, your own bundle-ID prefix and App Group) go in
+// the git-ignored Local.xcconfig next to this file: copy Local.xcconfig.example.
+
+// Bundle IDs are derived from this prefix: app $(OMP_BUNDLE_ID_PREFIX).OffMyPlate,
+// share extension $(OMP_BUNDLE_ID_PREFIX).OffMyPlate.Share (R6 placeholder default).
+OMP_BUNDLE_ID_PREFIX = app.offmyplate
+
+// The App Group shared by the app and the share extension (inbox handoff, ADR 0011).
+OMP_APP_GROUP_ID = group.app.offmyplate
+
+// Empty here on purpose: CI builds for the simulator with CODE_SIGNING_ALLOWED=NO.
+DEVELOPMENT_TEAM =
+
+// Optional: absent on CI and on fresh clones. Included last so it overrides the above.
+#include? "Local.xcconfig"

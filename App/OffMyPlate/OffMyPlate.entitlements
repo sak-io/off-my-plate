@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- App Group shared by the app and the share extension (inbox handoff, ADR 0011).
+	     The value comes from OMP_APP_GROUP_ID in App/Config/Base.xcconfig (R6 default
+	     group.app.offmyplate), overridable in the git-ignored Local.xcconfig. -->
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>$(OMP_APP_GROUP_ID)</string>
+	</array>
+	<!-- Data Protection Complete: files are unreadable while the device is locked
+	     (plan section 11, NFR Encryption). -->
+	<key>com.apple.developer.default-data-protection</key>
+	<string>NSFileProtectionComplete</string>
+</dict>
+</plist>
