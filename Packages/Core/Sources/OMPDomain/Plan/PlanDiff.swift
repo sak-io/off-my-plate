@@ -40,6 +40,11 @@ public struct PlanDiff: Sendable, Hashable {
             self.kinds = kinds
         }
 
+        /// The id used as the final ordering tie-break (the new meal's, else the old one's).
+        var mealIdKey: String {
+            (now ?? was)?.id.rawValue ?? ""
+        }
+
         /// Whether S-13 lists this change: anything other than a lock-only change.
         public var isListed: Bool {
             kinds.contains { $0 != .lockChanged }
@@ -66,27 +71,14 @@ public struct PlanDiff: Sendable, Hashable {
         var unmatchedNew = new.meals.sorted(by: PlanDiff.slotOrder)
         var pairs: [MealPair] = []
 
-        // 1. Same meal id.
-        var index = 0
-        while index < unmatchedNew.count {
-            let candidate = unmatchedNew[index]
-            if let oldIndex = unmatchedOld.firstIndex(where: { $0.id == candidate.id }) {
-                pairs.append(MealPair(was: unmatchedOld.remove(at: oldIndex), now: candidate))
-                unmatchedNew.remove(at: index)
-            } else {
-                index += 1
-            }
+        // 1. Same meal id at the same date and slot. A meal moved to another day or slot is not
+        //    paired by id, so the move shows up as changes at both places.
+        PlanDiff.pair(&unmatchedOld, &unmatchedNew, into: &pairs) { old, new in
+            old.id == new.id && old.date == new.date && old.slot == new.slot
         }
-        // 2. Same date and slot.
-        index = 0
-        while index < unmatchedNew.count {
-            let candidate = unmatchedNew[index]
-            if let oldIndex = unmatchedOld.firstIndex(where: { $0.date == candidate.date && $0.slot == candidate.slot }) {
-                pairs.append(MealPair(was: unmatchedOld.remove(at: oldIndex), now: candidate))
-                unmatchedNew.remove(at: index)
-            } else {
-                index += 1
-            }
+        // 2. Same date and slot (regenerate may mint new ids).
+        PlanDiff.pair(&unmatchedOld, &unmatchedNew, into: &pairs) { old, new in
+            old.date == new.date && old.slot == new.slot
         }
         for meal in unmatchedOld {
             pairs.append(MealPair(was: meal, now: nil))
@@ -102,13 +94,34 @@ public struct PlanDiff: Sendable, Hashable {
             changes.append(Change(date: reference.date, slot: reference.slot, was: pair.was, now: pair.now, kinds: kinds))
         }
         self.changes = changes.sorted { lhs, rhs in
-            let left = lhs.now ?? lhs.was
-            let right = rhs.now ?? rhs.was
-            switch (left, right) {
-            case let (left?, right?): return PlanDiff.slotOrder(left, right)
-            default: return false
+            if lhs.date != rhs.date { return lhs.date < rhs.date }
+            if lhs.slot != rhs.slot { return PlanDiff.slotIndex(lhs.slot) < PlanDiff.slotIndex(rhs.slot) }
+            return PlanDiff.utf8Precedes(lhs.mealIdKey, rhs.mealIdKey)
+        }
+    }
+
+    /// Moves every pair matching `matches` (first match in old order) from the unmatched lists
+    /// into `pairs`.
+    private static func pair(
+        _ unmatchedOld: inout [PlannedMeal],
+        _ unmatchedNew: inout [PlannedMeal],
+        into pairs: inout [MealPair],
+        where matches: (PlannedMeal, PlannedMeal) -> Bool
+    ) {
+        var index = 0
+        while index < unmatchedNew.count {
+            let candidate = unmatchedNew[index]
+            if let oldIndex = unmatchedOld.firstIndex(where: { matches($0, candidate) }) {
+                pairs.append(MealPair(was: unmatchedOld.remove(at: oldIndex), now: candidate))
+                unmatchedNew.remove(at: index)
+            } else {
+                index += 1
             }
         }
+    }
+
+    private static func utf8Precedes(_ lhs: String, _ rhs: String) -> Bool {
+        PlanCanonicalEncoding.utf8Precedes(lhs, rhs)
     }
 
     private struct MealPair {

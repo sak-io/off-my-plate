@@ -139,7 +139,7 @@ struct PlanLifecycleTests {
         let error = Fixture.error {
             try PlanLifecycle.edit(plan, newRevisionId: "plan-2", now: Sample.later) { _ in }
         }
-        #expect(error == PlanLifecycleError.wrongStatus(expected: .draft, actual: status))
+        #expect(error == PlanLifecycleError.closedPlan(status: status))
     }
 
     @Test("makeRevision needs an approved plan")
@@ -279,7 +279,7 @@ struct PlanLifecycleTests {
         discarded.status = .discarded
         #expect(
             Fixture.error { try PlanLifecycle.applySafetyRecheck(discarded, validation: Fixture.report(for: discarded)) }
-                == PlanLifecycleError.wrongStatus(expected: .approved, actual: .discarded))
+                == PlanLifecycleError.closedPlan(status: .discarded))
         // A draft can be re-checked too.
         let draft = Fixture.draft()
         #expect(Fixture.error { try PlanLifecycle.applySafetyRecheck(draft, validation: Fixture.report(for: draft)) } == nil)

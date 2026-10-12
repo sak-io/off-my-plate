@@ -1,5 +1,6 @@
 import Foundation
 import OMPDomain
+import Testing
 
 /// Small plans for the lifecycle, content-hash and diff tests (T13).
 enum PlanFixture {
@@ -53,12 +54,17 @@ enum PlanFixture {
     }
 
     /// The error a lifecycle call throws, or `nil` if it succeeds.
-    static func error<T>(_ body: () throws(PlanLifecycleError) -> T) -> PlanLifecycleError? {
-        do throws(PlanLifecycleError) {
+    /// Untyped on purpose: closures written inline (also inside `#expect`) infer `any Error`,
+    /// which cannot convert to a typed-throws parameter. Any other error is recorded as an issue.
+    static func error<T>(_ body: () throws -> T) -> PlanLifecycleError? {
+        do {
             _ = try body()
             return nil
-        } catch {
+        } catch let error as PlanLifecycleError {
             return error
+        } catch {
+            Issue.record("unexpected error: \(error)")
+            return nil
         }
     }
 }

@@ -158,4 +158,50 @@ struct PlanDiffTests {
         #expect(result.listedChanges.map { $0.now?.recipeId } == ["chole-chawal", "aloo-gobi"])
         #expect(result.changes.count == 3)
     }
+
+    @Test("a meal moved to another day or slot shows as changes at both places")
+    func movedMeal() {
+        let moved = diff { meals in
+            meals[0].date = Sample.monday.adding(days: 3)
+            meals[0].slot = .lunch
+        }
+        #expect(moved.changes.map(\.kinds) == [[.removed], [.added]])
+        #expect(moved.changes[0].was?.id == "meal-1" && moved.changes[1].now?.id == "meal-1")
+
+        // Moved onto an occupied slot: the old slot is removed, the new one gains a meal.
+        let onto = diff { meals in
+            meals[0].date = Sample.monday.adding(days: 1)
+            meals[0].slot = .lunch
+        }
+        #expect(onto.changes.map(\.kinds) == [[.removed], [.added]])
+        #expect(onto.listedChanges.count == 2)
+    }
+
+    @Test("whenever a meal edit changes the hash, the diff lists it (lock-only: in changes)")
+    func hashChangeImpliesDiff() {
+        let mutations: [(String, (inout [PlannedMeal]) -> Void)] = [
+            ("recipe", { $0[0].recipeId = "poha" }),
+            ("emptied", { $0[0].recipeId = nil }),
+            ("portion", { $0[0].servings[1].portion = 0.4 }),
+            ("not eating", { $0[0].servings[1].notEating = true }),
+            ("member", { $0[0].servings[1].memberId = "m-other" }),
+            ("serving added", { $0[0].servings.append(MealServing(memberId: "m-new", portion: 1)) }),
+            ("date", { $0[0].date = Sample.monday.adding(days: 5) }),
+            ("slot", { $0[0].slot = .lunch }),
+            ("date onto occupied slot", { $0[0].date = Sample.monday.adding(days: 2) }),
+            ("meal added", { $0.append(Fixture.meal("meal-9", day: 3, slot: .lunchbox)) }),
+            ("meal removed", { _ = $0.removeLast() }),
+        ]
+        let old = Fixture.draft()
+        for (name, mutate) in mutations {
+            var new = Fixture.draft(id: "plan-2")
+            mutate(&new.meals)
+            #expect(new.contentHash != old.contentHash, "\(name) should change the hash")
+            #expect(!PlanDiff(from: old, to: new).listedChanges.isEmpty, "\(name) should be listed")
+        }
+        var locked = Fixture.draft(id: "plan-2")
+        locked.meals[0].locked = true
+        #expect(locked.contentHash != old.contentHash)
+        #expect(!PlanDiff(from: old, to: locked).isEmpty)
+    }
 }

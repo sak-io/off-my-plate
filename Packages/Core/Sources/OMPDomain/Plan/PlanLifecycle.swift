@@ -14,6 +14,8 @@ public struct UserConfirmation: Sendable, Hashable {
 public enum PlanLifecycleError: Error, Sendable, Hashable {
     /// The transition needs a plan in `expected` status but it was `actual`.
     case wrongStatus(expected: PlanStatus, actual: PlanStatus)
+    /// The plan is `superseded` or `discarded`; it can no longer be edited or re-checked.
+    case closedPlan(status: PlanStatus)
     /// The validation report is about another plan.
     case reportForDifferentPlan(reportPlanId: MealPlanID, planId: MealPlanID)
     /// The validation report is for different content than the draft has now.
@@ -55,6 +57,11 @@ public enum PlanLifecycle {
     /// based on (`nil` for a first revision). The approval stores approver, time and hash.
     /// Because the passing report covers exactly this content, any `blockedBySafety` flags are
     /// cleared. `previous`, if given, becomes `superseded`.
+    ///
+    /// - Precondition: `validation` was produced at call time against the household's
+    ///   **current** hard rules. A report only proves the rules it was run with; this function
+    ///   can check the plan and the hash but not the rule set, so the approval use case (T18)
+    ///   must re-validate immediately before calling it and never reuse a stored report.
     public static func approve(
         _ draft: MealPlan,
         replacing previous: MealPlan? = nil,
@@ -140,7 +147,7 @@ public enum PlanLifecycle {
         case .approved:
             working = try makeRevision(of: plan, id: newRevisionId, now: now)
         case .superseded, .discarded:
-            throw PlanLifecycleError.wrongStatus(expected: .draft, actual: plan.status)
+            throw PlanLifecycleError.closedPlan(status: plan.status)
         }
         change(&working.meals)
         return working
@@ -151,6 +158,10 @@ public enum PlanLifecycle {
     /// for this plan's current content. The flag is not part of the content hash, so an approved
     /// plan stays approved while its blocked meals are kept off the shopping list and out of
     /// Mark cooked until a fixed revision is approved.
+    ///
+    /// - Precondition: as for `approve`, `validation` was produced at call time against the
+    ///   current hard rules (T18 re-validates on every hard-rule or seed-content change); a stale
+    ///   passing report would clear blocks that still apply.
     public static func applySafetyRecheck(
         _ plan: MealPlan, validation: ValidationReport
     ) throws(PlanLifecycleError) -> MealPlan {
@@ -158,7 +169,7 @@ public enum PlanLifecycle {
         case .draft, .approved:
             break
         case .superseded, .discarded:
-            throw PlanLifecycleError.wrongStatus(expected: .approved, actual: plan.status)
+            throw PlanLifecycleError.closedPlan(status: plan.status)
         }
         guard validation.planId == plan.id else {
             throw PlanLifecycleError.reportForDifferentPlan(reportPlanId: validation.planId, planId: plan.id)
