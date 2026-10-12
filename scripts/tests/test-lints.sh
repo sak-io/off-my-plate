@@ -78,6 +78,16 @@ run_fixtures() {
   run_case "$lint" "" 0 "$group: the repository itself passes"
 }
 
+# Git cannot commit an empty directory, so a fixture that relies on one passes locally
+# but breaks on a fresh checkout (CI). Put a placeholder file in it instead.
+echo "fixtures"
+empty_dirs="$(find "$fixtures" -type d -empty)"
+if [[ -n "$empty_dirs" ]]; then
+  fail "fixtures contain empty directories (lost on checkout): $empty_dirs"
+else
+  pass "no empty fixture directories"
+fi
+
 run_fixtures lint-core-imports.sh core-imports
 run_fixtures lint-no-network.sh no-network
 
