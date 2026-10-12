@@ -1,6 +1,6 @@
 # OffMyPlate — Product Concept
 
-**Status:** Draft v0.2 · **Date:** 2026-10-12 · **Platforms:** iPhone, iPad (iOS/iPadOS)
+**Status:** Draft v0.3 · **Date:** 2026-10-12 · **Platforms:** iPhone, iPad (iOS/iPadOS)
 
 > *"What's for dinner?" — answered, shopped for, and off your plate.*
 
@@ -44,7 +44,7 @@ Initial market: English-speaking households with iPhone/iPad; expand regional cu
 
 Most apps lose users at onboarding: a long form asks people to describe their household before the app has given them anything. Putting thoughts into words is hard work, and people rarely know in advance what they will want ("we eat everything", "it depends on the week"). OffMyPlate should instead behave like a thoughtful helper who notices.
 
-1. **Value before questions.** The first plan appears within a minute, from at most 2–3 questions. Everything else is optional or learned.
+1. **Value before questions.** A first draft plan appears within a minute, from three quick questions (only the safety one is mandatory). Everything else is optional or learned.
 2. **Learn from behaviour, not forms.** Swaps, skips, "cooked it", re-rolls, ratings, Notes lists, receipts and pantry photos teach the app more than any questionnaire. A swapped-out Wednesday dinner is a signal; no one had to explain it.
 3. **Optional detail, always available.** A "Tell me more" area lets people add specifics (nutritionist plans, goals, house rules) in their own words, by voice, or by photo. Nothing is blocked behind it, and it can be done at any time. The one exception is the safety check (principle 8).
 4. **Free-form, not form-shaped.** People can say things the way they think them ("the kids have been picky about veg lately", "we're trying to eat lighter this month"). The app turns that into structure; the user never has to.
@@ -72,7 +72,7 @@ Most apps lose users at onboarding: a long form asks people to describe their ho
 ### 6.1 MVP (v1)
 
 **Onboarding (lightweight by design)**
-- **Three quick questions to a first draft plan.** Starter questions: how many people eat (adults / kids); any allergies or foods that must be avoided (the one required screen: "No, nobody" is a single tap, or the user adds items with chips, text or voice); and the kind of food you usually cook (pick a few cuisines, or skip).
+- **Three quick questions to a first draft plan.** Starter questions: how many people eat (adults / kids, prefilled with a default you adjust); any allergies or foods that must be avoided (the one required screen: "No, nobody" is a single tap, or the user adds items with chips, text or voice); and the kind of food you usually cook (pick a few cuisines, or skip).
 - No account wall, no long profile, no goals or appliance quiz up front. The first weekly plan is generated with sensible defaults, shown as a **draft** labelled as a starting point, and used only once the user approves it.
 - **Progressive profile.** Details such as which kids need school lunch, who is on a gym or nutritionist plan, and who is home on which days are asked later, in context, one at a time ("Do any of the kids take lunch to school?" appears when the user opens the lunch slot).
 - **"Tell me more" (optional, always available).** One place to add anything specific: type, speak or photograph it ("Dad is diabetic", "Meera has a nut allergy", a nutritionist's chart). It is never required and can be revisited or edited at any time.
@@ -167,7 +167,7 @@ Full detail is in [`technical-specification.md`](technical-specification.md). Ke
 | **Planning engine** | Deterministic constraint filter and scoring over a curated recipe library (hard rules: allergies, macros, inventory), with an independent validator before display | A model, if available, only re-ranks validated options, explains the plan and handles chat; it never bypasses the validators |
 | **Household knowledge** | A set of learned and stated facts, each with its source and confidence, viewable and editable in plain language | Learned preferences are soft only; safety rules come solely from what the user states or confirms |
 | **Data & sync** | On-device store (SwiftData/Core Data) + CloudKit for household sync across family devices | Shared household via CloudKit sharing |
-| **Backend** | None in v1. Recipe content ships as signed content packs. A minimal backend may be introduced later only if store connectors need it (OAuth callbacks, scheduled orders), kept free of user health data | Keeps cost, privacy and compliance surface small |
+| **Backend** | None in v1. Recipe content ships as signed content packs. A minimal backend may be introduced later only if store connectors need it (OAuth callbacks, price feeds, scheduled cart preparation), kept free of user health data | Keeps cost, privacy and compliance surface small |
 | **AI model management** | Router picks Apple on-device or a user-supplied key per task; key kept in the iOS Keychain and used only for direct device-to-provider calls; per-task opt-in for anything leaving the device; child names redacted | Every supported model is tested against an internal evaluation set before it is enabled |
 | **Notifications & surfaces** | Local notifications, widgets, Live Activities, App Shortcuts/Siri | |
 | **Recipes & nutrition** | Bundled curated library (target roughly 500–800 recipes for the launch cuisine, with a school-lunch subset), user-added recipes (URL, photo, manual), nutrition computed from ingredients using open or licensed data (e.g., USDA FoodData Central plus regional datasets) | Regional coverage and licensing matter; imported recipes stay "unverified" until ingredients are resolved |
@@ -219,9 +219,9 @@ The "give us your store credentials" model is the highest-risk part of the produ
 
 ## 13. Success Metrics
 
-- **Activation:** % of new users who see a first weekly plan within 2 minutes of install; onboarding completion rate; median number of questions answered (target ≤ 3).
+- **Activation:** % of new users who see a first draft weekly plan within 2 minutes of install, and who approve it; onboarding completion rate; median number of questions answered (target ≤ 3).
 - **Learning quality:** share of inferred preferences confirmed vs. dismissed; reduction in swap rate over the first four weeks.
-- **Engagement:** weekly active households; meals marked cooked per week; plans edited vs. accepted as-is.
+- **Engagement:** weekly active households; meals marked cooked per week; plans edited vs. accepted as-is; time to approve a plan.
 - **Value:** self-reported time saved; reduction in food waste (pantry items expiring unused); takeout-substitution rate.
 - **Quality:** meal rating average; swap/re-roll rate; allergen-violation rate (target: zero).
 - **Retention:** week-4 and week-12 household retention; paid conversion.
@@ -250,7 +250,7 @@ The "give us your store credentials" model is the highest-risk part of the produ
 | Phase | Scope | Outcome |
 |---|---|---|
 | **0 – Discovery** (4–6 wks) | 15–20 household interviews; prototype planner in a script/notebook; validate Notes/Shortcuts import flow; assess store API landscape for 1 target region | Validated persona, feasibility of inputs and integrations |
-| **1 – MVP** (3 mo) | Three-question onboarding with learned preferences, deterministic planner over a seed recipe library, weekly planner with school-lunch slot, pantry (manual + voice + photo), shopping list, Notes share-extension import, guidance import (photo/PDF/text) | TestFlight beta with ~50 households |
+| **1 – MVP** (3 mo) | Three-question onboarding with the mandatory safety gate, plan approval, learned preferences, deterministic planner over a seed recipe library, weekly planner with school-lunch slot, pantry (manual + voice + photo), shopping list, Notes share-extension import, guidance import (photo/PDF/text) | TestFlight beta with ~50 households |
 | **2 – Launch** (2 mo) | iPad layouts, CloudKit family sharing, widgets, notifications, ratings loop, subscription | App Store release |
 | **3 – Smart Kitchen** | Receipt scan, expiry tracking, leftovers, cooking mode, nutrition insights | Retention and daily-habit features |
 | **4 – Shopping Automation** | Add-to-cart for 1–2 stores → assisted ordering with per-order approval | Closed-loop "off my plate" |
@@ -266,9 +266,9 @@ The "give us your store credentials" model is the highest-risk part of the produ
 7. Which **recipe and nutrition sources** and licences, and how are content packs distributed and updated?
 8. How aggressive should **learning and reflect-back prompts** be before they feel intrusive? (Start conservative; validate in user testing.)
 9. What is the wording and cadence of the **safety re-confirmation** (when a member is added, periodically, when a child's age band changes), and should the safety answer be per household or per member?
-10. What should the approval UX be for larger plans and for edits after approval, so it protects users without becoming a chore?
+10. What should the approval UX be for larger plans and for edits after approval, so it protects users without becoming a chore? In a shared household, who may approve plans and orders (for example, adults only)?
 11. What is the minimum viable **nutrition accuracy** for credibility with health-guided users, and do we need a registered-dietitian advisor?
 
 ## 17. Summary
 
-OffMyPlate is a household-aware, pantry-aware, guidance-aware meal planner for iPhone and iPad, driven by the easiest possible inputs — notes, camera, and voice — and ultimately connected to grocery carts. The app drafts, and the user decides: every meal plan and every order needs explicit approval. It starts in under a minute with three optional questions and then learns quietly from how the household actually eats. It runs on-device with no hosted AI, relying on a deterministic planner, a curated recipe library, Apple's on-device models and, optionally, the user's own API key. The MVP proves the planning loop (plan → list → cook → pantry update); shopping automation follows once planning is trusted and integration paths are secured.
+OffMyPlate is a household-aware, pantry-aware, guidance-aware meal planner for iPhone and iPad, driven by the easiest possible inputs — notes, camera, and voice — and ultimately connected to grocery carts. The app drafts, and the user decides: every meal plan and every order needs explicit approval. It starts in under a minute with three quick questions, only one of them (safety) mandatory, and then learns quietly from how the household actually eats. It runs on-device with no hosted AI, relying on a deterministic planner, a curated recipe library, Apple's on-device models and, optionally, the user's own API key. The MVP proves the planning loop (plan → list → cook → pantry update); shopping automation follows once planning is trusted and integration paths are secured.
