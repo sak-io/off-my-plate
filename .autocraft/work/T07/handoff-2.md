@@ -24,3 +24,11 @@ Next: re-review round 2.
   is replaced by it (unmerged API, no callers).
 - [QUESTION] doc note: Added on `QuantityTotal`: parts keep the first-seen unit; display
   normalisation is the caller's job (T14).
+
+## CI follow-up (CI on 11e2b69)
+- Failing test `subtractPantry`: Fixed in 3da00e6. The test was wrong. The documented contract,
+  which the code already followed, is that the excess comes back in the subtracted quantity's
+  unit. Subtracting 1 kg therefore reports 0.4 kg, not 400 g.
+- Warning "#require never equals nil" in `mergesConvertible`: Fixed in 3da00e6. The `#require`
+  sat inside `approx(Quantity?, ...)`, so it was inferred as optional. It now binds
+  `let first: Quantity`.
