@@ -11,6 +11,9 @@
 | T02 review-1 | App icon needed before TestFlight | T29 |
 | T03 review-1 (TR-1) | `lint-safety.sh`: `ValidationReport(` only in `Sources/OMPSafetyCheck/` and `Tests/` | T09/T12 |
 | T03 review-1 (TR-2) | Atomic multi-entity save/transaction before `approve` ships | T18/T20 |
-| T03 review-1 (TR-3) | SafetyGate fails closed when status is confirmed but `safetyConfirmedAt == nil`; test | T08 |
+| T03 review-1 (TR-3) | SafetyGate fails closed when status is confirmed but `safetyConfirmedAt == nil`; test | T08 — DONE (merged) |
 | T03 review-1 (TR-4) | OMPData DTOs own persisted format; keep golden tests in step or add DTO goldens | T20 |
 | T03 review-1 (TR-5) | Failable `LocalDate.safelyAdding(days:)` before user-entered offsets reach date math | T16/T24 |
+| T08 review-2 | Planner entry points (T10–T12) must call `clearance.isValid(for:now:timeZone:)`, not `matches` | T10/T11/T12 |
+| T08 review-2 | UI shows the covering rules before `confirmMemberAnswer` | T22 |
+| T07 review-2 | `subtracting` returns nil for non-convertible units; callers decide | T11/T14 |
