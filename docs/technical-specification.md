@@ -16,6 +16,8 @@ This document describes how OffMyPlate is built. The product vision, personas an
 4. **Confirm before commit.** Anything a model extracts (diet plans, receipts, fridge photos) is shown to the user for confirmation before it is stored or used.
 5. **Graceful degradation.** Every feature has a non-AI fallback (forms, templates, manual entry) so unsupported devices and offline use still work.
 6. **Universal app.** One codebase for iPhone and iPad with adaptive layouts.
+7. **Light start, slow learning.** Onboarding asks at most three questions and shows a plan immediately. Every profile field is optional with a safe default. The app learns from behaviour and asks for detail only in context (see §5.2 and §8.5).
+8. **Inference never touches safety.** Learned signals feed soft preferences only. Hard rules (allergies, medical, religious) exist only if the user stated or confirmed them.
 
 ## 2. Scope and Non-Goals
 
@@ -97,12 +99,13 @@ Household ──< CookLog (what was cooked/rated)
 
 ### 5.1 Key Entities
 
-**Member**
-- `name`, `ageBand` (infant/toddler/child/teen/adult/senior) or `birthDate`
-- `role` flags: `needsSchoolLunch`, `schoolDays`
-- `dietType` (omnivore, vegetarian, vegan, pescatarian, …), `religiousRules`
-- `allergies: [AllergenTag]` (hard), `intolerances`, `dislikes` (soft)
-- `goals` (maintain, lose, gain, athletic), `activeTargetSet`
+**Member** (every field except the member's existence is optional; a Member can start as just "Adult 1" or "Child 1")
+- `name?`, `ageBand?` (infant/toddler/child/teen/adult/senior) or `birthDate?`
+- `role` flags: `needsSchoolLunch?`, `schoolDays?`
+- `dietType?` (omnivore, vegetarian, vegan, pescatarian, …), `religiousRules?`
+- `allergies: [AllergenTag]?` (hard), `intolerances?`, `dislikes?` (soft)
+- `goals?` (maintain, lose, gain, athletic), `activeTargetSet?`
+- `safetyStatus`: `unasked` | `skipped` | `confirmedNone` | `stated` — records whether allergies/restrictions have been addressed, so the app knows when a gentle prompt is relevant and which conservative defaults apply (§6.2)
 
 **Rule** (unified constraint representation)
 - `scope`: household | member
@@ -124,7 +127,32 @@ Household ──< CookLog (what was cooked/rated)
 **ShoppingItem**
 - Derived from plan − pantry; `ingredientId`, quantity/unit, aisle, `checkedOff`, `origin` (plan / manual / Notes import).
 
-### 5.2 Sync Strategy
+### 5.2 Household Knowledge Model (what the app knows and how well)
+
+Instead of a form-shaped profile, the app keeps a set of **Facts** about the household, each with provenance and confidence. The planner reads Facts; the UI shows and edits them in plain language.
+
+```
+Fact {
+  subject:     household | member(id) | recipe(id) | ingredient(id)
+  statement:   structured, e.g. dislikes(ingredient: okra), prefers(quickMeals, weekdays),
+               usuallySkips(fish, weekdays), cuisineAffinity(southIndian, 0.8)
+  origin:      stated (user said/typed/spoke it) | confirmed (inferred, user approved)
+               | inferred (observed from behaviour) | default (app assumption)
+  confidence:  0…1 (inferred facts only; decays without reinforcement)
+  evidence:    [events] (swaps, skips, ratings, cooked logs, list/receipt items)
+  status:      active | proposed | dismissed | forgotten
+  updatedAt
+}
+```
+
+Rules:
+- `stated` and `confirmed` facts are authoritative; `inferred` facts act as weak, decaying weights; `default` facts are replaced the moment better information exists.
+- **Only soft facts can be `inferred`.** Facts that map to `Rule(kind: hard)` (allergens, medical, religious restrictions) are created exclusively from `stated` or `confirmed` origins. A repeated pattern such as "never buys dairy" yields at most a soft suggestion, which the user must explicitly confirm to promote.
+- A fact reaches `proposed` (shown to the user for one-tap confirm) only after enough independent evidence, with a cap on proposals per week to avoid nagging.
+- Every fact is viewable, editable and deletable in a plain-language "What I've learned" screen. "Forget" removes the fact and its evidence weight.
+- All learning runs on-device, from the local event log; nothing is uploaded.
+
+### 5.3 Sync Strategy
 
 - Per-user data in the CloudKit private database; a household shared with family via **CKShare** so all members edit one `Household` record graph **[verify SwiftData + CKShare support]**.
 - Conflict policy: field-level last-writer-wins for scalars; set-merge for tags; checked-off shopping items merge by "checked wins".
@@ -200,6 +228,7 @@ protocol ModelProvider {
 | `parseReceipt` | OCR text | `[{item, qty, price}]` | On-device + store-specific heuristics | Manual |
 | `resolveIngredient` | Free-text name | Canonical ingredient id candidates | On-device embedding/fuzzy match | Search picker |
 | `explainPlan` | Plan + score components | Short text | On-device | Template strings |
+| `parseFreeform` | Free-text/voice remark ("kids are picky about veg lately") | Candidate `Fact`/`Rule` list with origin=stated, shown for confirmation | On-device | Keyword matcher + chip editor |
 | `chat` | Conversation + tool calls | Reply + `PlanEdit`/`Intent` ops | On-device or BYOK | Disabled |
 
 ### 7.3 Tool Use / Actions
@@ -258,6 +287,41 @@ Photo / PDF / pasted text
 ```
 
 The original document stays on-device (optionally in the member's private iCloud zone) and is never uploaded unless the user has enabled off-device processing for that task.
+
+### 8.5 Onboarding & Progressive Learning
+
+**Goal:** time to first plan under one minute; at most three questions; nothing mandatory.
+
+**Starter flow (all steps skippable)**
+1. *Who's eating?* Counts of adults and children (stepper). No names or ages required.
+2. *Anything we should never suggest?* Chips for common items plus a free-text/voice field ("no beef", "one of us can't have nuts"). Parsed via `parseSpokenCommand`/`parseFreeform` into candidate hard rules shown back for confirmation, or recorded as `skipped` in `safetyStatus`.
+3. *What do you usually cook?* Cuisine chips, multi-select, optional.
+
+The planner then runs with defaults. When `safetyStatus` is `unasked`/`skipped` and children are present, the engine applies **conservative defaults** to child-facing slots (especially lunchbox): exclude common major allergens (e.g., peanuts, tree nuts) from default selections, and surface a single contextual, dismissible prompt the first time a lunchbox is opened or a shopping list is built.
+
+**Contextual prompts (the "ask when it matters" queue)**
+- A prompt scheduler holds candidate questions, each with a trigger (screen/event), priority, and expiry. Rules: one prompt at a time, never during cooking mode, max N per week, never repeat a dismissed prompt within a cooldown, and skip any whose answer is already inferable with confirmed confidence.
+- Examples: opening the lunch slot → "Do any of the kids take lunch to school?"; importing a list full of high-protein items → "Is someone on a protein-focused plan?"; first import of a PDF → guidance review flow.
+
+**Learning signals (implicit)**
+
+| Signal | Learns |
+|---|---|
+| Swap/skip/re-roll (+ optional one-tap reason chip) | Dislikes, cuisine/protein affinity, time-of-day preferences |
+| "Cooked it" and ratings | Favourites, repeat cadence, portion sizes |
+| Leftover/uncooked meals | Over-planning, effort tolerance |
+| Notes/list imports and receipts | Staple foods, brands, quantities per week |
+| Pantry photos | What's usually stocked, spice/staple habits |
+| Time between plan and cooking | Weekday vs. weekend effort budget |
+| Free-text and voice remarks ("the kids are picky about veg lately") | Soft facts via `parseFreeform`, confirmed in a reflect-back card |
+
+**Reflect-back cards.** Periodically (rate-limited) the app shows one card in natural language: "You usually skip fish on weekdays. Should I plan around that?" with **Yes / Not really / Don't ask again**. Outcomes update the Fact status and suppress re-asking.
+
+**Free-form "Tell me more".** A single entry point accepting text, voice, or photo at any time. The model (or the non-AI fallback, a parser plus a review form) converts input into candidate Facts and Rules and presents them in a confirm sheet. The user never fills a structured form unless they choose the advanced editor.
+
+**Without a model:** implicit learning (event counting, weighted scoring) is plain code and works fully offline. Only free-form interpretation depends on a model; without one it falls back to keyword matching with a confirm sheet, and a simple chip-based editor.
+
+**Instrumentation (on-device, privacy-preserving):** questions shown/answered/skipped, time to first plan, proposals confirmed vs. dismissed. Aggregate, opt-in reporting only.
 
 ## 9. Recipe & Nutrition Content
 
@@ -352,7 +416,7 @@ Not built in v1, but the architecture reserves space:
 |---|---|
 | **M0 – Spike (3–4 wks)** | Prototype Share Extension from Notes; Foundation Models structured extraction on target hardware; Vision OCR on sample diet plans; measure quality/latency; validate SwiftData + CKShare |
 | **M1 – Core (6–8 wks)** | `OMPDomain` (rules, planner, pantry/list math) with safety test suite; data model & persistence; seed recipe pack (small) |
-| **M2 – Experience (6–8 wks)** | Household onboarding, planner UI, pantry & list UI, iPad layouts, barcode/OCR capture, Share Extension |
+| **M2 – Experience (6–8 wks)** | Three-question onboarding, Fact store and learning signals, reflect-back cards, "What I've learned" screen, planner UI, pantry & list UI, iPad layouts, barcode/OCR capture, Share Extension |
 | **M3 – Intelligence (4–6 wks)** | Provider abstraction, Apple on-device provider, voice intents, guidance import with review UI, model evaluation harness |
 | **M4 – BYOK & Sync (3–4 wks)** | BYOK providers + settings + redaction; CloudKit family sharing; conflict handling |
 | **M5 – Beta/Launch (4–6 wks)** | Widgets, notifications, accessibility pass, content expansion, TestFlight, App Store submission |
@@ -369,3 +433,6 @@ Parallel track: recipe & nutrition content production and licensing.
 6. Is a minimal backend ultimately acceptable (store connectors, content delivery, push), and if so, how is it kept free of user health data?
 7. How do we evaluate and communicate quality differences between on-device and BYOK models to users?
 8. Regional launch scope: which cuisine/ingredient taxonomy first?
+9. What evidence thresholds and weekly caps make inferred suggestions feel perceptive rather than intrusive? (Needs user testing; start conservative.)
+10. Which conservative allergen defaults for child lunchboxes are appropriate and culturally acceptable when the user has skipped the safety question?
+11. Should reflect-back cards and "What I've learned" be shared across the household, or per member?

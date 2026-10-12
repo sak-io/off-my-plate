@@ -37,14 +37,28 @@ Initial market: English-speaking households with iPhone/iPad; expand regional cu
 3. **Guidance-aware** — honours nutritionist/gym/doctor instructions as first-class inputs.
 4. **Effortless input** — read Notes, snap a photo, or just talk.
 5. **Closes the loop** — plan → shopping list → cart (later: auto-order).
+6. **Understands without being told** — light start, learns quietly from behaviour, never demands a profile.
+
+### 4.1 Experience Principles: Light Start, Slow Learning
+
+Most apps lose users at onboarding: a long form asks people to describe their household before the app has given them anything. Putting thoughts into words is hard work, and people rarely know in advance what they will want ("we eat everything", "it depends on the week"). OffMyPlate should instead behave like a thoughtful helper who notices.
+
+1. **Value before questions.** The first plan appears within a minute, from at most 2–3 questions. Everything else is optional or learned.
+2. **Learn from behaviour, not forms.** Swaps, skips, "cooked it", re-rolls, ratings, Notes lists, receipts and pantry photos teach the app more than any questionnaire. A swapped-out Wednesday dinner is a signal; no one had to explain it.
+3. **Never required, always available.** A "Tell me more" area lets people add specifics (allergies, nutritionist plans, rules) in their own words, by voice, or by photo. Nothing is blocked behind it, and it can be done at any time.
+4. **Free-form, not form-shaped.** People can say things the way they think them ("the kids have been picky about veg lately", "we're trying to eat lighter this month"). The app turns that into structure; the user never has to.
+5. **Show understanding, invite correction.** The app reflects what it has picked up in plain language ("Looks like you usually skip fish on weekdays. Right?"), with one-tap confirm, fix or dismiss. It never nags or interrogates.
+6. **Ask at the moment of relevance.** A question appears only when the answer changes something the user is looking at, one question at a time, always skippable.
+7. **Sensible defaults, quiet confidence.** Where the app is guessing, it plans conservatively and says so lightly, instead of asking up front.
+8. **Safety is the exception.** Learned patterns only ever influence *preferences*. Allergies and medical restrictions are never assumed from behaviour. The app asks once, gently, at the first moment it matters (see §6.1), and treats the user's answer as the only source of truth.
 
 ## 5. Inputs the Planner Understands
 
 | Input | Examples | Capture method |
 |---|---|---|
-| **Household profile** | Members, ages, kids needing school lunch, who's home on which days | Onboarding, editable anytime |
-| **Eating habits** | Cuisines, usual dishes, spice level, cook time budget, appliances available | Onboarding quiz + learning from history/ratings |
-| **Dietary restrictions** | Vegetarian, halal, allergies, diabetic, low-sodium, religious fasting days | Per-member profile |
+| **Household profile** | Members, ages, kids needing school lunch, who's home on which days | 2–3 starter questions; the rest is inferred or added any time by choice |
+| **Eating habits** | Cuisines, usual dishes, spice level, cook time budget, appliances available | Learned from swaps, cooked meals, ratings, lists and receipts; optional "tell me more" |
+| **Dietary restrictions** | Vegetarian, halal, allergies, diabetic, low-sodium, religious fasting days | One light, skippable check at the start; refined only when the user chooses; never inferred for safety-critical items |
 | **Professional guidance** | Nutritionist plan, gym coach macros, doctor's advice | Upload PDF / photo / paste text / dictate; parsed into structured rules |
 | **Pantry & fridge inventory** | Items, quantity, expiry | Photo scan, voice, receipt scan, manual, auto-deduct after cooking |
 | **Last shopping list / purchases** | What was bought recently | Apple Notes import, receipt scan, order history (later) |
@@ -55,9 +69,13 @@ Initial market: English-speaking households with iPhone/iPad; expand regional cu
 
 ### 6.1 MVP (v1)
 
-**Onboarding & household profile**
-- Add family members with age, diet type, allergies, goals, and school-lunch flag.
-- Choose cuisines, typical dishes, cooking skill/time, available appliances.
+**Onboarding (lightweight by design)**
+- **Three taps or fewer to a first plan.** Starter questions: how many people eat (adults / kids), any food everyone avoids (single skippable screen: "Anything we should never suggest?" with common chips and free text/voice), and the kind of food you usually cook (pick a few cuisines, or skip).
+- No account wall, no long profile, no goals or appliance quiz up front. The first weekly plan is generated with sensible defaults and labelled as a starting point.
+- **Progressive profile.** Details such as which kids need school lunch, who is on a gym or nutritionist plan, and who is home on which days are asked later, in context, one at a time ("Do any of the kids take lunch to school?" appears when the user opens the lunch slot).
+- **"Tell me more" (optional, always available).** One place to add anything specific: type, speak or photograph it ("Dad is diabetic", "Meera has a nut allergy", a nutritionist's chart). It is never required and can be revisited or edited at any time.
+- **Learning in the background.** The app picks up habits from swaps, skips, "cooked it" taps, pantry photos, receipts and Notes lists, and occasionally reflects them back for one-tap confirmation (see §4.1).
+- **Allergy safety without a questionnaire.** Because allergies can't be guessed, the first plan avoids the most common allergens in lunchbox meals for children until the user answers a single gentle question; answering (or explicitly skipping) is remembered.
 
 **Meal planning**
 - Weekly plan (breakfast, lunch, dinner, snacks, **school lunchbox** as a distinct slot).
@@ -102,6 +120,13 @@ Initial market: English-speaking households with iPhone/iPad; expand regional cu
 - Reconcile delivered items into the pantry automatically.
 
 ## 7. Example User Flows
+
+**First launch (under a minute)**
+1. "How many people are you cooking for?" → 2 adults, 2 kids.
+2. "Anything we should never suggest?" → user says "no beef" or taps Skip.
+3. "What do you usually cook?" → picks a couple of cuisines or skips.
+4. A full week appears, marked "A starting point. Swap anything and I'll learn."
+5. Over the next days, the user swaps a dish and skips another. The app later says: "You tend to prefer quick dinners on weekdays. Should I plan around that?" One tap to confirm.
 
 **Sunday planning (5 minutes)**
 1. User says: "Plan the week. Two of us are on a high-protein plan, kids need lunchboxes Mon–Fri, no beef."
@@ -175,7 +200,8 @@ The "give us your store credentials" model is the highest-risk part of the produ
 
 ## 13. Success Metrics
 
-- **Activation:** % of new users who generate a first weekly plan within 24 h.
+- **Activation:** % of new users who see a first weekly plan within 2 minutes of install; onboarding completion rate; median number of questions answered (target ≤ 3).
+- **Learning quality:** share of inferred preferences confirmed vs. dismissed; reduction in swap rate over the first four weeks.
 - **Engagement:** weekly active households; meals marked cooked per week; plans edited vs. accepted as-is.
 - **Value:** self-reported time saved; reduction in food waste (pantry items expiring unused); takeout-substitution rate.
 - **Quality:** meal rating average; swap/re-roll rate; allergen-violation rate (target: zero).
@@ -186,6 +212,8 @@ The "give us your store credentials" model is the highest-risk part of the produ
 
 | Risk | Impact | Mitigation |
 |---|---|---|
+| Onboarding drop-off (long forms before value) | Users never reach the first plan | Three-question start, value first, everything else optional and contextual (§4.1) |
+| Wrong inferences feel creepy or inaccurate | Loss of trust | Learn only soft preferences, show what was learned in plain language, one-tap correct or forget, never infer safety-critical rules |
 | Apple Notes has no read API | Core input broken | Share extension, Shortcuts/App Intents, Reminders support, paste flow |
 | Store integrations unavailable or ToS-restricted | Automation vision delayed | Start with deep links/handoff; pursue partner APIs; keep planning valuable standalone |
 | LLM mistakes on allergies/medical diets | Safety, liability | Deterministic validators, confirm-before-use for extracted guidance, disclaimers |
