@@ -1,6 +1,6 @@
 # Status
 
-**Phase:** Kickoff, step 3 (build) — T02, T03 and the T01 lint follow-up in progress
+**Phase:** Kickoff, step 3 (build) — T03 in review
 **Branch:** `claude/build-v1`
 
 ## Owner decisions at kickoff (2026-10-12)
@@ -15,7 +15,12 @@
 - UX design (`docs/design/`) and architecture plan, 15 ADRs and 30-task breakdown (`docs/architecture/`, `docs/adr/`). Owner waived plan approval; recommendations R1–R9 apply as defaults.
 - Spec approved by owner ("AGREED", 2026-10-12): `docs/specs/offmyplate-v1.md`. All gap defaults G1–G12 accepted.
 
-- T01 foundation merged; both CI jobs green on 0884abe (Linux Swift 6.2, macOS Xcode 26.3 / Swift 6.2.4).
+- T01 foundation merged; both CI jobs green on 0884abe (Linux Swift 6.2, macOS Xcode 26.3 / Swift 6.2.4). T01 lint follow-up merged.
+- T02 app walking skeleton merged (d75f9ec): CI green before merge, incl. app build and UI tests on iPhone and iPad simulators.
+- T03 domain contracts: CI green on `claude/ci-t03` (c177c6c); review in progress (first review attempt was cut off by a usage limit).
+- Tracked review follow-ups: `.autocraft/work/tracked.md`.
+
+Process note: task branches are pushed as `claude/ci-tNN` so CI runs before merge (deviation from session-branch mode). The git proxy does not allow deleting remote branches; the owner can delete `claude/ci-*` branches on GitHub.
 
 ## Next
 - Build T01–T30 per `docs/architecture/tasks.md`. Verification is GitHub Actions CI (no local Swift toolchain: download.swift.org is blocked).
