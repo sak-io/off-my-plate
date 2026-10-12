@@ -1,0 +1,254 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "2026.10.12-t04",
+  "ingredients": [
+    {
+      "id": "toor-dal",
+      "name": "Toor dal",
+      "synonyms": [
+        "arhar dal",
+        "pigeon pea lentils",
+        "tuvar dal"
+      ],
+      "tags": [],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "pulsesAndLentils",
+      "defaultUnit": "g",
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "basmati-rice",
+      "name": "Basmati rice",
+      "synonyms": [
+        "chawal"
+      ],
+      "tags": [],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "grainsAndFlours",
+      "defaultUnit": "g",
+      "gramsPerMl": 0.85,
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "poha",
+      "name": "Poha",
+      "synonyms": [
+        "flattened rice",
+        "beaten rice",
+        "aval"
+      ],
+      "tags": [],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "grainsAndFlours",
+      "defaultUnit": "g",
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "ghee",
+      "name": "Ghee",
+      "synonyms": [
+        "clarified butter"
+      ],
+      "tags": [
+        "milk"
+      ],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "oilsAndGhee",
+      "defaultUnit": "g",
+      "gramsPerMl": 0.91,
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "sunflower-oil",
+      "name": "Sunflower oil",
+      "synonyms": [
+        "cooking oil",
+        "refined oil"
+      ],
+      "tags": [],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "oilsAndGhee",
+      "defaultUnit": "ml",
+      "gramsPerMl": 0.92,
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "hing",
+      "name": "Asafoetida",
+      "synonyms": [
+        "hing",
+        "heeng"
+      ],
+      "tags": [],
+      "mayContain": [
+        "wheat",
+        "gluten"
+      ],
+      "tagStatus": "unverified",
+      "aisle": "spicesAndMasalas",
+      "defaultUnit": "pinch",
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "cumin-seeds",
+      "name": "Cumin seeds",
+      "synonyms": [
+        "jeera"
+      ],
+      "tags": [],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "spicesAndMasalas",
+      "defaultUnit": "g",
+      "gramsPerMl": 0.4,
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "mustard-seeds",
+      "name": "Mustard seeds",
+      "synonyms": [
+        "rai",
+        "sarson"
+      ],
+      "tags": [
+        "mustard"
+      ],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "spicesAndMasalas",
+      "defaultUnit": "g",
+      "gramsPerMl": 0.7,
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "salt",
+      "name": "Salt",
+      "synonyms": [
+        "namak"
+      ],
+      "tags": [],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "spicesAndMasalas",
+      "defaultUnit": "g",
+      "gramsPerMl": 1.2,
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "onion",
+      "name": "Onion",
+      "synonyms": [
+        "pyaz",
+        "kanda"
+      ],
+      "tags": [
+        "onion"
+      ],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "vegetablesAndFruit",
+      "defaultUnit": "piece",
+      "gramsPerPiece": 150,
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "garlic",
+      "name": "Garlic",
+      "synonyms": [
+        "lahsun"
+      ],
+      "tags": [
+        "garlic"
+      ],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "vegetablesAndFruit",
+      "defaultUnit": "g",
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "potato",
+      "name": "Potato",
+      "synonyms": [
+        "aloo",
+        "batata"
+      ],
+      "tags": [
+        "rootVegetable"
+      ],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "vegetablesAndFruit",
+      "defaultUnit": "g",
+      "gramsPerPiece": 150,
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "tomato",
+      "name": "Tomato",
+      "synonyms": [
+        "tamatar"
+      ],
+      "tags": [],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "vegetablesAndFruit",
+      "defaultUnit": "piece",
+      "gramsPerPiece": 100,
+      "defaultLocation": "fridge",
+      "fridgeShelfLifeDays": 7
+    },
+    {
+      "id": "green-chilli",
+      "name": "Green chilli",
+      "synonyms": [
+        "hari mirch"
+      ],
+      "tags": [],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "vegetablesAndFruit",
+      "defaultUnit": "piece",
+      "gramsPerPiece": 5,
+      "defaultLocation": "fridge",
+      "fridgeShelfLifeDays": 10
+    },
+    {
+      "id": "curry-leaves",
+      "name": "Curry leaves",
+      "synonyms": [
+        "kadi patta",
+        "kariveppilai"
+      ],
+      "tags": [],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "vegetablesAndFruit",
+      "defaultUnit": "toTaste",
+      "defaultLocation": "fridge",
+      "fridgeShelfLifeDays": 7
+    },
+    {
+      "id": "peanuts",
+      "name": "Peanuts",
+      "synonyms": [
+        "groundnuts",
+        "moongphali",
+        "shengdana"
+      ],
+      "tags": [
+        "peanut"
+      ],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "other",
+      "defaultUnit": "g",
+      "defaultLocation": "shelf"
+    }
+  ]
+}
