@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # check-core.sh: everything a Core change must pass, in CI order.
 #
-#   1. lint self-tests (each lint passes on clean fixtures and fails on planted violations)
+#   1. script self-tests: each lint passes on clean fixtures and fails on planted
+#      violations; the bootstrap script is exercised with fake curl/gpg/docker
 #   2. every scripts/lint-*.sh against the repository
 #   3. swift build (including tests) of Packages/Core
 #   4. swift test of Packages/Core
@@ -24,8 +25,9 @@ esac
 
 step() { printf '\n==> %s\n' "$1"; }
 
-step "Lint self-tests"
+step "Script self-tests"
 "$repo_root/scripts/tests/test-lints.sh"
+"$repo_root/scripts/tests/test-bootstrap.sh"
 
 for lint in "$repo_root"/scripts/lint-*.sh; do
   step "$(basename "$lint")"
