@@ -7,7 +7,8 @@ name: core-linux
 on:
   push:
     branches: ["claude/**", "main"]
-    # Docs-only and team-bookkeeping pushes do not need a build (saves macOS minutes).
+    # Docs-only and team-bookkeeping pushes do not need a build. Note: if the last commit on a branch
+    # is docs-only it gets no run of its own; the previous code commit's run still applies.
     paths-ignore: ["docs/**", ".autocraft/**", "**/*.md"]
   pull_request:
   workflow_dispatch:
