@@ -22,6 +22,9 @@
 # Whole-line comments (//, ///, /*, *) are ignored. There is deliberately no inline
 # "allow" escape hatch: change this script in a reviewed PR if a real need appears.
 #
+# Fail-safe by design: this is text matching, not a parser, so a banned name inside a
+# string literal may be reported (a false positive); it is never silently skipped.
+#
 # Usage: scripts/lint-no-network.sh [ROOT_DIR]   (default: repository root)
 # Exit:  0 clean, 1 violations found, 2 usage error.
 # Portable: bash 3.2+, POSIX grep/sed (works on Linux CI and macOS).
@@ -50,8 +53,10 @@ report() {
   violations=$((violations + 1))
 }
 
-# Whole-line comments: //, /// and * continuation lines, and a /* that stays open.
-comment_re='^[[:space:]]*(//|\*|/\*([^*]|\*+[^*/])*\**$)'
+closed_comment='/\*([^*]|\*+[^*/])*\*+/'
+# Whole-line comments: //, /// and * continuation lines, a /* that stays open, and a
+# line that is nothing but closed /* */ comments. Code after a closed comment is checked.
+comment_re="^[[:space:]]*(//|\\*|/\\*([^*]|\\*+[^*/])*\\**\$|(${closed_comment}[[:space:]]*)+\$)"
 
 # hit = file:line:text ; prints violations for non-comment lines.
 scan() { # regex, message, include-glob...
@@ -76,7 +81,7 @@ scan() { # regex, message, include-glob...
 
 banned_modules='Network|NetworkExtension|CFNetwork|FoundationNetworking|WebKit|SafariServices|MultipeerConnectivity|CloudKit'
 banned_sdks='Firebase[A-Za-z]*|Crashlytics|Sentry[A-Za-z]*|Amplitude[A-Za-z]*|Mixpanel|Segment|Bugsnag|AppCenter[A-Za-z]*|Datadog[A-Za-z]*|Alamofire|Moya'
-import_re="(^|;)[[:space:]]*(/\*[^*]*\*/[[:space:]]*)*(@[A-Za-z_]+(\([^)]*\))?[[:space:]]+)*((public|package|internal|fileprivate|private)[[:space:]]+)?import[[:space:]]+((typealias|struct|class|enum|protocol|let|var|func)[[:space:]]+)?($banned_modules|$banned_sdks)([.[:space:]]|$)"
+import_re="(^|;)[[:space:]]*(${closed_comment}[[:space:]]*)*(@[A-Za-z_]+(\([^)]*\))?[[:space:]]+)*((public|package|internal|fileprivate|private)[[:space:]]+)?import[[:space:]]+((typealias|struct|class|enum|protocol|let|var|func)[[:space:]]+)?($banned_modules|$banned_sdks)([.[:space:]]|$)"
 scan "$import_re" "network/web/analytics framework import is not allowed (ADR 0002, AC-13.2)" '*.swift'
 
 symbols='URLSession|NSURLSession|URLRequest|NSURLRequest|NSMutableURLRequest|NSURLConnection|NWConnection|NWListener|NWBrowser|NWPathMonitor|NWEndpoint|CFSocket|CFStreamCreatePairWithSocket|getStreamsToHost|WKWebView|SFSafariViewController|ASWebAuthenticationSession'

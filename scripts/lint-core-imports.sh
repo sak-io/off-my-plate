@@ -20,6 +20,9 @@
 # (import struct Foundation.Date), also after a `;` or a closed /* ... */ comment on the
 # same line (`import Foundation; import UIKit`, `/* x */ import UIKit`).
 #
+# Fail-safe by design: this is text matching, not a parser, so a banned name inside a
+# string literal may be reported (a false positive); it is never silently skipped.
+#
 # Usage: scripts/lint-core-imports.sh [CORE_PACKAGE_DIR]   (default: Packages/Core)
 # Exit:  0 clean, 1 violations found, 2 usage error.
 # Portable: bash 3.2+, POSIX grep/sed (works on Linux CI and macOS).
@@ -50,10 +53,12 @@ done
 # then Module[.Sub]. Groups: 1-2 attributes, 3-4 access level, 5-6 kind, 7 module.
 import_prefix='^[[:space:]]*(@[A-Za-z_]+(\([^)]*\))?[[:space:]]+)*((public|package|internal|fileprivate|private)[[:space:]]+)?import[[:space:]]+'
 # A statement starts at the line start or after `;`, optionally after closed /* */ comments.
-stmt_start='(^|;)[[:space:]]*(/\*[^*]*\*/[[:space:]]*)*'
+closed_comment='/\*([^*]|\*+[^*/])*\*+/'
+stmt_start="(^|;)[[:space:]]*(${closed_comment}[[:space:]]*)*"
 import_line_re="${stmt_start}${import_prefix#^}"
-# Whole-line comments: //, /// and * continuation lines, and a /* that stays open.
-comment_only_re='^[[:space:]]*(//|\*|/\*([^*]|\*+[^*/])*\**$)'
+# Whole-line comments: //, /// and * continuation lines, a /* that stays open, and a
+# line that is nothing but closed /* */ comments. Code after a closed comment is checked.
+comment_only_re="^[[:space:]]*(//|\\*|/\\*([^*]|\\*+[^*/])*\\**\$|(${closed_comment}[[:space:]]*)+\$)"
 module_sed="s/${import_prefix}((typealias|struct|class|enum|protocol|let|var|func)[[:space:]]+)?([A-Za-z_][A-Za-z0-9_]*).*\$/\\7/"
 
 is_allowed() { # module, space-separated allow list
@@ -77,7 +82,7 @@ check_imports() { # dir, allow list, label
     fi
     # One report per import statement on the line (split on `;`, drop leading comments).
     while IFS= read -r segment; do
-      segment="$(sed -E 's#^[[:space:]]*(/\*[^*]*\*/[[:space:]]*)*##' <<<"$segment")"
+      segment="$(sed -E "s#^[[:space:]]*(${closed_comment}[[:space:]]*)*##" <<<"$segment")"
       grep -qE "$import_prefix" <<<"$segment" || continue
       module="$(sed -E "$module_sed" <<<"$segment")"
       if ! is_allowed "$module" "$allowed"; then
@@ -93,7 +98,10 @@ check_imports "$core_dir/Tests" "Foundation Testing$core_modules" "tests"
 # Platform- or locale-dependent APIs (ADR 0005). Whole-line comments are ignored.
 formatters='DateFormatter|DateComponentsFormatter|DateIntervalFormatter|ISO8601DateFormatter|RelativeDateTimeFormatter|NumberFormatter|MeasurementFormatter|ByteCountFormatter|PersonNameComponentsFormatter|ListFormatter|LengthFormatter|MassFormatter|EnergyFormatter'
 cur='(current|autoupdatingCurrent)'
-implicit_current="(TimeZone|Calendar|Locale)\\??[[:space:]]*=[[:space:]]*\\.$cur|(timeZone|calendar|locale)[[:space:]]*:[[:space:]]*\\.$cur|NS(TimeZone|Locale|Calendar)\\.(local|system|default|current|autoupdatingCurrent)"
+# Implicit member forms: `: TimeZone = .current` (also ? and !), and a timeZone/calendar/
+# locale label, assignment or comparison: `timeZone: .current`, `c.timeZone = .current`,
+# `x.timeZone == .current`, `x.timeZone != .current`.
+implicit_current="(TimeZone|Calendar|Locale)[?!]?[[:space:]]*=[[:space:]]*\\.$cur|(timeZone|calendar|locale)[[:space:]]*(:|[!=]?=)[[:space:]]*\\.$cur|NS(TimeZone|Locale|Calendar)\\.(local|system|default|current|autoupdatingCurrent)"
 banned_api_re="(^|[^A-Za-z0-9_])(NSLocalizedString|NSPredicate|$formatters)([^A-Za-z0-9_]|\$)|String\\(localized:|\\.formatted\\(|(^|[^A-Za-z0-9_])(Calendar|Locale|TimeZone)\\.$cur([^A-Za-z0-9_]|\$)|(^|[^A-Za-z0-9_])($implicit_current)([^A-Za-z0-9_]|\$)"
 banned_api_only="NSLocalizedString|NSPredicate|$formatters|String\\(localized:|\\.formatted\\(|$implicit_current|(Calendar|Locale|TimeZone)\\.$cur"
 while IFS= read -r hit; do
@@ -101,7 +109,7 @@ while IFS= read -r hit; do
   rest="${hit#*:}"
   line="${rest%%:*}"
   text="${rest#*:}"
-  if printf '%s\n' "$text" | grep -qE '^[[:space:]]*(//|/\*|\*)'; then
+  if grep -qE "$comment_only_re" <<<"$text"; then
     continue
   fi
   api="$(printf '%s\n' "$text" | grep -oE "$banned_api_only" | head -n 1)"

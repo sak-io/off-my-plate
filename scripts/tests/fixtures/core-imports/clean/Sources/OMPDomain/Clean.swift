@@ -19,3 +19,5 @@ public let isCurrentWeek = true   // ".current" only as part of another word
 /* a block comment that stays open; import UIKit
  * import SwiftUI
  */
+/** Never use TimeZone.current or `c.timeZone = .current` here. */
+/* one * star, still a whole-line comment: NSTimeZone.local */
