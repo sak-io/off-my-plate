@@ -17,13 +17,14 @@ This document describes how OffMyPlate is built. The product vision, personas an
 5. **Graceful degradation.** Every feature has a non-AI fallback (forms, templates, manual entry) so unsupported devices and offline use still work.
 6. **Universal app.** One codebase for iPhone and iPad with adaptive layouts.
 7. **Light start, slow learning.** Onboarding asks at most three questions and shows a plan immediately. Every profile field is optional with a safe default. The app learns from behaviour and asks for detail only in context (see §5.2 and §8.5).
-8. **Inference never touches safety.** Learned signals feed soft preferences only. Hard rules (allergies, medical, religious) exist only if the user stated or confirmed them.
+8. **Inference never touches safety.** Learned signals feed soft preferences only. Hard rules (allergies, medical, religious) exist only if the user stated or confirmed them. The safety check is mandatory and unskippable: no plan is generated until it has been answered ("no restrictions" is a valid answer).
+9. **Human approval gate.** Every meal plan and every order requires explicit user approval. Models, learning, chat tools, schedulers and automations can create drafts and proposals but can never approve a plan or place an order (see §6.4).
 
 ## 2. Scope and Non-Goals
 
 **In scope (v1):** household profiles, constraint-based meal planning, school-lunch slot, pantry, shopping list, guidance import, Apple Notes import via Share Extension, camera/voice input, iCloud family sync.
 
-**Out of scope for v1:** store carts and auto-ordering (see §14), hosted LLM, Android/web clients, social features, a marketplace for professional plans.
+**Out of scope for v1:** store carts and ordering (see §14), hosted LLM, Android/web clients, social features, a marketplace for professional plans.
 
 ## 3. Platform Targets
 
@@ -105,7 +106,7 @@ Household ──< CookLog (what was cooked/rated)
 - `dietType?` (omnivore, vegetarian, vegan, pescatarian, …), `religiousRules?`
 - `allergies: [AllergenTag]?` (hard), `intolerances?`, `dislikes?` (soft)
 - `goals?` (maintain, lose, gain, athletic), `activeTargetSet?`
-- `safetyStatus`: `unasked` | `skipped` | `confirmedNone` | `stated` — records whether allergies/restrictions have been addressed, so the app knows when a gentle prompt is relevant and which conservative defaults apply (§6.2)
+- `safetyStatus`: `unasked` | `confirmedNone` | `stated` — whether allergies/restrictions have been addressed for this member. There is no `skipped` state. While any member is `unasked`, plan generation is blocked (§6.4). A new member starts `unasked`. `confirmedAt` is stored so periodic re-confirmation can be scheduled.
 
 **Rule** (unified constraint representation)
 - `scope`: household | member
@@ -188,7 +189,8 @@ The planner is deterministic and explainable. The model is optional and only dec
 
 ### 6.2 Safety Guarantees
 
-- The hard-rule checker is a separate, exhaustively unit-tested module. A plan is never displayed unless it passes.
+- The hard-rule checker is a separate, exhaustively unit-tested module. A plan is never displayed unless it passes, and it runs again at approval time.
+- **Safety gate:** the planner refuses to run while any member's `safetyStatus` is `unasked`. This is enforced in the domain layer (not just the UI), with tests that fail the build if any code path can generate a plan past the gate.
 - Ingredient allergen detection uses structured tags, not text matching. Free-text or unresolved ingredients are flagged **"unverified"** and excluded from allergic members' meals by default.
 - Packaged-food barcodes resolve to ingredient/allergen data where available; otherwise flagged as unverified.
 - Persistent, non-dismissable disclaimer that the app does not provide medical advice.
@@ -201,6 +203,26 @@ The planner is deterministic and explainable. The model is optional and only dec
 | Explain the plan | Template strings from score components | Natural-language phrasing of the same reasons |
 | Interpret "make it lighter on Thursday" | Structured controls (filters, sliders) | Chat → structured `PlanEdit` operations, then validated |
 | Invent a new dish | Not supported (library + user recipes only) | Suggest a recipe draft, tagged `unverified` until ingredients are resolved and nutrition computed |
+
+### 6.4 Approval Gate (plans and orders)
+
+**Plan lifecycle:** `draft` → `approved` → `superseded` (or `discarded`).
+
+- The planner and all model-assisted flows (chat edits, voice, regenerate, "cook what I have") only ever create or modify **drafts**.
+- Only an explicit, user-initiated action in the app (an Approve control) moves a plan to `approved`. Chat tools, App Intents, Shortcuts, widgets, notifications and background tasks cannot approve. A spoken or typed "looks good" is treated as a proposal to approve and still needs a confirming tap.
+- Until a plan is `approved`: no shopping list is generated from it, no reminders, Live Activities or widgets are scheduled for it, and no pantry deductions occur.
+- Editing an approved plan creates a draft revision. The approval sheet shows a diff (what changed) and the validator re-runs before the user can re-approve; unchanged meals stay approved.
+- Approval stores who approved, when, and a hash of the plan content, so any later change invalidates it.
+- UX: one tap approves the whole week; per-meal review is optional but always available.
+
+**Order lifecycle:** `proposed` → `approved` → `placed` → `delivered` (or `cancelled`/`failed`).
+
+- A cart/order is derived from an approved shopping list and is always created as `proposed`.
+- Placing it requires explicit approval of that specific order after the user sees the final items, substitutions and total, authenticated with Face ID/Touch ID (`LocalAuthentication`) where available.
+- Approval is bound to the exact contents and total; if anything changes (price, substitution, quantity), the approval is void and must be repeated.
+- No unattended, scheduled or recurring order placement. Schedulers may prepare a `proposed` order and notify the user; they can never advance it to `approved`.
+- Spend caps and substitution rules are additional guards, not a replacement for approval. Every state transition is recorded in an audit log.
+
 
 ## 7. Intelligence Layer
 
@@ -233,7 +255,7 @@ protocol ModelProvider {
 
 ### 7.3 Tool Use / Actions
 
-Chat is constrained to a fixed set of tools (typed, validated): `addPantryItem`, `removePantryItem`, `addRule`, `editMeal`, `lockMeal`, `regenerateSlot`, `addToShoppingList`. The model proposes tool calls; the app validates and applies them, showing a confirmation for any rule or health-related change.
+Chat is constrained to a fixed set of tools (typed, validated): `addPantryItem`, `removePantryItem`, `addRule`, `editMeal`, `lockMeal`, `regenerateSlot`, `addToShoppingList`. Tools can only create or modify drafts and proposals; none can approve a plan or place an order (§6.4). The model proposes tool calls; the app validates and applies them, showing a confirmation for any rule or health-related change.
 
 ### 7.4 BYOK Management
 
@@ -292,15 +314,15 @@ The original document stays on-device (optionally in the member's private iCloud
 
 **Goal:** time to first plan under one minute; at most three questions; nothing mandatory.
 
-**Starter flow (all steps skippable)**
+**Starter flow (the safety question is required; the other two can be skipped)**
 1. *Who's eating?* Counts of adults and children (stepper). No names or ages required.
-2. *Anything we should never suggest?* Chips for common items plus a free-text/voice field ("no beef", "one of us can't have nuts"). Parsed via `parseSpokenCommand`/`parseFreeform` into candidate hard rules shown back for confirmation, or recorded as `skipped` in `safetyStatus`.
+2. *Does anyone have an allergy or something they must avoid?* **Required.** A prominent "No, nobody" button (one tap) sets `confirmedNone`; otherwise chips for common allergens/restrictions plus free-text/voice ("no beef", "one of us can't have nuts"), parsed via `parseSpokenCommand`/`parseFreeform` into candidate hard rules shown back for confirmation, then `stated`. There is no skip or dismiss control, and the planner is blocked until this is answered. The screen explains in one plain sentence why it is asked.
 3. *What do you usually cook?* Cuisine chips, multi-select, optional.
 
-The planner then runs with defaults. When `safetyStatus` is `unasked`/`skipped` and children are present, the engine applies **conservative defaults** to child-facing slots (especially lunchbox): exclude common major allergens (e.g., peanuts, tree nuts) from default selections, and surface a single contextual, dismissible prompt the first time a lunchbox is opened or a shopping list is built.
+The planner then produces a **draft** using defaults for everything else; nothing is acted on until the user approves it (§6.4). The safety question is asked again for any member added later, and re-confirmed periodically (cadence to be decided, see §17) and when a child's age band changes. These safety prompts are exempt from the prompt-scheduler caps below.
 
 **Contextual prompts (the "ask when it matters" queue)**
-- A prompt scheduler holds candidate questions, each with a trigger (screen/event), priority, and expiry. Rules: one prompt at a time, never during cooking mode, max N per week, never repeat a dismissed prompt within a cooldown, and skip any whose answer is already inferable with confirmed confidence.
+- A prompt scheduler holds candidate questions, each with a trigger (screen/event), priority, and expiry. Rules: one prompt at a time, never during cooking mode, max N per week (safety prompts excepted), never repeat a dismissed prompt within a cooldown, and skip any whose answer is already inferable with confirmed confidence.
 - Examples: opening the lunch slot → "Do any of the kids take lunch to school?"; importing a list full of high-protein items → "Is someone on a protein-focused plan?"; first import of a PDF → guidance review flow.
 
 **Learning signals (implicit)**
@@ -337,7 +359,7 @@ Because no hosted LLM invents dishes, **the recipe library is a core product ass
 ## 10. Shopping List Generation
 
 ```
-requirements = Σ over planned meals (ingredient qty × servings, unit-normalised)
+requirements = Σ over meals in the APPROVED plan (ingredient qty × servings, unit-normalised)
 need         = requirements − pantry (respecting expiry & confidence)
 list         = merge(need, manual items, staples below threshold)
                → group by aisle → round to pack sizes
@@ -399,9 +421,9 @@ Not built in v1, but the architecture reserves space:
 - A `StoreConnector` protocol: `searchProduct`, `buildCart(list)`, `checkoutHandoff`, `status`.
 - Preference order: official partner API (OAuth) → deep link/share handoff → user-driven in-app web session where credentials stay on-device → (avoid) stored credentials.
 - All credentials in Keychain; no server-side credential storage.
-- Auto-order safeguards: spend caps, confirmation thresholds, substitution rules, order preview, audit log.
+- Ordering is human-approved only: each order is a `proposed` cart that the user explicitly approves (Face ID where available) after seeing items, substitutions and total; no unattended or recurring placement (§6.4). Spend caps, substitution rules and an audit log are additional guards.
 - A `ProductMatch` layer mapping canonical ingredients to store SKUs with user brand preferences and pack-size optimisation.
-- Because there is no OffMyPlate backend in v1, any connector that needs server-side OAuth callbacks, scheduled orders, or price feeds would require introducing a minimal backend — a deliberate future decision.
+- Because there is no OffMyPlate backend in v1, any connector that needs server-side OAuth callbacks, scheduled orders, or price feeds would require introducing a minimal backend (and even then orders stay approval-gated) — a deliberate future decision.
 
 ## 15. Accessibility & Localisation
 
@@ -415,7 +437,7 @@ Not built in v1, but the architecture reserves space:
 | Milestone | Deliverables |
 |---|---|
 | **M0 – Spike (3–4 wks)** | Prototype Share Extension from Notes; Foundation Models structured extraction on target hardware; Vision OCR on sample diet plans; measure quality/latency; validate SwiftData + CKShare |
-| **M1 – Core (6–8 wks)** | `OMPDomain` (rules, planner, pantry/list math) with safety test suite; data model & persistence; seed recipe pack (small) |
+| **M1 – Core (6–8 wks)** | `OMPDomain` (rules, planner, safety gate, plan/order approval state machines, pantry/list math) with safety test suite; data model & persistence; seed recipe pack (small) |
 | **M2 – Experience (6–8 wks)** | Three-question onboarding, Fact store and learning signals, reflect-back cards, "What I've learned" screen, planner UI, pantry & list UI, iPad layouts, barcode/OCR capture, Share Extension |
 | **M3 – Intelligence (4–6 wks)** | Provider abstraction, Apple on-device provider, voice intents, guidance import with review UI, model evaluation harness |
 | **M4 – BYOK & Sync (3–4 wks)** | BYOK providers + settings + redaction; CloudKit family sharing; conflict handling |
@@ -434,5 +456,6 @@ Parallel track: recipe & nutrition content production and licensing.
 7. How do we evaluate and communicate quality differences between on-device and BYOK models to users?
 8. Regional launch scope: which cuisine/ingredient taxonomy first?
 9. What evidence thresholds and weekly caps make inferred suggestions feel perceptive rather than intrusive? (Needs user testing; start conservative.)
-10. Which conservative allergen defaults for child lunchboxes are appropriate and culturally acceptable when the user has skipped the safety question?
-11. Should reflect-back cards and "What I've learned" be shared across the household, or per member?
+10. What are the wording and cadence of safety re-confirmation (member added, periodic, child's age band changes), and is the safety answer per household or per member?
+11. What approval UX keeps the gate meaningful without becoming a rubber stamp: whole-week approval, diff-only re-approval, and how to present changes?
+12. Should reflect-back cards and "What I've learned" be shared across the household, or per member?
