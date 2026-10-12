@@ -12,3 +12,12 @@ public struct Clean {
     public var currentTimeZone: TimeZone? = kolkata
     public init() {}
 }
+public func makeCalendar(timeZone: TimeZone = kolkata!, calendar: Calendar = gregorian) -> Calendar { calendar }
+public let fixedZone: TimeZone = .init(secondsFromGMT: 19800)!
+public let isCurrentWeek = true   // ".current" only as part of another word
+// a comment; import UIKit  (whole-line comments are ignored)
+/* a block comment that stays open; import UIKit
+ * import SwiftUI
+ */
+/** Never use TimeZone.current or `c.timeZone = .current` here. */
+/* one * star, still a whole-line comment: NSTimeZone.local */

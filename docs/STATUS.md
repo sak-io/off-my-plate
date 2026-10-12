@@ -1,6 +1,6 @@
 # Status
 
-**Phase:** Kickoff, step 3 (build) — T01 in progress
+**Phase:** Kickoff, step 3 (build) — T02, T03 and the T01 lint follow-up in progress
 **Branch:** `claude/build-v1`
 
 ## Owner decisions at kickoff (2026-10-12)
@@ -14,6 +14,8 @@
 ## Done
 - UX design (`docs/design/`) and architecture plan, 15 ADRs and 30-task breakdown (`docs/architecture/`, `docs/adr/`). Owner waived plan approval; recommendations R1–R9 apply as defaults.
 - Spec approved by owner ("AGREED", 2026-10-12): `docs/specs/offmyplate-v1.md`. All gap defaults G1–G12 accepted.
+
+- T01 foundation merged; both CI jobs green on 0884abe (Linux Swift 6.2, macOS Xcode 26.3 / Swift 6.2.4).
 
 ## Next
 - Build T01–T30 per `docs/architecture/tasks.md`. Verification is GitHub Actions CI (no local Swift toolchain: download.swift.org is blocked).

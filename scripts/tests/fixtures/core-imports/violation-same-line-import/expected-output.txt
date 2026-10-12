@@ -1,0 +1,5 @@
+Bad.swift:1: import of 'UIKit'
+Bad.swift:2: import of 'SwiftUI'
+Bad.swift:3: import of 'os'
+Bad.swift:4: import of 'Combine'
+FAILED with 4 violation(s)

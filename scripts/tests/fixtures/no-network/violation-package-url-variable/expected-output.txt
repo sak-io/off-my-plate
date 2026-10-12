@@ -1,0 +1,5 @@
+Package.swift:8: remote dependency in a package manifest
+Package.swift:9: remote dependency in a package manifest
+Package.swift:10: remote dependency in a package manifest
+Package.swift:12: remote dependency in a package manifest
+FAILED with 4 violation(s)
