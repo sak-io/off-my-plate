@@ -246,7 +246,8 @@ struct QuantityTotalTests {
     func mergesConvertible() throws {
         let total = QuantityTotal([Quantity(1, .kilogram), Quantity(500, .gram), Quantity(250, .gram)])
         #expect(total.parts.count == 1)
-        #expect(approx(try #require(total.parts.first), Quantity(1.75, .kilogram)))
+        let first: Quantity = try #require(total.parts.first)
+        #expect(approx(first, Quantity(1.75, .kilogram)))
     }
 
     @Test("non-convertible quantities are kept as separate parts (AC-10.1)")
@@ -276,7 +277,8 @@ struct QuantityTotalTests {
 
         let excess = needed.subtract(Quantity(1, .kilogram))
         #expect(needed.parts[0] == Quantity(0, .kilogram))
-        #expect(approx(excess, Quantity(400, .gram)))
+        // The excess is reported in the subtracted quantity's unit (here kg).
+        #expect(approx(excess, Quantity(0.4, .kilogram)))
 
         let unmatched = needed.subtract(Quantity(1, .cup))
         #expect(unmatched == Quantity(1, .cup))
