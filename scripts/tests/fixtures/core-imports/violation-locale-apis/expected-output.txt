@@ -4,4 +4,11 @@ Bad.swift:4: '.formatted('
 Bad.swift:5: 'Calendar.current'
 Bad.swift:6: 'Locale.autoupdatingCurrent'
 Bad.swift:7: 'TimeZone.current'
-FAILED with 6 violation(s)
+Bad.swift:8: 'TimeZone = .current'
+Bad.swift:9: 'Calendar? = .autoupdatingCurrent'
+Bad.swift:10: 'locale: .current'
+Bad.swift:12: 'timeZone: .autoupdatingCurrent'
+Bad.swift:13: 'NSTimeZone.local'
+Bad.swift:14: 'NSLocale.system'
+Bad.swift:15: 'NSCalendar.current'
+FAILED with 13 violation(s)

@@ -1,0 +1,3 @@
+Bad.swift:1: network/web/analytics framework import
+Bad.swift:2: network/web/analytics framework import
+FAILED with 2 violation(s)

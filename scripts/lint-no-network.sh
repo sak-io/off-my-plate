@@ -3,7 +3,8 @@
 #
 # Scans every Swift file, Package.swift and XcodeGen project.yml under Packages/ and App/
 # (sources AND tests) and fails when it finds:
-#   1. an import (with any attributes, Swift 6 access level or import kind) of a
+#   1. an import (with any attributes, Swift 6 access level or import kind; also after a
+#      `;` or a closed /* */ comment on the same line) of a
 #      networking, web or cloud framework (Network, NetworkExtension, CFNetwork,
 #      FoundationNetworking, WebKit, SafariServices, MultipeerConnectivity, CloudKit;
 #      CloudKit sync is deferred, ADR 0015) or of a known analytics / crash / HTTP SDK;
@@ -12,8 +13,9 @@
 #      CFSocket, CFStreamCreatePairWithSocket, getStreamsToHost, WKWebView,
 #      SFSafariViewController, ASWebAuthenticationSession);
 #   3. a remote dependency in a SwiftPM manifest (Package.swift, Package@swift-*.swift):
-#      any `url: "` or registry `id: "` argument, whatever line it is on, so multi-line
-#      `.package(\n url:`, `.package(name:url:)`, `.package(id:)` and remote
+#      any `url:` or registry `id:` argument, whatever line it is on and whatever its
+#      value (string literal, raw string, variable), so multi-line `.package(\n url:`,
+#      `.package(name:url:)`, `.package(url: someVar)`, `.package(id:)` and remote
 #      `.binaryTarget(url:)` are all caught (local `.package(path:)` is fine);
 #   4. a remote package in an XcodeGen spec (project.yml / project.yaml): any `url:` or
 #      `github:` key, block or flow style.
@@ -48,7 +50,8 @@ report() {
   violations=$((violations + 1))
 }
 
-comment_re='^[[:space:]]*(//|/\*|\*)'
+# Whole-line comments: //, /// and * continuation lines, and a /* that stays open.
+comment_re='^[[:space:]]*(//|\*|/\*([^*]|\*+[^*/])*\**$)'
 
 # hit = file:line:text ; prints violations for non-comment lines.
 scan() { # regex, message, include-glob...
@@ -73,14 +76,14 @@ scan() { # regex, message, include-glob...
 
 banned_modules='Network|NetworkExtension|CFNetwork|FoundationNetworking|WebKit|SafariServices|MultipeerConnectivity|CloudKit'
 banned_sdks='Firebase[A-Za-z]*|Crashlytics|Sentry[A-Za-z]*|Amplitude[A-Za-z]*|Mixpanel|Segment|Bugsnag|AppCenter[A-Za-z]*|Datadog[A-Za-z]*|Alamofire|Moya'
-import_re="^[[:space:]]*(@[A-Za-z_]+(\([^)]*\))?[[:space:]]+)*((public|package|internal|fileprivate|private)[[:space:]]+)?import[[:space:]]+((typealias|struct|class|enum|protocol|let|var|func)[[:space:]]+)?($banned_modules|$banned_sdks)([.[:space:]]|$)"
+import_re="(^|;)[[:space:]]*(/\*[^*]*\*/[[:space:]]*)*(@[A-Za-z_]+(\([^)]*\))?[[:space:]]+)*((public|package|internal|fileprivate|private)[[:space:]]+)?import[[:space:]]+((typealias|struct|class|enum|protocol|let|var|func)[[:space:]]+)?($banned_modules|$banned_sdks)([.[:space:]]|$)"
 scan "$import_re" "network/web/analytics framework import is not allowed (ADR 0002, AC-13.2)" '*.swift'
 
 symbols='URLSession|NSURLSession|URLRequest|NSURLRequest|NSMutableURLRequest|NSURLConnection|NWConnection|NWListener|NWBrowser|NWPathMonitor|NWEndpoint|CFSocket|CFStreamCreatePairWithSocket|getStreamsToHost|WKWebView|SFSafariViewController|ASWebAuthenticationSession'
 symbol_re="(^|[^A-Za-z0-9_])($symbols)"
 scan "$symbol_re" "networking API is not allowed (ADR 0002, AC-13.2)" '*.swift'
 
-scan '(^|[^A-Za-z0-9_])(url|id)[[:space:]]*:[[:space:]]*"' \
+scan '(^|[^A-Za-z0-9_])(url|id)[[:space:]]*:' \
   "remote dependency in a package manifest is not allowed (zero third-party packages)" \
   'Package.swift' 'Package@swift-*.swift'
 scan '(^|[^A-Za-z0-9_])(url|github)[[:space:]]*:' \

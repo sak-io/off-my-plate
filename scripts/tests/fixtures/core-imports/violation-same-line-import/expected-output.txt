@@ -1,0 +1,4 @@
+Bad.swift:1: import of 'UIKit'
+Bad.swift:2: import of 'SwiftUI'
+Bad.swift:3: import of 'os'
+FAILED with 3 violation(s)
