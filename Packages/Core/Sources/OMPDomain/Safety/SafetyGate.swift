@@ -17,7 +17,8 @@ public struct SafetyClearance: Sendable, Hashable {
     /// The non-deleted members at evaluation time, in stored order. Every one of them had a
     /// confirmed, in-date safety answer.
     public let members: [Member]
-    /// The household's hard rules at evaluation time (member and household scope).
+    /// The household's hard rules at evaluation time that protect someone: household scope,
+    /// or member scope for a non-deleted member. Rules of deleted members are left out.
     public let rules: [Rule]
     /// The household settings at evaluation time (snack slots and so on).
     public let settings: HouseholdSettings
@@ -27,7 +28,7 @@ public struct SafetyClearance: Sendable, Hashable {
     fileprivate init(household: Household, issuedAt: Date) {
         self.householdID = household.id
         self.members = household.activeMembers
-        self.rules = household.rules.filter { $0.kind == .hard }
+        self.rules = SafetyClearance.relevantRules(of: household)
         self.settings = household.settings
         self.issuedAt = issuedAt
     }
@@ -38,11 +39,36 @@ public struct SafetyClearance: Sendable, Hashable {
     }
 
     /// Whether `household` still has exactly the safety-relevant content this clearance was
-    /// issued for (same id, active members, hard rules and settings). The household
-    /// fingerprint of ADR 0007, compared structurally: a stale clearance must be re-evaluated.
+    /// issued for (same id, active members, relevant hard rules and settings). The household
+    /// fingerprint of ADR 0007, compared structurally. This ignores time: use
+    /// `isValid(for:now:timeZone:)` before planning.
     public func matches(_ household: Household) -> Bool {
         household.id == householdID && household.activeMembers == members
-            && household.rules.filter({ $0.kind == .hard }) == rules && household.settings == settings
+            && SafetyClearance.relevantRules(of: household) == rules && household.settings == settings
+    }
+
+    /// Whether this clearance may still be used to plan for `household` at `now`: the household
+    /// is unchanged (`matches`) **and** the gate still passes at `now` (so a clearance issued
+    /// on day 170 is not valid on day 181; re-confirmation cannot be bypassed by holding on to
+    /// an old token).
+    public func isValid(for household: Household, now: Date, timeZone: TimeZone) -> Bool {
+        guard matches(household) else { return false }
+        if case .success = SafetyGate.evaluate(household, now: now, timeZone: timeZone) {
+            return true
+        }
+        return false
+    }
+
+    private static func relevantRules(of household: Household) -> [Rule] {
+        household.rules.filter { rule in
+            guard rule.kind == .hard else { return false }
+            switch rule.scope {
+            case .household:
+                return true
+            case .member(let memberID):
+                return household.member(memberID).map { !$0.isDeleted } ?? false
+            }
+        }
     }
 }
 
@@ -99,14 +125,17 @@ public enum SafetyGate {
     }
 
     /// Non-deleted, answered members whose answer is more than `reconfirmationPeriodDays`
-    /// calendar days before `today` (days counted in `timeZone`).
+    /// calendar days before `today` (days counted in `timeZone`). A confirmation dated more
+    /// than one day in the future (clock skew or a bad import) also counts as due: it fails
+    /// closed rather than postponing re-confirmation indefinitely.
     public static func membersDueForReconfirmation(
         in household: Household, today: LocalDate, timeZone: TimeZone
     ) -> [MemberID] {
         household.activeMembers.filter { member in
             guard !needsAnswer(member), let confirmedAt = member.safetyConfirmedAt else { return false }
             let confirmedDay = LocalDate(confirmedAt, in: timeZone)
-            return today.daysSince(confirmedDay) > reconfirmationPeriodDays
+            let age = today.daysSince(confirmedDay)
+            return age > reconfirmationPeriodDays || age < -1
         }.map(\.id)
     }
 

@@ -18,6 +18,10 @@ public enum SafetyTransitionError: Error, Sendable, Hashable {
     case noRules
     /// A member-scope rule names a member that does not exist or is deleted.
     case ruleForInactiveMember(MemberID)
+    /// The rule excludes no tags, so it would protect nobody from anything.
+    case emptyRule(RuleID)
+    /// The household must keep at least one active member (AC-1.3).
+    case lastMember(MemberID)
 }
 
 /// Safety-status transitions (plan section 4.1 state diagram; AC-2.2, AC-2.3, AC-3.2, AC-3.4,
@@ -30,10 +34,12 @@ extension Household {
     /// "No, nobody" (AC-2.2): every non-deleted member becomes `confirmedNone`, confirmed at
     /// `now`.
     ///
-    /// - Throws: `.householdHasRules` when any hard rule exists (the user must remove them
-    ///   first; rules are never deleted silently).
+    /// - Throws: `.householdHasRules` when any hard rule covers a non-deleted member (the user
+    ///   must remove them first; rules are never deleted silently). Rules scoped to deleted
+    ///   members do not count.
     public mutating func confirmNobodyAvoidsAnything(at now: Date) throws {
-        guard rules.isEmpty else { throw SafetyTransitionError.householdHasRules }
+        let blockingRule = activeMembers.contains { !rules(covering: $0.id).isEmpty }
+        guard !blockingRule else { throw SafetyTransitionError.householdHasRules }
         for index in members.indices where !members[index].isDeleted {
             members[index].safetyStatus = .confirmedNone
             members[index].safetyConfirmedAt = now
@@ -47,7 +53,7 @@ extension Household {
     /// all confirmed at `now`. "Not sure who" items arrive as `.household` scope, which covers
     /// every member.
     ///
-    /// - Throws: `.noRules`, `.duplicateRule`, `.ruleForInactiveMember`.
+    /// - Throws: `.noRules`, `.duplicateRule`, `.emptyRule`, `.ruleForInactiveMember`.
     public mutating func confirmSafetyAnswers(rules newRules: [Rule], at now: Date) throws {
         guard !newRules.isEmpty else { throw SafetyTransitionError.noRules }
         try validateNewRules(newRules)
@@ -73,13 +79,30 @@ extension Household {
         updatedAt = now
     }
 
+    /// The member's own answer on the safety re-ask (UX C-080/C-081 for an added member, or
+    /// after an age-band reset): the user reviewed the rules that already cover this member
+    /// and confirmed them as complete. The member becomes `stated` if any rule (member or
+    /// household scope) covers it, otherwise `confirmedNone`, confirmed at `now`. Rules are
+    /// not changed; add or remove them first with `addRule`/`removeRule`.
+    ///
+    /// - Throws: `.unknownMember`, `.deletedMember`.
+    public mutating func confirmMemberAnswer(for memberID: MemberID, at now: Date) throws {
+        let index = try activeMemberIndex(memberID)
+        members[index].safetyStatus = rules(covering: memberID).isEmpty ? .confirmedNone : .stated
+        members[index].safetyConfirmedAt = now
+        updatedAt = now
+    }
+
     /// Adds one user-confirmed hard rule (plan 4.1 `confirmedNone -> stated`).
     ///
     /// A member-scope rule is an explicit answer for that member, so the member becomes
     /// `stated` whatever its status. A household-scope rule turns answered members `stated`
-    /// but leaves `unasked` members `unasked`: nobody answered for them yet (fails closed).
+    /// but leaves `unasked` members `unasked`: nobody answered for them yet (fails closed);
+    /// use `confirmMemberAnswer` for them. Every member whose status is set here, including
+    /// already-`stated` members covered by a household rule, has `safetyConfirmedAt`
+    /// re-stamped to `now`: adding a rule counts as re-confirming their answer.
     ///
-    /// - Throws: `.duplicateRule`, `.ruleForInactiveMember`.
+    /// - Throws: `.duplicateRule`, `.emptyRule`, `.ruleForInactiveMember`.
     public mutating func addRule(_ rule: Rule, at now: Date) throws {
         try validateNewRules([rule])
         rules.append(rule)
@@ -130,9 +153,11 @@ extension Household {
     /// Soft-deletes a member (UX U3 "Remove {name}"). A deleted member never blocks planning.
     /// Rules scoped to the member are kept (soft delete, sync-ready) but cover nobody active.
     ///
-    /// - Throws: `.unknownMember`, `.deletedMember`.
+    /// - Throws: `.unknownMember`, `.deletedMember`, `.lastMember` (a household always keeps
+    ///   at least one active member, AC-1.3).
     public mutating func removeMember(_ memberID: MemberID, at now: Date) throws {
         let index = try activeMemberIndex(memberID)
+        guard activeMembers.count > 1 else { throw SafetyTransitionError.lastMember(memberID) }
         members[index].deletedAt = now
         updatedAt = now
     }
@@ -163,11 +188,13 @@ extension Household {
     ///
     /// - Parameter memberIDs: the members the prompt was shown for; `nil` means every
     ///   non-deleted member.
-    /// - Returns: the ids that were refreshed.
+    /// - Returns: the ids that were refreshed, without duplicates, in first-mention order.
     /// - Throws: `.unknownMember`, `.deletedMember` for an explicit id.
     @discardableResult
     public mutating func reconfirmSafety(for memberIDs: [MemberID]? = nil, at now: Date) throws -> [MemberID] {
-        let indices = try (memberIDs ?? activeMembers.map(\.id)).map { try activeMemberIndex($0) }
+        var seen = Set<MemberID>()
+        let uniqueIDs = (memberIDs ?? activeMembers.map(\.id)).filter { seen.insert($0).inserted }
+        let indices = try uniqueIDs.map { try activeMemberIndex($0) }
         var refreshed: [MemberID] = []
         for index in indices where members[index].safetyStatus != .unasked {
             members[index].safetyConfirmedAt = now
@@ -189,6 +216,7 @@ extension Household {
         var seen = Set(rules.map(\.id))
         for rule in newRules {
             guard seen.insert(rule.id).inserted else { throw SafetyTransitionError.duplicateRule(rule.id) }
+            guard !rule.excludedTags.isEmpty else { throw SafetyTransitionError.emptyRule(rule.id) }
             if case .member(let memberID) = rule.scope, member(memberID)?.isDeleted ?? true {
                 throw SafetyTransitionError.ruleForInactiveMember(memberID)
             }

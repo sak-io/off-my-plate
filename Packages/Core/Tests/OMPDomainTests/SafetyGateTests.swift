@@ -137,6 +137,31 @@ struct SafetyGateEvaluateTests {
         #expect(F.refusal(SafetyGate.evaluate(household, clock: clock)) == .reconfirmationDue(["a"]))
     }
 
+    @Test("m3: the 180-day count is in local calendar days across a DST change (Europe/London)")
+    func reconfirmationAcrossDST() {
+        let london = TimeZone(identifier: "Europe/London")!
+        // 2026-07-01 00:30 BST (UTC+1) = 2026-06-30T23:30Z.
+        let confirmedAt = Date(timeIntervalSince1970: 1_782_862_200)
+        let household = F.household([F.member("a", confirmedAt: confirmedAt)])
+        // 2026-12-28T23:50Z = 2026-12-28 23:50 GMT: local day 180, although more than 181 x 24 h
+        // have elapsed. Still cleared.
+        let lateDay180 = Date(timeIntervalSince1970: 1_798_501_800)
+        #expect(F.clearance(SafetyGate.evaluate(household, now: lateDay180, timeZone: london)) != nil)
+        // 2026-12-29T00:10Z = 2026-12-29 00:10 GMT: local day 181. Due.
+        let earlyDay181 = Date(timeIntervalSince1970: 1_798_503_000)
+        #expect(F.refusal(SafetyGate.evaluate(household, now: earlyDay181, timeZone: london)) == .reconfirmationDue(["a"]))
+    }
+
+    @Test("m4: a confirmation dated more than one day in the future counts as due")
+    func futureConfirmationIsDue() {
+        let tomorrow = F.household([F.member("a", confirmedAt: F.confirmed.addingTimeInterval(F.day))])
+        #expect(F.clearance(SafetyGate.evaluate(tomorrow, now: F.confirmed, timeZone: F.utc)) != nil)
+        let inTwoDays = F.household([F.member("a", confirmedAt: F.confirmed.addingTimeInterval(2 * F.day))])
+        #expect(F.refusal(SafetyGate.evaluate(inTwoDays, now: F.confirmed, timeZone: F.utc)) == .reconfirmationDue(["a"]))
+        let farFuture = F.household([F.member("a", confirmedAt: F.confirmed.addingTimeInterval(365 * F.day))])
+        #expect(F.refusal(SafetyGate.evaluate(farFuture, now: F.confirmed, timeZone: F.utc)) == .reconfirmationDue(["a"]))
+    }
+
     @Test("U4: approval is blocked by an unasked member but not by an overdue answer")
     func approvalRefusal() {
         let overdue = F.household([F.member("a", confirmedAt: F.confirmed.addingTimeInterval(-400 * F.day))])
@@ -178,6 +203,36 @@ struct SafetyClearanceTests {
         #expect(clearance.matches(household))
         let other = Household(id: "h2", members: household.members, createdAt: F.confirmed, updatedAt: F.confirmed)
         #expect(!clearance.matches(other))
+    }
+
+    @Test("M2: a clearance is not valid once re-confirmation is due, even for an unchanged household")
+    func clearanceExpires() throws {
+        let household = F.household([F.member("a")])
+        let clearance = try #require(F.clearance(SafetyGate.evaluate(household, now: F.confirmed, timeZone: F.utc)))
+        #expect(clearance.isValid(for: household, now: F.confirmed, timeZone: F.utc))
+        #expect(clearance.isValid(for: household, now: F.confirmed.addingTimeInterval(180 * F.day), timeZone: F.utc))
+        #expect(clearance.matches(household))
+        #expect(!clearance.isValid(for: household, now: F.confirmed.addingTimeInterval(181 * F.day), timeZone: F.utc))
+    }
+
+    @Test("M2: a clearance is not valid for an edited household")
+    func clearanceInvalidAfterEdit() throws {
+        var household = F.household([F.member("a")])
+        let clearance = try #require(F.clearance(SafetyGate.evaluate(household, now: F.confirmed, timeZone: F.utc)))
+        household.settings.snacksEnabled = true
+        #expect(!clearance.isValid(for: household, now: F.confirmed, timeZone: F.utc))
+    }
+
+    @Test("n3: rules scoped to deleted members are left out of the clearance")
+    func clearanceDropsDeletedMembersRules() throws {
+        let kept = Rule(id: "r1", scope: .household, restriction: F.peanuts, createdAt: F.confirmed)
+        let dropped = Rule(id: "r2", scope: .member("gone"), restriction: F.jain, createdAt: F.confirmed)
+        let household = F.household(
+            [F.member("a", status: .stated), F.member("gone", status: .stated, deletedAt: F.confirmed)],
+            rules: [kept, dropped])
+        let clearance = try #require(F.clearance(SafetyGate.evaluate(household, now: F.confirmed, timeZone: F.utc)))
+        #expect(clearance.rules == [kept])
+        #expect(clearance.matches(household))
     }
 
     @Test("rules(covering:) returns the member's rules plus household-scope rules")
@@ -228,6 +283,57 @@ struct SafetyTransitionTests {
         let before = household
         #expect(throws: SafetyTransitionError.householdHasRules) { try household.confirmNobodyAvoidsAnything(at: later) }
         #expect(household == before)
+    }
+
+    @Test("m1: rules scoped to a deleted member do not block \"No, nobody\"")
+    func noNobodyIgnoresDeletedMembersRules() throws {
+        var household = F.household(
+            [F.member("a", status: .unasked, confirmedAt: nil), F.member("gone", status: .stated, deletedAt: F.confirmed)],
+            rules: [Rule(id: "r1", scope: .member("gone"), restriction: F.peanuts, createdAt: F.confirmed)])
+        try household.confirmNobodyAvoidsAnything(at: later)
+        #expect(household.members[0].safetyStatus == .confirmedNone)
+        #expect(F.clearance(SafetyGate.evaluate(household, now: later, timeZone: F.utc)) != nil)
+    }
+
+    @Test("\"No, nobody\" is refused while a household-scope rule exists")
+    func noNobodyWithHouseholdRule() {
+        var household = F.household(
+            [F.member("a", status: .stated)],
+            rules: [Rule(id: "r1", scope: .household, restriction: F.peanuts, createdAt: F.confirmed)])
+        #expect(throws: SafetyTransitionError.householdHasRules) { try household.confirmNobodyAvoidsAnything(at: later) }
+    }
+
+    @Test("m2: a rule with no excluded tags is refused")
+    func emptyRuleRefused() {
+        var household = F.household([F.member("a")])
+        let empty = Rule(id: "r1", scope: .member("a"), restriction: "none", excludedTags: [], createdAt: later)
+        let before = household
+        #expect(throws: SafetyTransitionError.emptyRule("r1")) { try household.addRule(empty, at: later) }
+        #expect(throws: SafetyTransitionError.emptyRule("r1")) { try household.confirmSafetyAnswers(rules: [empty], at: later) }
+        #expect(household == before)
+    }
+
+    @Test("M1: a member added after a household rule answers with confirmMemberAnswer and becomes stated")
+    func addedMemberCoveredByHouseholdRule() throws {
+        let rule = Rule(id: "r1", scope: .household, restriction: F.peanuts, createdAt: F.confirmed)
+        var household = F.household([F.member("a", status: .stated)], rules: [rule])
+        household.addMember(role: .child, ageBand: .child, at: later, id: "new")
+        #expect(F.refusal(SafetyGate.evaluate(household, now: later, timeZone: F.utc)) == .safetyUnanswered(["new"]))
+        try household.confirmMemberAnswer(for: "new", at: later)
+        #expect(household.member("new")?.safetyStatus == .stated)
+        #expect(household.member("new")?.safetyConfirmedAt == later)
+        #expect(household.rules == [rule])
+        #expect(F.clearance(SafetyGate.evaluate(household, now: later, timeZone: F.utc)) != nil)
+    }
+
+    @Test("M1: an uncovered member answers with confirmMemberAnswer and becomes confirmedNone")
+    func uncoveredMemberAnswer() throws {
+        var household = F.household([F.member("a")])
+        household.addMember(role: .adult, ageBand: .adult, at: later, id: "new")
+        try household.confirmMemberAnswer(for: "new", at: later)
+        #expect(household.member("new")?.safetyStatus == .confirmedNone)
+        #expect(F.clearance(SafetyGate.evaluate(household, now: later, timeZone: F.utc)) != nil)
+        #expect(throws: SafetyTransitionError.unknownMember("x")) { try household.confirmMemberAnswer(for: "x", at: later) }
     }
 
     @Test("AC-2.3 + U1: confirmed rules make covered members stated and everyone else confirmedNone")
@@ -339,6 +445,14 @@ struct SafetyTransitionTests {
         #expect(throws: SafetyTransitionError.deletedMember("new")) { try household.removeMember("new", at: later) }
     }
 
+    @Test("q1: the last active member cannot be removed")
+    func lastMemberCannotBeRemoved() {
+        var household = F.household([F.member("a"), F.member("gone", deletedAt: F.confirmed)])
+        let before = household
+        #expect(throws: SafetyTransitionError.lastMember("a")) { try household.removeMember("a", at: later) }
+        #expect(household == before)
+    }
+
     @Test(
         "AC-3.4: age band crossing child/grown (or to/from unknown) resets to unasked",
         arguments: ageBandCrossings)
@@ -362,6 +476,11 @@ struct SafetyTransitionTests {
         try household.setAgeBand(.teen, for: "a", at: later)
         #expect(household.rules == [rule])
         #expect(household.members[0].safetyStatus == .unasked)
+        // M1: re-confirming the kept rules unblocks without inventing or removing a rule.
+        try household.confirmMemberAnswer(for: "a", at: later)
+        #expect(household.members[0].safetyStatus == .stated)
+        #expect(household.rules == [rule])
+        #expect(F.clearance(SafetyGate.evaluate(household, now: later, timeZone: F.utc)) != nil)
     }
 
     @Test("G3: \"Still correct?\" refreshes the date of answered members and clears the due refusal")
@@ -383,7 +502,8 @@ struct SafetyTransitionTests {
     func stillCorrectForSomeMembers() throws {
         let old = F.confirmed.addingTimeInterval(-181 * F.day)
         var household = F.household([F.member("a", confirmedAt: old), F.member("b", confirmedAt: old)])
-        #expect(try household.reconfirmSafety(for: ["a"], at: F.confirmed) == ["a"])
+        let refreshed = try household.reconfirmSafety(for: ["a", "a"], at: F.confirmed)
+        #expect(refreshed == ["a"])  // n1: duplicates collapse
         #expect(F.refusal(SafetyGate.evaluate(household, now: F.confirmed, timeZone: F.utc)) == .reconfirmationDue(["b"]))
         #expect(throws: SafetyTransitionError.unknownMember("x")) { try household.reconfirmSafety(for: ["x"], at: F.confirmed) }
     }
