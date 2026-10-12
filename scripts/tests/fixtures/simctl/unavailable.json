@@ -1,0 +1,8 @@
+{
+  "devices": {
+    "com.apple.CoreSimulator.SimRuntime.iOS-26-2": [
+      {"name": "iPhone 16", "udid": "IOS262-IPHONE16-BROKEN", "isAvailable": false, "state": "Shutdown"},
+      {"name": "iPhone 16e", "udid": "IOS262-IPHONE16E", "isAvailable": true, "state": "Shutdown"}
+    ]
+  }
+}
