@@ -3,7 +3,9 @@
 #
 # Every directory under scripts/tests/fixtures/<lint>/ is one case:
 #   clean           -> the lint must exit 0
-#   violation-*     -> the lint must exit 1 and name the offending file in its output
+#   violation-*     -> the lint must exit 1 and name the offending file in its output;
+#                      if the case has an expected-output.txt, EVERY line of it must
+#                      appear in the output (proves the exact file:line and reason)
 # The lints are also run against the real repository (must pass) and against a
 # missing directory (must exit 2, usage error).
 #
@@ -19,9 +21,10 @@ failed=0
 pass() { echo "  ok   $1"; passed=$((passed + 1)); }
 fail() { echo "  FAIL $1" >&2; failed=$((failed + 1)); }
 
-# run_case <lint script> <fixture dir or ""> <expected exit> <label> [expected text]
+# run_case <lint script> <fixture dir or ""> <expected exit> <label> [expected text|@file]
+# "@file" means: every non-empty line of that file must appear in the output.
 run_case() {
-  local lint="$1" dir="$2" expected="$3" label="$4" text="${5:-}" output status
+  local lint="$1" dir="$2" expected="$3" label="$4" text="${5:-}" output status want
   set +e
   if [[ -n "$dir" ]]; then
     output="$("$scripts/$lint" "$dir" 2>&1)"
@@ -35,7 +38,16 @@ run_case() {
     printf '%s\n' "$output" | sed 's/^/         /' >&2
     return
   fi
-  if [[ -n "$text" ]] && ! printf '%s\n' "$output" | grep -qF -- "$text"; then
+  if [[ "$text" == @* ]]; then
+    while IFS= read -r want || [[ -n "$want" ]]; do
+      [[ -n "$want" ]] || continue
+      if ! printf '%s\n' "$output" | grep -qF -- "$want"; then
+        fail "$label: output does not contain '$want'"
+        printf '%s\n' "$output" | sed 's/^/         /' >&2
+        return
+      fi
+    done < "${text#@}"
+  elif [[ -n "$text" ]] && ! printf '%s\n' "$output" | grep -qF -- "$text"; then
     fail "$label: output does not mention '$text'"
     printf '%s\n' "$output" | sed 's/^/         /' >&2
     return
@@ -52,14 +64,12 @@ run_fixtures() {
   for case_dir in "$fixtures/$group"/violation-*/; do
     [[ -d "$case_dir" ]] || continue
     name="$(basename "$case_dir")"
-    # The offending file is the one named Bad*.swift, Package.swift or project.yml that
-    # differs from the clean case; requiring "Bad" or the manifest name in the output
-    # proves the lint pointed at the planted violation.
+    # Without an expected-output.txt the planted file is named Bad*.swift, so requiring
+    # "Bad" in the output proves the lint pointed at the planted violation.
     local expect="Bad"
-    case "$name" in
-      *package-dependency|*package-url) expect="Package.swift" ;;
-      *project-yml*) expect="project.yml" ;;
-    esac
+    if [[ -f "${case_dir}expected-output.txt" ]]; then
+      expect="@${case_dir}expected-output.txt"
+    fi
     run_case "$lint" "${case_dir%/}" 1 "$group/$name fails" "$expect"
     violations=$((violations + 1))
   done

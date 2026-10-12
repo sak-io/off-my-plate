@@ -3,14 +3,20 @@
 #
 # Scans every Swift file, Package.swift and XcodeGen project.yml under Packages/ and App/
 # (sources AND tests) and fails when it finds:
-#   1. an import of a networking, web or cloud framework (Network, CFNetwork, WebKit,
-#      SafariServices, MultipeerConnectivity, CloudKit; CloudKit sync is deferred, ADR 0015)
-#      or of a known analytics / crash-reporting / HTTP SDK;
-#   2. a networking API symbol (URLSession, NSURLConnection, NWConnection, NWListener,
-#      NWBrowser, NWPathMonitor, NWEndpoint, CFSocket, CFStreamCreatePairWithSocket,
-#      getStreamsToHost, WKWebView, SFSafariViewController, ASWebAuthenticationSession);
-#   3. a remote package dependency: `.package(url:` in a Package.swift, or a `url:` key in
-#      a project.yml (zero third-party packages; local `.package(path:)` is fine).
+#   1. an import (with any attributes, Swift 6 access level or import kind) of a
+#      networking, web or cloud framework (Network, NetworkExtension, CFNetwork,
+#      FoundationNetworking, WebKit, SafariServices, MultipeerConnectivity, CloudKit;
+#      CloudKit sync is deferred, ADR 0015) or of a known analytics / crash / HTTP SDK;
+#   2. a networking API symbol (URLSession*, URLRequest, NSURLRequest, NSMutableURLRequest,
+#      NSURLConnection, NWConnection, NWListener, NWBrowser, NWPathMonitor, NWEndpoint,
+#      CFSocket, CFStreamCreatePairWithSocket, getStreamsToHost, WKWebView,
+#      SFSafariViewController, ASWebAuthenticationSession);
+#   3. a remote dependency in a SwiftPM manifest (Package.swift, Package@swift-*.swift):
+#      any `url: "` or registry `id: "` argument, whatever line it is on, so multi-line
+#      `.package(\n url:`, `.package(name:url:)`, `.package(id:)` and remote
+#      `.binaryTarget(url:)` are all caught (local `.package(path:)` is fine);
+#   4. a remote package in an XcodeGen spec (project.yml / project.yaml): any `url:` or
+#      `github:` key, block or flow style.
 # Whole-line comments (//, ///, /*, *) are ignored. There is deliberately no inline
 # "allow" escape hatch: change this script in a reviewed PR if a real need appears.
 #
@@ -45,8 +51,13 @@ report() {
 comment_re='^[[:space:]]*(//|/\*|\*)'
 
 # hit = file:line:text ; prints violations for non-comment lines.
-scan() { # regex, message, include-glob
-  local regex="$1" message="$2" include="$3" hit file rest line text
+scan() { # regex, message, include-glob...
+  local regex="$1" message="$2" hit file rest line text glob
+  shift 2
+  local includes=()
+  for glob in "$@"; do
+    includes+=("--include=$glob")
+  done
   while IFS= read -r hit; do
     file="${hit%%:*}"
     rest="${hit#*:}"
@@ -56,23 +67,25 @@ scan() { # regex, message, include-glob
       continue
     fi
     report "$file:$line: $message: $(printf '%s' "$text" | sed -E 's/^[[:space:]]+//')"
-  done < <(grep -rnE --include="$include" --exclude-dir=.build --exclude-dir=DerivedData \
+  done < <(grep -rnE "${includes[@]}" --exclude-dir=.build --exclude-dir=DerivedData \
              "$regex" "${scan_dirs[@]}" || true)
 }
 
-banned_modules='Network|CFNetwork|WebKit|SafariServices|MultipeerConnectivity|CloudKit'
+banned_modules='Network|NetworkExtension|CFNetwork|FoundationNetworking|WebKit|SafariServices|MultipeerConnectivity|CloudKit'
 banned_sdks='Firebase[A-Za-z]*|Crashlytics|Sentry[A-Za-z]*|Amplitude[A-Za-z]*|Mixpanel|Segment|Bugsnag|AppCenter[A-Za-z]*|Datadog[A-Za-z]*|Alamofire|Moya'
-import_re="^[[:space:]]*(@[A-Za-z_]+(\([^)]*\))?[[:space:]]+)*import[[:space:]]+((typealias|struct|class|enum|protocol|let|var|func)[[:space:]]+)?($banned_modules|$banned_sdks)([.[:space:]]|$)"
+import_re="^[[:space:]]*(@[A-Za-z_]+(\([^)]*\))?[[:space:]]+)*((public|package|internal|fileprivate|private)[[:space:]]+)?import[[:space:]]+((typealias|struct|class|enum|protocol|let|var|func)[[:space:]]+)?($banned_modules|$banned_sdks)([.[:space:]]|$)"
 scan "$import_re" "network/web/analytics framework import is not allowed (ADR 0002, AC-13.2)" '*.swift'
 
-symbols='URLSession|NSURLSession|NSURLConnection|NWConnection|NWListener|NWBrowser|NWPathMonitor|NWEndpoint|CFSocket|CFStreamCreatePairWithSocket|getStreamsToHost|WKWebView|SFSafariViewController|ASWebAuthenticationSession'
+symbols='URLSession|NSURLSession|URLRequest|NSURLRequest|NSMutableURLRequest|NSURLConnection|NWConnection|NWListener|NWBrowser|NWPathMonitor|NWEndpoint|CFSocket|CFStreamCreatePairWithSocket|getStreamsToHost|WKWebView|SFSafariViewController|ASWebAuthenticationSession'
 symbol_re="(^|[^A-Za-z0-9_])($symbols)"
 scan "$symbol_re" "networking API is not allowed (ADR 0002, AC-13.2)" '*.swift'
 
-scan '\.package[[:space:]]*\([[:space:]]*url[[:space:]]*:' \
-  "remote package dependency is not allowed (zero third-party packages)" 'Package.swift'
-scan '^[[:space:]]*url[[:space:]]*:' \
-  "remote package in project.yml is not allowed (zero third-party packages)" 'project.yml'
+scan '(^|[^A-Za-z0-9_])(url|id)[[:space:]]*:[[:space:]]*"' \
+  "remote dependency in a package manifest is not allowed (zero third-party packages)" \
+  'Package.swift' 'Package@swift-*.swift'
+scan '(^|[^A-Za-z0-9_])(url|github)[[:space:]]*:' \
+  "remote package in an XcodeGen spec is not allowed (zero third-party packages)" \
+  'project.yml' 'project.yaml'
 
 if [[ "$violations" -gt 0 ]]; then
   echo "lint-no-network: FAILED with $violations violation(s)" >&2

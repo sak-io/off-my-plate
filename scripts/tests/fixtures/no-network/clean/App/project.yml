@@ -3,3 +3,6 @@ targets:
   OffMyPlate:
     type: application
     platform: iOS
+packages:
+  Core:
+    path: ../Packages/Core
