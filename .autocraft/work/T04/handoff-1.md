@@ -55,7 +55,7 @@ AC-2.5, AC-10.3, A3.
   No other target touched; Units/ and Safety/ untouched.
 
 ## Test evidence (`Packages/Core/Tests/OMPRecipesTests`)
-- `SeedValidatorTests` (26 tests): valid fixture builds fully; derived tags; catalog keyword
+- `SeedValidatorTests` (27 tests): valid fixture builds fully; derived tags; catalog keyword
   lookup; one test per required defect class (dangling id, declaredTags missing a derived tag,
   declaredTags claiming an extra tag, ingredient tag change breaking a recipe, missing aisle,
   unknown aisle, missing tagStatus, missing tags, unknown tag, unknown recipe unit, unknown
