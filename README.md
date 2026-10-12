@@ -9,12 +9,29 @@ the v1 spec is `docs/specs/offmyplate-v1.md` and the architecture `docs/architec
 ### Layout (ADR 0004)
 - `Packages/Core`: portable Swift package (Foundation only, zero dependencies; builds on Linux
   and Apple platforms). Targets `OMPDomain`, `OMPSafetyCheck`, `OMPRecipes`, `OMPServices`.
-- `Packages/Apple`, `App/`: the Apple-only package and the XcodeGen app project (from T02).
+- `Packages/Apple`: Apple-only package (iOS 18 / macOS 15), depends on `../Core` by path.
+  Targets `OMPData` (SwiftData), `OMPCapture` (speech), `OMPUI` (design system),
+  `OMPFeatures` (screens and view models).
+- `App/`: the XcodeGen spec `project.yml` (ADR 0006) for the `OffMyPlate` app (universal,
+  iOS/iPadOS 18), the `OffMyPlateShare` share extension and the `OffMyPlateUITests` target.
+  The `.xcodeproj` is generated and git-ignored.
 - `scripts/`: checks and lints. `.github/workflows/`: CI.
 
 ### Requirements
 - Core: Swift 6.2 (Xcode 26 on a Mac, or the `swift:6.2-noble` image on Linux).
 - Lints: `bash` plus standard `grep`/`sed`; no Swift needed.
+- App: Xcode 26 and XcodeGen (`brew install xcodegen`; the version the project is developed
+  with is in `App/.xcodegen-version`, the minimum in `project.yml`).
+
+### Running the app (Mac)
+```sh
+cp App/Config/Local.xcconfig.example App/Config/Local.xcconfig   # once; set DEVELOPMENT_TEAM
+(cd App && xcodegen generate)                                   # after every project.yml change
+open App/OffMyPlate.xcodeproj                                   # scheme OffMyPlate
+```
+`Local.xcconfig` is git-ignored. It holds your signing team and, if the R6 defaults
+(`app.offmyplate.OffMyPlate`, `group.app.offmyplate`) are taken, your own bundle-ID prefix
+and App Group. Never commit it.
 
 ### Everyday commands
 ```sh
@@ -46,8 +63,10 @@ blocked (common in cloud sessions). CI is the verification of record either way.
 - `core-linux.yml`: `swift:6.2-noble` container; script self-tests, lints, `swift build`,
   `swift test` for Core (plus the zero-test guard).
 - `apple-macos.yml`: `macos-15` runner with the newest stable Xcode 26 (the job fails if there
-  is none); `swift test` for Core (extended with the app build and UI tests in T02).
-
+  is none); `swift test` for Core and `Packages/Apple`; XcodeGen; `xcodebuild test` (app,
+  share extension, UI tests) on an iPhone 16 and an iPad simulator, picked from the installed
+  runtimes by `scripts/select-simulator.sh` (newest iOS 18+; no hardcoded OS versions).
+  `scripts/assert-xcresult-tests-ran.sh` fails a UI-test run in which no test passed.
 Both run on pushes to `claude/**` and `main`, on pull requests and on demand
 (`workflow_dispatch`). Superseded pull-request runs are cancelled; branch pushes always finish.
 Nothing reaches `main` until the owner merges the pull request.
