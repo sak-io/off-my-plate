@@ -3,18 +3,21 @@
 # official Swift 6.2 image (matches the owner's Xcode 26 toolchain).
 name: core-linux
 
+# Pushes: the session/agent branches and main. Local feat/* task branches are never pushed.
 on:
   push:
-    branches: ["**"]
+    branches: ["claude/**", "main"]
   pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
+# Superseded pull-request runs are cancelled; branch pushes always run to completion so
+# every commit on claude/** and main keeps a result (handoffs cite them).
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 defaults:
   run:
@@ -28,18 +31,20 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Check out
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
         with:
           persist-credentials: false
 
       - name: Toolchain
         run: swift --version
 
-      - name: Lints (self-tests on planted violations, then the repository)
+      - name: Script self-tests and lints (planted violations must fail, then the repository)
         run: scripts/check-core.sh --lint-only
 
       - name: Build Core (including tests)
         run: swift build --package-path Packages/Core --build-tests
 
-      - name: Test Core
-        run: swift test --package-path Packages/Core --skip-build
+      - name: Test Core (fails if no Swift Testing test ran)
+        run: |
+          swift test --package-path Packages/Core --skip-build 2>&1 | tee "$RUNNER_TEMP/core-tests.log"
+          scripts/assert-tests-ran.sh "$RUNNER_TEMP/core-tests.log"
