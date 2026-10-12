@@ -7,9 +7,11 @@ import Foundation
 /// generated ids (lowercased UUIDs) and hand-written seed ids (`"paneer"`, `"vegetarian"`)
 /// fit the same type.
 ///
-/// It encodes as a bare JSON string (not `{"rawValue": ...}`), and decoding rejects an empty
-/// string. `Comparable` orders by raw value (Unicode scalar order, locale-independent), which
-/// the planner uses as its final deterministic tie-break.
+/// It encodes as a bare JSON string (not `{"rawValue": ...}`). An empty id is invalid: encoding
+/// one throws and decoding one fails, so an empty id can never be written to storage.
+/// `Comparable` orders by raw value using Swift's `String` ordering (based on Unicode canonical
+/// equivalence, independent of locale), which the planner uses as its final deterministic
+/// tie-break.
 public struct EntityID<Entity>: Hashable, Comparable, Codable, Sendable, CustomStringConvertible,
     ExpressibleByStringLiteral
 {
@@ -50,6 +52,11 @@ public struct EntityID<Entity>: Hashable, Comparable, Codable, Sendable, CustomS
     }
 
     public func encode(to encoder: any Encoder) throws {
+        guard !rawValue.isEmpty else {
+            throw EncodingError.invalidValue(
+                rawValue,
+                EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "An identifier must not be empty."))
+        }
         var container = encoder.singleValueContainer()
         try container.encode(rawValue)
     }

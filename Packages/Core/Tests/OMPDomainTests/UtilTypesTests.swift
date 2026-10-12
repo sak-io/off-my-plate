@@ -74,6 +74,13 @@ struct EntityIDTests {
         }
     }
 
+    @Test("encoding an empty identifier throws, so one can never be stored")
+    func emptyDoesNotEncode() {
+        #expect(throws: EncodingError.self) {
+            try JSONEncoder().encode([MemberID("")])
+        }
+    }
+
     @Test("generated identifiers are lowercased UUIDs and unique")
     func generate() {
         let first = MemberID.generate()

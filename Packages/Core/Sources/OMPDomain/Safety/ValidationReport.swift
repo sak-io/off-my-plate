@@ -30,7 +30,11 @@ public struct Violation: Codable, Sendable, Hashable {
 /// access: code inside the Core package (the validator and tests) can build a report, but the
 /// Apple package and the app cannot. Approval also requires the report's `contentHash` to
 /// match the draft's hash (ADR 0008).
-public struct ValidationReport: Codable, Sendable, Hashable {
+///
+/// Deliberately `Encodable` but **not** `Decodable` (the one exception to "all domain types are
+/// Codable"): a synthesized `init(from:)` would be public, so any module could forge a passing
+/// report by decoding JSON. A stored report is never trusted; approval always re-validates.
+public struct ValidationReport: Encodable, Sendable, Hashable {
     public let planId: MealPlanID
     /// Hash of the plan content that was validated.
     public let contentHash: String

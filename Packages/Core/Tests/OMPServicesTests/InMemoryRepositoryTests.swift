@@ -20,21 +20,32 @@ private func pantryItem(_ id: PantryItemID, quantity: Double) -> PantryItem {
 
 @Suite("In-memory repositories")
 struct InMemoryRepositoryTests {
-    @Test("household: empty, save, update in place, delete all")
+    @Test("household: empty, replace, update, delete all")
     func householdCRUD() async throws {
         let repository: any HouseholdRepository = InMemoryHouseholdRepository()
         #expect(try await repository.fetch() == nil)
 
         var household = try Household.onboarding(id: "h", adults: 2, children: 1, now: now)
-        try await repository.save(household)
+        try await repository.replace(with: household)
         #expect(try await repository.fetch() == household)
 
         household.settings.snacksEnabled = true
-        try await repository.save(household)
+        try await repository.replace(with: household)
         #expect(try await repository.fetch()?.settings.snacksEnabled == true)
 
         try await repository.deleteAll()
         #expect(try await repository.fetch() == nil)
+    }
+
+    @Test("household store keeps at most one household: replacing with another id drops the old one")
+    func singleHousehold() async throws {
+        let repository = InMemoryHouseholdRepository()
+        let first = try Household.onboarding(id: "h1", adults: 1, children: 0, now: now)
+        let second = try Household.onboarding(id: "h2", adults: 2, children: 0, now: now)
+        await repository.replace(with: first)
+        await repository.replace(with: second)
+        #expect(await repository.fetchAll().map(\.id) == ["h2"])
+        #expect(await repository.fetch() == second)
     }
 
     @Test("meal plans: upsert by id, fetch by id, series in revision order, delete")
@@ -141,7 +152,7 @@ struct InMemoryRepositoryTests {
         #expect(try await repositories.household.fetch() == nil)
 
         let household = try Household.onboarding(id: "h", adults: 1, children: 0, now: now)
-        try await repositories.household.save(household)
+        try await repositories.household.replace(with: household)
         try await repositories.mealPlans.save(plan("p", series: "s", revision: 1))
         try await repositories.pantry.save(pantryItem("a", quantity: 1))
         try await repositories.shopping.save(

@@ -43,6 +43,11 @@ extension InMemoryRepository: HouseholdRepository where Entity == Household {
     public func fetch() -> Household? {
         items.first
     }
+
+    /// Keeps exactly one household: the one passed in.
+    public func replace(with household: Household) {
+        items = [household]
+    }
 }
 
 extension InMemoryRepository: MealPlanRepository where Entity == MealPlan {

@@ -6,10 +6,12 @@ import OMPDomain
 // them for tests and Linux. Every method is `async throws` so a SwiftData implementation can
 // hop to its own actor and surface store errors. `save` is an upsert by id.
 
-/// The single household on this device.
+/// The single household on this device. The store holds at most one household.
 public protocol HouseholdRepository: Sendable {
     func fetch() async throws -> Household?
-    func save(_ household: Household) async throws
+    /// Stores `household` as *the* household, replacing whatever was stored before (even one
+    /// with a different id). Named `replace` rather than `save` to make that explicit.
+    func replace(with household: Household) async throws
     func deleteAll() async throws
 }
 
