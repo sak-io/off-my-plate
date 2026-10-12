@@ -56,15 +56,15 @@ struct QuantityConversionTests {
 
     static let table: [Row] = [
         // Same dimension (plan section 10: tsp 5, tbsp 15, cup 240).
-        Row(from: Quantity(1, .kilogram), to: .gram, profile: .none, expected: 1000),
-        Row(from: Quantity(250, .gram), to: .kilogram, profile: .none, expected: 0.25),
-        Row(from: Quantity(1.5, .litre), to: .millilitre, profile: .none, expected: 1500),
-        Row(from: Quantity(1, .teaspoon), to: .millilitre, profile: .none, expected: 5),
-        Row(from: Quantity(1, .tablespoon), to: .teaspoon, profile: .none, expected: 3),
-        Row(from: Quantity(1, .cup), to: .tablespoon, profile: .none, expected: 16),
-        Row(from: Quantity(2, .cup), to: .litre, profile: .none, expected: 0.48),
-        Row(from: Quantity(1, .dozen), to: .piece, profile: .none, expected: 12),
-        Row(from: Quantity(18, .piece), to: .dozen, profile: .none, expected: 1.5),
+        Row(from: Quantity(1, .kilogram), to: .gram, profile: .sameDimensionOnly, expected: 1000),
+        Row(from: Quantity(250, .gram), to: .kilogram, profile: .sameDimensionOnly, expected: 0.25),
+        Row(from: Quantity(1.5, .litre), to: .millilitre, profile: .sameDimensionOnly, expected: 1500),
+        Row(from: Quantity(1, .teaspoon), to: .millilitre, profile: .sameDimensionOnly, expected: 5),
+        Row(from: Quantity(1, .tablespoon), to: .teaspoon, profile: .sameDimensionOnly, expected: 3),
+        Row(from: Quantity(1, .cup), to: .tablespoon, profile: .sameDimensionOnly, expected: 16),
+        Row(from: Quantity(2, .cup), to: .litre, profile: .sameDimensionOnly, expected: 0.48),
+        Row(from: Quantity(1, .dozen), to: .piece, profile: .sameDimensionOnly, expected: 12),
+        Row(from: Quantity(18, .piece), to: .dozen, profile: .sameDimensionOnly, expected: 1.5),
         // Volume <-> mass through density.
         Row(from: Quantity(100, .millilitre), to: .gram, profile: ghee, expected: 91),
         Row(from: Quantity(2, .tablespoon), to: .gram, profile: ghee, expected: 27.3),
@@ -93,7 +93,7 @@ struct QuantityConversionTests {
         #expect(Quantity(2, .piece).converted(to: .gram, using: ghee) == nil)
         #expect(Quantity(100, .gram).converted(to: .millilitre, using: onion) == nil)
         #expect(Quantity(1, .piece).converted(to: .millilitre, using: onion) == nil)
-        #expect(!ConversionProfile.none.canConvert(from: .litre, to: .kilogram))
+        #expect(!ConversionProfile.sameDimensionOnly.canConvert(from: .litre, to: .kilogram))
     }
 
     @Test("zero, negative and non-finite factors count as unknown")
@@ -141,7 +141,8 @@ struct QuantityArithmeticTests {
     func clampOnCreation() throws {
         #expect(Quantity(-2, .gram).amount == 0)
         #expect(Quantity(.nan, .gram).amount == 0)
-        #expect(Quantity(.infinity, .litre).amount == 0)
+        #expect(Quantity(-.infinity, .gram).amount == 0)
+        #expect(Quantity(.infinity, .litre).amount == Double.greatestFiniteMagnitude)
         let json = Data(#"{"amount":-5,"unit":"kg"}"#.utf8)
         let decoded = try JSONDecoder().decode(Quantity.self, from: json)
         #expect(decoded == Quantity(0, .kilogram))
@@ -179,12 +180,41 @@ struct QuantityArithmeticTests {
         #expect(!Quantity(0, .toTaste).isZero)
     }
 
+    @Test("0.1 kg + 0.2 kg - 300 g is exactly zero (relative-epsilon snap)")
+    func subtractionSnapsRoundingNoiseToZero() throws {
+        let sum = try #require(Quantity(0.1, .kilogram).adding(Quantity(0.2, .kilogram)))
+        let rest = try #require(sum.subtracting(Quantity(300, .gram)))
+        #expect(rest == Quantity(0, .kilogram))
+        #expect(rest.isZero)
+    }
+
+    @Test("1 l - 1000/15 tbsp is exactly zero, in a total too, with no excess")
+    func litreMinusTablespoonsIsZero() throws {
+        let tbsp = Quantity(1000.0 / 15.0, .tablespoon)
+        let rest = try #require(Quantity(1, .litre).subtracting(tbsp))
+        #expect(rest == Quantity(0, .litre))
+
+        var total = QuantityTotal([Quantity(1, .litre)])
+        let excess = total.subtract(tbsp)
+        #expect(total.isZero)
+        #expect(excess == Quantity(0, .tablespoon))
+    }
+
+    @Test("a real difference above the epsilon is kept")
+    func smallRealDifferenceKept() throws {
+        let rest = try #require(Quantity(1, .kilogram).subtracting(Quantity(999, .gram)))
+        #expect(approx(rest.amount, 0.001))
+    }
+
     @Test("scaling multiplies by servings and clamps at zero (AC-6.4)")
     func scaling() {
         #expect(approx(Quantity(150, .gram).scaled(by: 2.5), Quantity(375, .gram)))
         #expect(Quantity(150, .gram).scaled(by: 0) == Quantity(0, .gram))
         #expect(Quantity(150, .gram).scaled(by: -1) == Quantity(0, .gram))
         #expect(Quantity(150, .gram).scaled(by: .nan) == Quantity(0, .gram))
+        #expect(Quantity(2, .kilogram).scaled(by: .greatestFiniteMagnitude).amount == Double.greatestFiniteMagnitude)
+        #expect(Quantity(2, .kilogram).scaled(by: .infinity).amount == Double.greatestFiniteMagnitude)
+        #expect(Quantity(0, .kilogram).scaled(by: .infinity) == Quantity(0, .kilogram))
         #expect(Quantity(1, .pinch).scaled(by: 4) == Quantity(0, .pinch))
     }
 
@@ -202,7 +232,10 @@ struct QuantityArithmeticTests {
                 continue
             }
             let back = try #require(sum.subtracting(b, using: egg))
-            #expect(approx(back.amount, a.amount, tolerance: 1e-9), "\(a) + \(b) - \(b) = \(back)")
+            // Subtraction snaps differences within relativeEpsilon of the sum to zero, so the
+            // property holds to that bound (plus float noise).
+            let bound = 2 * Quantity.relativeEpsilon * max(1, sum.amount)
+            #expect(abs(back.amount - a.amount) <= bound, "\(a) + \(b) - \(b) = \(back)")
         }
     }
 }

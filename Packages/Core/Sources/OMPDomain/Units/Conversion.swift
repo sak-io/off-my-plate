@@ -44,7 +44,8 @@ public struct ConversionProfile: Sendable, Hashable {
     public let gramsPerPiece: Double?
 
     /// No cross-dimension conversion: only same-dimension conversions succeed.
-    public static let none = ConversionProfile()
+    /// (Not named `none`, which would read like `Optional.none` at call sites.)
+    public static let sameDimensionOnly = ConversionProfile()
 
     public init(gramsPerMl: Double? = nil, gramsPerPiece: Double? = nil) {
         self.gramsPerMl = ConversionProfile.usable(gramsPerMl)
@@ -73,21 +74,22 @@ public struct ConversionProfile: Sendable, Hashable {
 
     /// Whether an amount in `from` can be expressed in `to` for this ingredient.
     public func canConvert(from: MeasureUnit, to: MeasureUnit) -> Bool {
-        factor(from: from, to: to) != nil
+        convert(1, from: from, to: to) != nil
     }
 
-    /// The multiplier taking an amount in `from` to an amount in `to`, or nil when the two
-    /// units are not convertible for this ingredient.
-    public func factor(from: MeasureUnit, to: MeasureUnit) -> Double? {
+    /// `amount` in `from` expressed in `to`, or nil when the two units are not convertible
+    /// for this ingredient. Computed as `amount * fromBase / toBase` (through grams across
+    /// dimensions) so exact factors such as 1000 stay exact.
+    public func convert(_ amount: Double, from: MeasureUnit, to: MeasureUnit) -> Double? {
         guard let fromBase = from.baseUnitsPerUnit, let toBase = to.baseUnitsPerUnit else {
             return nil
         }
         if from.dimension == to.dimension {
-            return fromBase / toBase
+            return amount * fromBase / toBase
         }
         guard let fromGrams = gramsPerBaseUnit(of: from.dimension),
               let toGrams = gramsPerBaseUnit(of: to.dimension)
         else { return nil }
-        return fromBase * fromGrams / (toBase * toGrams)
+        return amount * fromBase * fromGrams / (toBase * toGrams)
     }
 }

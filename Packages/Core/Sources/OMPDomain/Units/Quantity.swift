@@ -1,7 +1,8 @@
 /// An amount in a unit (plan section 10, task T07).
 ///
 /// Invariants, enforced by every initialiser including decoding:
-/// - the amount is finite and never negative (negative or non-finite input becomes 0);
+/// - the amount is finite and never negative: negative or NaN input becomes 0, and +infinity
+///   (for example from an overflowing sum or scale) saturates to `Double.greatestFiniteMagnitude`;
 /// - a non-quantified unit ("pinch", "to taste") always has amount 0.
 ///
 /// Arithmetic never goes below zero (AC-9.6) and returns nil when the two quantities cannot be
@@ -12,11 +13,22 @@ public struct Quantity: Sendable, Hashable, Codable {
 
     public init(_ amount: Double, _ unit: MeasureUnit) {
         self.unit = unit
-        if unit.isQuantified, amount.isFinite, amount > 0 {
-            self.amount = amount
-        } else {
+        if !unit.isQuantified || amount.isNaN || amount <= 0 {
             self.amount = 0
+        } else {
+            self.amount = min(amount, Double.greatestFiniteMagnitude)
         }
+    }
+
+    /// Relative tolerance for subtraction: a difference no larger than
+    /// `relativeEpsilon * max(lhs, rhs)` is rounding noise and snaps to exactly 0, so
+    /// "0.1 kg + 0.2 kg - 300 g" is zero and produces no phantom shopping line.
+    public static let relativeEpsilon = 1e-9
+
+    /// `lhs - rhs`, snapped to 0 when within `relativeEpsilon` (and clamped at 0 by `init`).
+    static func snappedDifference(_ lhs: Double, _ rhs: Double) -> Double {
+        let difference = lhs - rhs
+        return difference <= relativeEpsilon * max(abs(lhs), abs(rhs)) ? 0 : difference
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -47,10 +59,10 @@ public struct Quantity: Sendable, Hashable, Codable {
 
     /// The same amount in `target`, or nil when not convertible with `profile`.
     /// Converting a non-quantified quantity to its own unit returns it unchanged.
-    public func converted(to target: MeasureUnit, using profile: ConversionProfile = .none) -> Quantity? {
+    public func converted(to target: MeasureUnit, using profile: ConversionProfile = .sameDimensionOnly) -> Quantity? {
         if target == unit { return self }
-        guard let factor = profile.factor(from: unit, to: target) else { return nil }
-        return Quantity(amount * factor, target)
+        guard let converted = profile.convert(amount, from: unit, to: target) else { return nil }
+        return Quantity(converted, target)
     }
 
     /// The same amount in the base unit of its dimension (g, ml, piece); self when
@@ -61,27 +73,28 @@ public struct Quantity: Sendable, Hashable, Codable {
     }
 
     /// Whether `other` can be combined with this quantity using `profile`.
-    public func isCompatible(with other: Quantity, using profile: ConversionProfile = .none) -> Bool {
+    public func isCompatible(with other: Quantity, using profile: ConversionProfile = .sameDimensionOnly) -> Bool {
         other.unit == unit || profile.canConvert(from: other.unit, to: unit)
     }
 
     /// `self + other`, in this quantity's unit; nil when the units are not convertible.
     /// Adding two equal non-quantified units ("to taste" + "to taste") yields the same unit.
-    public func adding(_ other: Quantity, using profile: ConversionProfile = .none) -> Quantity? {
+    public func adding(_ other: Quantity, using profile: ConversionProfile = .sameDimensionOnly) -> Quantity? {
         guard let other = other.converted(to: unit, using: profile) else { return nil }
         return Quantity(amount + other.amount, unit)
     }
 
-    /// `self - other`, clamped at zero, in this quantity's unit; nil when not convertible.
-    public func subtracting(_ other: Quantity, using profile: ConversionProfile = .none) -> Quantity? {
+    /// `self - other`, clamped at zero and snapped to zero within `relativeEpsilon`, in this
+    /// quantity's unit; nil when not convertible.
+    public func subtracting(_ other: Quantity, using profile: ConversionProfile = .sameDimensionOnly) -> Quantity? {
         guard let other = other.converted(to: unit, using: profile) else { return nil }
-        return Quantity(amount - other.amount, unit)
+        return Quantity(Quantity.snappedDifference(amount, other.amount), unit)
     }
 
     /// The amount multiplied by `factor` (servings, portions), clamped at zero.
-    /// A negative or non-finite factor gives zero.
+    /// A negative or NaN factor gives zero; an overflowing product saturates.
     public func scaled(by factor: Double) -> Quantity {
-        guard factor.isFinite, factor > 0 else { return Quantity(0, unit) }
+        guard !factor.isNaN, factor > 0 else { return Quantity(0, unit) }
         return Quantity(amount * factor, unit)
     }
 }
@@ -92,12 +105,15 @@ public struct Quantity: Sendable, Hashable, Codable {
 /// Each added quantity merges into the first part it converts to, in that part's unit;
 /// otherwise it starts a new part. Because convertibility through mass is an equivalence for
 /// a fixed profile, no two parts are ever convertible into each other.
+///
+/// A part keeps the unit it was first seen in ("1 kg + 500 g" is "1.5 kg", "500 g + 1 kg" is
+/// "1500 g"); normalising for display (for example 1500 g -> 1.5 kg) is the caller's job (T14).
 public struct QuantityTotal: Sendable, Hashable {
     public let profile: ConversionProfile
     /// The parts in first-seen order.
     public private(set) var parts: [Quantity]
 
-    public init(profile: ConversionProfile = .none, _ quantities: [Quantity] = []) {
+    public init(profile: ConversionProfile = .sameDimensionOnly, _ quantities: [Quantity] = []) {
         self.profile = profile
         self.parts = []
         for quantity in quantities { add(quantity) }
@@ -130,7 +146,7 @@ public struct QuantityTotal: Sendable, Hashable {
                   let remaining = part.subtracting(wanted, using: profile)
             else { continue }
             parts[index] = remaining
-            let excess = Quantity(wanted.amount - part.amount, part.unit)
+            let excess = Quantity(Quantity.snappedDifference(wanted.amount, part.amount), part.unit)
             return excess.converted(to: quantity.unit, using: profile) ?? Quantity(0, quantity.unit)
         }
         return quantity
