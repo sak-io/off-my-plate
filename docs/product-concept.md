@@ -1,4 +1,4 @@
-# Off My Plate — Product Concept
+# OffMyPlate — Product Concept
 
 **Status:** Draft v0.1 · **Date:** 2026-10-12 · **Platforms:** iPhone, iPad (iOS/iPadOS)
 
@@ -8,7 +8,7 @@
 
 ## 1. Vision
 
-A kitchen companion that removes the daily mental load of deciding what to cook, what to buy, and what's already at home. Off My Plate plans meals around the **real household** — who is eating, what's in the pantry, what the family actually likes, and what health guidance each person has been given — and eventually turns the plan into a filled grocery cart.
+A kitchen companion that removes the daily mental load of deciding what to cook, what to buy, and what's already at home. OffMyPlate plans meals around the **real household** — who is eating, what's in the pantry, what the family actually likes, and what health guidance each person has been given — and eventually turns the plan into a filled grocery cart.
 
 ## 2. Problem
 
@@ -123,7 +123,7 @@ Initial market: English-speaking households with iPhone/iPad; expand regional cu
 | Capability | Approach | Notes / constraints |
 |---|---|---|
 | **UI** | SwiftUI, universal app with adaptive layouts (iPhone compact, iPad split-view/Stage Manager) | iPad gets a dedicated kitchen/planning layout |
-| **Apple Notes** | Notes has **no public read API**. Options: Share Sheet extension ("Send to Off My Plate" from a note), App Intents / Shortcuts action, copy-paste, or the user exporting the note text. | Direct background reading of Notes is not available; design around share-extension + Shortcuts. Consider Apple **Reminders (EventKit)** as a fully supported alternative for shopping lists. |
+| **Apple Notes** | Notes has **no public read API**. Options: Share Sheet extension ("Send to OffMyPlate" from a note), App Intents / Shortcuts action, copy-paste, or the user exporting the note text. | Direct background reading of Notes is not available; design around share-extension + Shortcuts. Consider Apple **Reminders (EventKit)** as a fully supported alternative for shopping lists. |
 | **Camera scanning** | VisionKit `DataScannerViewController` + Vision text recognition (on-device OCR); barcode scanning for packaged goods | On-device first for privacy and speed |
 | **Image understanding** (fridge photos, handwritten lists, diet-plan PDFs) | Multimodal LLM via backend for recognition and structuring; on-device OCR as pre-step | Confirm-before-save UI for every extraction |
 | **Voice** | Speech framework / on-device dictation for transcription; LLM for intent parsing; optional spoken replies (AVSpeechSynthesizer) | Hands-free mode important in the kitchen |
@@ -157,7 +157,7 @@ The "give us your store credentials" model is the highest-risk part of the produ
 
 ## 11. Differentiators vs. Existing Apps
 
-| Existing approach | Gap | Off My Plate |
+| Existing approach | Gap | OffMyPlate |
 |---|---|---|
 | Recipe apps (Yummly, Tasty) | Recipe-first, ignore household and pantry | Household-first planning |
 | Meal-plan subscriptions (eMeals, Mealime) | Generic templates, limited personalisation, minimal pantry awareness | Learns what *this* family eats, uses real pantry state |
@@ -216,4 +216,4 @@ The "give us your store credentials" model is the highest-risk part of the produ
 
 ## 17. Summary
 
-Off My Plate is a household-aware, pantry-aware, guidance-aware meal planner for iPhone and iPad, driven by the easiest possible inputs — notes, camera, and voice — and ultimately connected to grocery carts. The MVP proves the planning loop (plan → list → cook → pantry update); shopping automation follows once planning is trusted and integration paths are secured.
+OffMyPlate is a household-aware, pantry-aware, guidance-aware meal planner for iPhone and iPad, driven by the easiest possible inputs — notes, camera, and voice — and ultimately connected to grocery carts. The MVP proves the planning loop (plan → list → cook → pantry update); shopping automation follows once planning is trusted and integration paths are secured.
