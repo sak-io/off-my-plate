@@ -93,10 +93,20 @@ public struct SeedLibrary: Sendable, Hashable {
     /// The recipe's derived tags: the union of `tags` and `mayContain` of every ingredient,
     /// optional lines included. "May contain" counts as "contains" for safety (ADR 0007), so
     /// this is the set a hard rule's excluded tags must be disjoint from.
+    /// - Precondition: every line's ingredient is in this library (always true for `recipes`).
+    ///   If not, the result fails closed and contains every tag.
     public func derivedTags(of recipe: Recipe) -> Set<FoodTag> {
         var tags = Set<FoodTag>()
         for line in recipe.ingredients {
-            guard let ingredient = ingredient(line.ingredientId) else { continue }
+            // Invariant: only SeedValidator builds a SeedLibrary, and it rejects any recipe line
+            // whose ingredient does not resolve, so this lookup cannot fail for a library recipe.
+            // A recipe from elsewhere with an unknown ingredient must never look tag-free, so it
+            // fails closed: an unresolved line counts as every tag (and traps in debug builds).
+            guard let ingredient = ingredient(line.ingredientId) else {
+                assertionFailure("derivedTags(of:): ingredient '\(line.ingredientId)' is not in the seed library")
+                tags.formUnion(FoodTag.allCases)
+                continue
+            }
             tags.formUnion(ingredient.tags)
             tags.formUnion(ingredient.mayContain)
         }

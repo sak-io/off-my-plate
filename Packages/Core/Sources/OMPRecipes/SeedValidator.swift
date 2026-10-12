@@ -512,25 +512,22 @@ public enum SeedValidator {
         return RecipeReview(status: status, reviewer: reviewer, reviewedOn: reviewedOn)
     }
 
-    /// Whether a quantity in `unit` can be converted to the ingredient's `defaultUnit`: always
-    /// within a dimension or when either side is non-quantified; across mass/volume with
-    /// `gramsPerMl`, across mass/count with `gramsPerPiece`, and across volume/count with both.
+    /// Whether a recipe line in `unit` is usable for an ingredient whose default unit is
+    /// `defaultUnit`:
+    /// - a non-quantified line (pinch, to taste) is always fine: it never reaches the list;
+    /// - a quantified line needs a quantified default unit (lead decision, T04 review 1: an
+    ///   unquantified default unit is allowed only if every line using it is unquantified);
+    /// - otherwise T07's `ConversionProfile.canConvert` decides, with the ingredient's
+    ///   density and piece weight.
     static func isConvertible(_ unit: MeasureUnit, to defaultUnit: MeasureUnit, _ facts: IngredientFacts) -> Bool {
-        let from = unit.dimension
-        let to = defaultUnit.dimension
-        if from == to || from == .unquantified || to == .unquantified {
+        if unit.dimension == .unquantified {
             return true
         }
-        let pair: Set<MeasureDimension> = [from, to]
-        let hasDensity = facts.gramsPerMl != nil
-        let hasPieceWeight = facts.gramsPerPiece != nil
-        if pair == [.mass, .volume] {
-            return hasDensity
+        if defaultUnit.dimension == .unquantified {
+            return false
         }
-        if pair == [.mass, .count] {
-            return hasPieceWeight
-        }
-        return hasDensity && hasPieceWeight
+        let profile = ConversionProfile(gramsPerMl: facts.gramsPerMl, gramsPerPiece: facts.gramsPerPiece)
+        return profile.canConvert(from: unit, to: defaultUnit)
     }
 
     // MARK: - Helpers

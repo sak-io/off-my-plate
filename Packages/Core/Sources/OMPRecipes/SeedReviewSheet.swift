@@ -36,7 +36,7 @@ public enum SeedReviewSheet {
     }
 
     private static let caveat =
-        "\"May contain\" tags count as \"contains\" in every safety check. A recipe with an unverified ingredient is never planned for anyone who has a hard rule."
+        "\"May contain\" tags count as \"contains\" in every safety check. A recipe with an unverified ingredient is excluded from any meal where someone eating has a hard rule (AC-4.3)."
 
     private static func recipeSection(_ recipe: Recipe, _ library: SeedLibrary) -> [String] {
         let meals = MealType.allCases.filter { recipe.mealTypes.contains($0) }.map(\.rawValue)

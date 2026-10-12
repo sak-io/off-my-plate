@@ -40,7 +40,7 @@ struct ReviewSheetTests {
         Recipes: 2 (signed off: 1, draft: 1)
         Ingredients: 5 (unverified: 1)
 
-        "May contain" tags count as "contains" in every safety check. A recipe with an unverified ingredient is never planned for anyone who has a hard rule.
+        "May contain" tags count as "contains" in every safety check. A recipe with an unverified ingredient is excluded from any meal where someone eating has a hard rule (AC-4.3).
 
         ## Restrictions
 

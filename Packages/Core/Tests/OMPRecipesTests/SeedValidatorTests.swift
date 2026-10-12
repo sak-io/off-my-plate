@@ -172,7 +172,35 @@ struct SeedValidatorTests {
         expectRejected(validate(catalog: catalog), with: .duplicateID(.restriction, id: "peanuts"))
     }
 
+    @Test("rejects a restriction with an empty excludedTags list")
+    func restrictionWithoutTags() throws {
+        let catalog = try SeedFixture.mutated(SeedFixture.catalog, replacing: #""excludedTags": ["peanut"]"#, with: #""excludedTags": []"#)
+        expectRejected(validate(catalog: catalog), with: .missingField(.restriction, id: "peanuts", field: "excludedTags"))
+    }
+
+    @Test("rejects a restriction without an excludedTags field")
+    func restrictionMissingTagsField() throws {
+        let catalog = try SeedFixture.mutated(SeedFixture.catalog, replacing: #", "excludedTags": ["peanut"]"#, with: "")
+        expectRejected(validate(catalog: catalog), with: .missingField(.restriction, id: "peanuts", field: "excludedTags"))
+    }
+
+    @Test("rejects a restriction that excludes an unknown tag")
+    func restrictionUnknownTag() throws {
+        let catalog = try SeedFixture.mutated(SeedFixture.catalog, replacing: #""excludedTags": ["peanut"]"#, with: #""excludedTags": ["peanut", "nuts"]"#)
+        let result = validate(catalog: catalog)
+        expectRejected(result, with: .unknownValue(.restriction, id: "peanuts", field: "excludedTags", value: "nuts"))
+        #expect(!result.issues.contains(.missingField(.restriction, id: "peanuts", field: "excludedTags")))
+    }
+
     // MARK: Further structural checks
+
+    @Test("rejects a quantified line for an ingredient whose default unit is unquantified")
+    func quantifiedLineForUnquantifiedDefault() throws {
+        let recipes = try SeedFixture.mutated(
+            SeedFixture.recipes, replacing: #"{"ingredientId": "hing", "unit": "pinch", "optional": true}"#,
+            with: #"{"ingredientId": "hing", "quantity": 1, "unit": "g", "optional": true}"#)
+        expectRejected(validate(recipes: recipes), with: .unconvertibleUnit(recipe: "dal-tadka", ingredient: "hing", unit: .gram))
+    }
 
     @Test("rejects a quantified line whose unit cannot be converted for the ingredient")
     func unconvertibleUnit() throws {
