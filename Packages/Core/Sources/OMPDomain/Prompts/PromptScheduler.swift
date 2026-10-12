@@ -13,11 +13,17 @@ public enum PromptKind: Sendable, Hashable {
 /// A card that could be shown now. The caller decides which cards are relevant at this moment
 /// (for example the lunchbox card only when a lunch slot is opened in a household with
 /// children, AC-7.1); the scheduler decides which one, if any, is shown.
+///
+/// Build candidates only through the factories (`.lunchbox`, `.safety(_:)`, `.reflectBack(_:)`):
+/// the initializer is internal so that a candidate's id prefix always matches its kind
+/// (`safety:`, `reflect:`, `lunchbox`), which is how past shows are classified for the caps.
 public struct PromptCandidate: Sendable, Hashable {
-    public var id: PromptID
-    public var kind: PromptKind
+    public let id: PromptID
+    public let kind: PromptKind
 
-    public init(id: PromptID, kind: PromptKind) {
+    init(id: PromptID, kind: PromptKind) {
+        precondition(PromptScheduler.kind(ofPromptID: id.rawValue) == PromptScheduler.kind(of: kind),
+            "Prompt id '\(id.rawValue)' does not match its kind")
         self.id = id
         self.kind = kind
     }
@@ -163,7 +169,7 @@ public enum PromptScheduler {
     }
 
     /// Records a lunchbox answer (U11): Yes and No are answers; Not now starts the cooldown.
-    public static func record(_ answer: LunchboxPromptAnswer, on state: PromptState, now: Date) -> PromptState {
+    public static func recordLunchbox(_ answer: LunchboxPromptAnswer, on state: PromptState, now: Date) -> PromptState {
         var copy = state
         switch answer {
         case .yes, .no: copy.answeredAt = now
@@ -174,7 +180,7 @@ public enum PromptScheduler {
 
     /// Records a reflect-back answer (the fact itself changes through a
     /// `.reflectBackAnswered` learning event and `FactLearner.update`).
-    public static func record(_ answer: ReflectBackAnswer, on state: PromptState, now: Date) -> PromptState {
+    public static func recordReflectBack(_ answer: ReflectBackAnswer, on state: PromptState, now: Date) -> PromptState {
         var copy = state
         copy.answeredAt = now
         return copy
@@ -187,6 +193,19 @@ public enum PromptScheduler {
     // MARK: Private
 
     private static let cooldownSeconds = Double(cooldownDays) * 86_400
+
+    /// The coarse class of a prompt id, from its prefix: 0 safety, 1 lunchbox, 2 reflect-back,
+    /// -1 unknown.
+    static func kind(ofPromptID raw: String) -> Int {
+        if raw.hasPrefix(safetyPrefix) { return 0 }
+        if raw == lunchboxPromptID.rawValue { return 1 }
+        if raw.hasPrefix(reflectBackPrefix) { return 2 }
+        return -1
+    }
+
+    static func kind(of kind: PromptKind) -> Int {
+        rank(kind)
+    }
 
     private static func rank(_ kind: PromptKind) -> Int {
         switch kind {

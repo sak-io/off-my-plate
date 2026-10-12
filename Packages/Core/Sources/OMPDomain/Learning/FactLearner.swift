@@ -31,6 +31,9 @@ public enum FactLearner {
     public static let proposalMinimumWeeks = 2
     /// Decayed evidence weight at which an inferred fact's confidence reaches 1.
     public static let fullConfidenceWeight: Double = 5
+    /// Only events at most this old count toward the proposal threshold (weight >= 0.25,
+    /// two half-lives). A proposed fact whose qualifying evidence lapses returns to observing.
+    public static let proposalWindowDays = 56
 
     /// Evidence weight of one event: `0.5^(age / 28 days)`. Events in the future (clock skew)
     /// count as age 0.
@@ -84,9 +87,12 @@ public enum FactLearner {
         }
         let newKeys = evidence.keys.filter { !handled.contains($0) }
         var created: [Fact] = []
-        for key in newKeys {
+        var usedIDs = Set(facts.map(\.id))
+        for key in newKeys.sorted(by: { stableID(for: $0) < stableID(for: $1) }) {
+            let id = uniqueID(for: key, avoiding: usedIDs)
+            usedIDs.insert(id)
             let seed = Fact(
-                id: stableID(for: key), subject: key.subject, statement: key.statement, origin: .inferred,
+                id: id, subject: key.subject, statement: key.statement, origin: .inferred,
                 confidence: 0, status: .observing, createdAt: now, updatedAt: now)
             created.append(
                 updated(seed, evidence: evidence[key] ?? [], answers: answers[key] ?? [], now: now, timeZone: timeZone))
@@ -107,20 +113,60 @@ public enum FactLearner {
         return copy
     }
 
-    /// Editing a fact on the Fact sheet (U8): the user may change who it applies to; saving
-    /// makes it `stated` and `active`. Only soft statements exist, so no safety-strength option
-    /// can be offered.
-    public static func restate(_ fact: Fact, subject: FactSubject, statement: FactStatement? = nil, now: Date)
-        -> Fact
-    {
-        var copy = fact
-        copy.subject = subject
-        if let statement { copy.statement = statement }
-        copy.origin = .stated
-        copy.status = .active
-        copy.confidence = 1
-        copy.updatedAt = now
-        return copy
+    /// Editing a fact on the Fact sheet (U8): the user may change who it applies to (and, where
+    /// offered, the soft statement); saving makes it `stated` and `active`. Only soft statements
+    /// exist, so no safety-strength option can be offered.
+    ///
+    /// - Returns: all facts, updated. If the key is unchanged, the fact is updated in place.
+    ///   If the key changes, the old key is kept as a `.forgotten` tombstone (same id, its
+    ///   suppression preserved, older evidence ignored) so it is not re-inferred from the same
+    ///   evidence, and the stated fact is stored under the new key: an existing fact with that
+    ///   key is updated in place (keeping its id and suppression), otherwise a new fact with a
+    ///   new unique id is appended. Ids stay unique. An unknown `id` returns `facts` unchanged.
+    public static func restate(
+        _ id: FactID, in facts: [Fact], subject: FactSubject, statement: FactStatement? = nil, now: Date
+    ) -> [Fact] {
+        guard let index = facts.firstIndex(where: { $0.id == id }) else { return facts }
+        let original = facts[index]
+        let newKey = FactKey(subject: subject, statement: statement ?? original.statement)
+
+        func makeStated(_ fact: Fact) -> Fact {
+            var copy = fact
+            copy.subject = newKey.subject
+            copy.statement = newKey.statement
+            copy.origin = .stated
+            copy.status = .active
+            copy.confidence = 1
+            copy.forgottenAt = nil
+            copy.updatedAt = now
+            return copy
+        }
+
+        var result = facts
+        if newKey == original.key {
+            result[index] = makeStated(original)
+            return result
+        }
+        result[index] = forget(original, now: now)
+        if let existing = result.firstIndex(where: { $0.key == newKey }) {
+            result[existing] = makeStated(result[existing])
+        } else {
+            let seed = Fact(
+                id: uniqueID(for: newKey, avoiding: Set(result.map(\.id))), subject: newKey.subject,
+                statement: newKey.statement, origin: .stated, confidence: 1, status: .active, createdAt: now,
+                updatedAt: now)
+            result.append(makeStated(seed))
+        }
+        return result
+    }
+
+    /// `stableID(for:)`, or that id with a `#2`, `#3`, ... suffix if it is already taken.
+    static func uniqueID(for key: FactKey, avoiding used: Set<FactID>) -> FactID {
+        let base = stableID(for: key)
+        guard used.contains(base) else { return base }
+        var suffix = 2
+        while used.contains(FactID("\(base.rawValue)#\(suffix)")) { suffix += 1 }
+        return FactID("\(base.rawValue)#\(suffix)")
     }
 
     /// The deterministic id of a learner-created fact (the same key always gives the same id).
@@ -223,15 +269,17 @@ public enum FactLearner {
             next.confidence = 0
         } else if everSuppressed {
             next.status = .dismissed
+            next.confidence = 0
         } else if latestAnswer == .yes {
             // Confirming keeps the fact soft (AC-12.4): it only becomes an active soft Fact.
             next.origin = .confirmed
             next.status = .active
             next.confidence = 1
-        } else if meetsProposalThreshold(counted, timeZone: timeZone) {
+        } else if meetsProposalThreshold(counted, now: now, timeZone: timeZone) {
             next.status = .proposed
         } else if latestAnswer == .notReally {
             next.status = .dismissed
+            next.confidence = 0
         } else {
             next.status = .observing
         }
@@ -249,8 +297,11 @@ public enum FactLearner {
         return date > cutoff
     }
 
-    /// AC-12.2: at least 3 independent events across at least 2 different ISO weeks.
-    static func meetsProposalThreshold(_ events: [LearningEvent], timeZone: TimeZone) -> Bool {
+    /// AC-12.2: at least 3 independent events across at least 2 different ISO weeks, counting
+    /// only events within the last `proposalWindowDays` (weight >= 0.25).
+    static func meetsProposalThreshold(_ all: [LearningEvent], now: Date, timeZone: TimeZone) -> Bool {
+        let window = Double(proposalWindowDays) * 86_400
+        let events = all.filter { now.timeIntervalSince($0.at) <= window }
         guard Set(events.map(\.id)).count >= proposalMinimumEvents else { return false }
         let weeks = Set(events.map { ISOWeek(containing: $0.at, in: timeZone) })
         return weeks.count >= proposalMinimumWeeks

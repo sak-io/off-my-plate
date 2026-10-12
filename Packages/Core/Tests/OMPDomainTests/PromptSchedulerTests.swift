@@ -50,7 +50,7 @@ struct PromptSchedulerTests {
 
     @Test("Not now cools the lunchbox prompt down for 14 days (AC-7.3)")
     func lunchboxCooldown() {
-        let dismissed = PromptScheduler.record(
+        let dismissed = PromptScheduler.recordLunchbox(
             .notNow, on: PromptScheduler.markShown(PromptState(promptId: PromptScheduler.lunchboxPromptID), now: at(0)),
             now: at(0))
         #expect(dismissed.dismissedAt == at(0))
@@ -61,7 +61,7 @@ struct PromptSchedulerTests {
 
     @Test("lunchbox Yes and No are answers: never asked again (U11)", arguments: [LunchboxPromptAnswer.yes, .no])
     func lunchboxAnswered(answer: LunchboxPromptAnswer) {
-        let state = PromptScheduler.record(
+        let state = PromptScheduler.recordLunchbox(
             answer, on: PromptState(promptId: PromptScheduler.lunchboxPromptID, lastShownAt: at(0)), now: at(0))
         #expect(state.answeredAt == at(0))
         #expect(state.dismissedAt == nil)
@@ -104,7 +104,7 @@ struct PromptSchedulerTests {
 
     @Test("a reflect-back answered this week is not re-shown; a re-proposal in a later week is")
     func reflectBackReproposal() {
-        let answered = PromptScheduler.record(
+        let answered = PromptScheduler.recordReflectBack(
             .notReally, on: PromptState(promptId: reflectA.id, lastShownAt: at(0)), now: at(0, hour: 13))
         #expect(next([reflectA], [answered], now: at(3)) == nil)
         #expect(next([reflectA], [answered], now: at(15)) == reflectA)
@@ -125,5 +125,16 @@ struct PromptSchedulerTests {
         #expect(candidates == [reflectA])
         #expect(reflectA.id.rawValue.hasPrefix("reflect:"))
         #expect(safety.id == "safety:member-2")
+    }
+
+    @Test("factories keep id prefix and kind in step")
+    func idPrefixMatchesKind() {
+        #expect(PromptCandidate.lunchbox.id == PromptScheduler.lunchboxPromptID)
+        #expect(PromptCandidate.lunchbox.kind == .lunchbox)
+        #expect(safety.kind == .safety)
+        #expect(safety.id.rawValue.hasPrefix(PromptScheduler.safetyPrefix))
+        #expect(reflectA.kind == .reflectBack(factA))
+        #expect(reflectA.id == PromptScheduler.reflectBackPromptID(for: factA))
+        #expect(!reflectA.id.rawValue.hasPrefix(PromptScheduler.safetyPrefix))
     }
 }

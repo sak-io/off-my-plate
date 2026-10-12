@@ -199,11 +199,90 @@ struct FactLearnerTests {
         #expect(learn([stated], events, now: day(9)) == [stated])
 
         let inferred = try #require(upmaFact(learn([skipEvent(1, on: 0)], now: day(1))))
-        let restated = FactLearner.restate(inferred, subject: .member("child-1"), now: day(2))
-        #expect(restated.origin == .stated)
-        #expect(restated.status == .active)
-        #expect(restated.subject == .member("child-1"))
-        #expect(restated.id == inferred.id)
+        let sameKey = FactLearner.restate(inferred.id, in: [inferred], subject: .household, now: day(2))
+        #expect(sameKey.count == 1)
+        #expect(sameKey[0].id == inferred.id)
+        #expect(sameKey[0].origin == .stated)
+        #expect(sameKey[0].status == .active)
+        #expect(sameKey[0].confidence == 1)
+    }
+
+    @Test("restating to another subject tombstones the old key under a new unique id; no re-proposal (U8)")
+    func restateToMemberTombstonesOldKey() throws {
+        let events = [skipEvent(1, on: 0), skipEvent(2, on: 1), skipEvent(3, on: 7)]
+        let proposed = learn(events, now: day(8))
+        let old = try #require(upmaFact(proposed))
+        #expect(old.status == .proposed)
+
+        let restated = FactLearner.restate(old.id, in: proposed, subject: .member("child-1"), now: day(8))
+        #expect(Set(restated.map(\.id)).count == restated.count)
+        let tombstone = try #require(restated.first { $0.id == old.id })
+        #expect(tombstone.key == upmaKey)
+        #expect(tombstone.status == .forgotten)
+        #expect(tombstone.forgottenAt == day(8))
+        let memberKey = FactKey(subject: .member("child-1"), statement: .dislikesRecipe("upma"))
+        let stated = try #require(restated.first { $0.key == memberKey })
+        #expect(stated.id != old.id)
+        #expect(stated.origin == .stated)
+        #expect(stated.status == .active)
+
+        // The same household evidence does not bring the household fact back.
+        let relearned = learn(restated, events, now: day(9))
+        #expect(Set(relearned.map(\.id)).count == relearned.count)
+        #expect(upmaFact(relearned)?.status == .forgotten)
+        #expect(relearned.first { $0.key == memberKey } == stated)
+        #expect(PromptCandidate.reflectBacks(from: relearned).isEmpty)
+    }
+
+    @Test("restating keeps Don't ask again on the old key, however much evidence follows")
+    func restateKeepsSuppression() throws {
+        var events = [
+            skipEvent(1, on: 0), skipEvent(2, on: 1), skipEvent(3, on: 7),
+            answer(.dontAskAgain, key: upmaKey, on: 8, id: "a1"),
+        ]
+        let suppressed = learn(events, now: day(8))
+        let old = try #require(upmaFact(suppressed))
+        #expect(old.suppressed)
+        let restated = FactLearner.restate(old.id, in: suppressed, subject: .member("child-1"), now: day(9))
+        #expect(restated.first { $0.id == old.id }?.suppressed == true)
+
+        for index in 10..<20 { events.append(skipEvent(index, on: index)) }
+        let later = learn(restated, events, now: day(21))
+        let household = try #require(upmaFact(later))
+        #expect(household.suppressed)
+        #expect(household.status == .dismissed)
+        #expect(household.confidence == 0)
+        #expect(PromptCandidate.reflectBacks(from: later).isEmpty)
+    }
+
+    @Test("update never produces duplicate ids, even if a stored fact already uses a key's stable id")
+    func updateIDsAreUnique() {
+        let squatter = Fact(
+            id: FactLearner.stableID(for: upmaKey), subject: .member("child-1"), statement: .dislikesRecipe("upma"),
+            origin: .stated, confidence: 1, status: .active, createdAt: day(0), updatedAt: day(0))
+        let facts = learn([squatter], [skipEvent(1, on: 0), skipEvent(2, on: 1)], now: day(2))
+        #expect(facts.count == 2)
+        #expect(Set(facts.map(\.id)).count == 2)
+        #expect(upmaFact(facts)?.id == FactID(FactLearner.stableID(for: upmaKey).rawValue + "#2"))
+    }
+
+    // MARK: Recency window (lead decision, review 1)
+
+    @Test("an event exactly 56 days old still counts toward the threshold; one second older does not")
+    func proposalWindowBoundary() {
+        let events = [skipEvent(1, on: 0), skipEvent(2, on: 7), skipEvent(3, on: 8)]
+        #expect(upmaFact(learn(events, now: day(56)))?.status == .proposed)
+        #expect(upmaFact(learn(events, now: day(56) + 1))?.status == .observing)
+    }
+
+    @Test("a proposed fact whose qualifying evidence lapses returns to observing")
+    func proposedLapses() throws {
+        let events = [skipEvent(1, on: 0), skipEvent(2, on: 7), skipEvent(3, on: 8)]
+        let proposed = learn(events, now: day(9))
+        #expect(upmaFact(proposed)?.status == .proposed)
+        let lapsed = try #require(upmaFact(learn(proposed, events, now: day(70))))
+        #expect(lapsed.status == .observing)
+        #expect(lapsed.confidence > 0)
     }
 
     // MARK: Signals (AC-12.1)
@@ -246,7 +325,7 @@ struct FactLearnerTests {
             FactLearner.update(facts:events:recipes:now:timeZone:)
         let forget: (Fact, Date) -> Fact = FactLearner.forget(_:now:)
         #expect(update([], [], [:], day(0), utc).isEmpty)
-        #expect(forget(FactLearner.restate(stated(), subject: .household, now: day(0)), day(1)).status == .forgotten)
+        #expect(forget(stated(), day(1)).status == .forgotten)
     }
 
     @Test("FactStatement has only the six soft cases (exhaustive switch, no hard case)")
