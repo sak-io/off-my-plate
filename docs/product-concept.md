@@ -1,6 +1,6 @@
 # OffMyPlate — Product Concept
 
-**Status:** Draft v0.1 · **Date:** 2026-10-12 · **Platforms:** iPhone, iPad (iOS/iPadOS)
+**Status:** Draft v0.2 · **Date:** 2026-10-12 · **Platforms:** iPhone, iPad (iOS/iPadOS)
 
 > *"What's for dinner?" — answered, shopped for, and off your plate.*
 
@@ -145,18 +145,28 @@ Most apps lose users at onboarding: a long form asks people to describe their ho
 
 ## 8. Platform & Technical Considerations (iOS / iPadOS)
 
+Full detail is in [`technical-specification.md`](technical-specification.md). Key product-level decisions:
+
+- **On-device first.** Household, health and pantry data stay on the device and in the user's own iCloud. OffMyPlate runs no AI backend and stores no user data on its servers.
+- **OffMyPlate does not provide an LLM.** Intelligence comes from Apple's on-device models, plus an *optional* user-supplied API key (Gemini, OpenAI or Anthropic) for heavier tasks. The app must be fully useful with neither. Consumer chatbot subscriptions don't include API access, so "bring your own key" is a power-user feature, not the default.
+- **Deterministic core, probabilistic edges.** Planning, allergen checks, nutrition maths and pantry/shopping arithmetic are ordinary code. Models only interpret messy input (photos, documents, voice, free text), phrase explanations and chat, and can only choose among options the rules have already approved.
+- **Graceful degradation.** Every feature has a non-AI fallback (forms, templates, manual entry) for older devices and offline use.
+- **A curated recipe library is a core asset**, because no hosted model invents dishes (see below).
+
 | Capability | Approach | Notes / constraints |
 |---|---|---|
 | **UI** | SwiftUI, universal app with adaptive layouts (iPhone compact, iPad split-view/Stage Manager) | iPad gets a dedicated kitchen/planning layout |
 | **Apple Notes** | Notes has **no public read API**. Options: Share Sheet extension ("Send to OffMyPlate" from a note), App Intents / Shortcuts action, copy-paste, or the user exporting the note text. | Direct background reading of Notes is not available; design around share-extension + Shortcuts. Consider Apple **Reminders (EventKit)** as a fully supported alternative for shopping lists. |
 | **Camera scanning** | VisionKit `DataScannerViewController` + Vision text recognition (on-device OCR); barcode scanning for packaged goods | On-device first for privacy and speed |
-| **Image understanding** (fridge photos, handwritten lists, diet-plan PDFs) | Multimodal LLM via backend for recognition and structuring; on-device OCR as pre-step | Confirm-before-save UI for every extraction |
-| **Voice** | Speech framework / on-device dictation for transcription; LLM for intent parsing; optional spoken replies (AVSpeechSynthesizer) | Hands-free mode important in the kitchen |
-| **Planning engine** | Constraint solver (hard rules: allergies, macros, inventory) + LLM for creativity, variety, and natural-language interaction | LLM proposes, deterministic validators verify constraints before display |
+| **Image understanding** (fridge photos, handwritten lists, diet-plan PDFs) | On-device OCR first; on-device model where capable; optional user-supplied model key for long or complex documents and vision | Confirm-before-save UI for every extraction; documents stay on-device unless the user opts in per task |
+| **Voice** | Speech framework / on-device dictation for transcription; on-device model for intent parsing (command grammar as fallback); optional spoken replies (AVSpeechSynthesizer) | Hands-free mode important in the kitchen |
+| **Planning engine** | Deterministic constraint filter and scoring over a curated recipe library (hard rules: allergies, macros, inventory), with an independent validator before display | A model, if available, only re-ranks validated options, explains the plan and handles chat; it never bypasses the validators |
+| **Household knowledge** | A set of learned and stated facts, each with its source and confidence, viewable and editable in plain language | Learned preferences are soft only; safety rules come solely from what the user states or confirms |
 | **Data & sync** | On-device store (SwiftData/Core Data) + CloudKit for household sync across family devices | Shared household via CloudKit sharing |
-| **Backend** | Thin service for LLM orchestration, recipe/nutrition data, and (later) store connectors | Minimise PII sent; no raw health docs retained server-side by default |
+| **Backend** | None in v1. Recipe content ships as signed content packs. A minimal backend may be introduced later only if store connectors need it (OAuth callbacks, scheduled orders), kept free of user health data | Keeps cost, privacy and compliance surface small |
+| **AI model management** | Router picks Apple on-device or a user-supplied key per task; key kept in the iOS Keychain and used only for direct device-to-provider calls; per-task opt-in for anything leaving the device; child names redacted | Every supported model is tested against an internal evaluation set before it is enabled |
 | **Notifications & surfaces** | Local notifications, widgets, Live Activities, App Shortcuts/Siri | |
-| **Nutrition data** | Licensed or open nutrition database (e.g., USDA FoodData Central plus regional datasets) | Regional coverage matters for home-cooked dishes |
+| **Recipes & nutrition** | Bundled curated library (target roughly 500–800 recipes for the launch cuisine, with a school-lunch subset), user-added recipes (URL, photo, manual), nutrition computed from ingredients using open or licensed data (e.g., USDA FoodData Central plus regional datasets) | Regional coverage and licensing matter; imported recipes stay "unverified" until ingredients are resolved |
 
 ## 9. Store Integration & Credentials — Approach
 
@@ -174,11 +184,14 @@ The "give us your store credentials" model is the highest-risk part of the produ
 ## 10. Privacy, Safety & Trust
 
 - Health and dietary data is sensitive: on-device storage by default, encrypted CloudKit sync, clear data-deletion controls, App Store privacy labels kept accurate.
-- Allergen safety: hard constraints are enforced by a deterministic checker, not left to the LLM; ambiguous ingredients are flagged. Persistent disclaimer that the app does not replace medical advice.
+- Allergen safety: hard constraints are enforced by a deterministic checker, not left to any model; unresolved or unverified ingredients are flagged and excluded for affected members. Persistent disclaimer that the app does not replace medical advice.
+- Inference never touches safety: learned patterns only adjust soft preferences. Allergies, medical and religious restrictions exist only if the user stated or confirmed them. If the user skips the safety question and children are present, the first plan stays conservative (major allergens avoided in child-facing meals) and the app asks once, gently, in context.
+- No hosted AI: OffMyPlate holds no user data on its own servers. If the user adds their own API key, it stays in the Keychain, calls go straight from the device to the provider, and each task that sends data off the device needs explicit opt-in.
 - Professional guidance is treated as authoritative input; the app never overrides it and surfaces conflicts ("Plan says no dairy; this recipe contains paneer — replaced").
 - Child profiles: minimal data, parent-managed only, COPPA/GDPR-K aware.
-- LLM transparency: clear indication when content is AI-generated; user can inspect why a meal was chosen ("uses your spinach expiring Thursday; fits Dad's 90 g protein target").
-- Credentials (if ever collected) live only in Keychain / secure enclave-backed storage.
+- AI transparency: clear indication when content is AI-generated; user can inspect why a meal was chosen ("uses your spinach expiring Thursday; fits Dad's 90 g protein target").
+- Credentials (API keys, and store logins if ever collected) live only in Keychain / secure enclave-backed storage.
+- Learning is transparent and reversible: a plain-language "What I've learned" screen lets users see, correct or forget anything the app has picked up; all learning runs on-device.
 
 ## 11. Differentiators vs. Existing Apps
 
@@ -190,11 +203,12 @@ The "give us your store credentials" model is the highest-risk part of the produ
 | Grocery list apps | Lists unconnected to meals | Lists derived from plan minus pantry |
 | Smart-fridge ecosystems | Hardware lock-in | Works with a phone camera and voice |
 
-**Moat over time:** the accumulated household taste/pantry model, parsed professional guidance, and store connections.
+**Moat over time:** the accumulated household taste/pantry model, a curated recipe library, parsed professional guidance, a privacy-first on-device design that needs no AI backend, and store connections.
 
 ## 12. Monetisation (Hypotheses)
 
 - **Freemium:** free tier — 1 week plan, basic list; **Premium subscription** (household plan) — unlimited planning, multi-member guidance, pantry scanning, family sharing, nutrition insights.
+- **No AI cost to recover.** Because the app uses on-device models and an optional user-supplied key, there is no per-request model bill, which keeps margins healthy at any scale. The premium tier is justified by features, content (recipe packs, regional cuisines) and family sharing instead.
 - **Affiliate / delivery referral fees** from store cart handoff (disclosed clearly).
 - Possible future B2B2C: nutritionists/gym coaches push structured plans straight into clients' apps (pro tier).
 
@@ -216,10 +230,12 @@ The "give us your store credentials" model is the highest-risk part of the produ
 | Wrong inferences feel creepy or inaccurate | Loss of trust | Learn only soft preferences, show what was learned in plain language, one-tap correct or forget, never infer safety-critical rules |
 | Apple Notes has no read API | Core input broken | Share extension, Shortcuts/App Intents, Reminders support, paste flow |
 | Store integrations unavailable or ToS-restricted | Automation vision delayed | Start with deep links/handoff; pursue partner APIs; keep planning valuable standalone |
-| LLM mistakes on allergies/medical diets | Safety, liability | Deterministic validators, confirm-before-use for extracted guidance, disclaimers |
+| Model mistakes on allergies/medical diets | Safety, liability | Deterministic validators, confirm-before-use for extracted guidance, safety rules never inferred, disclaimers |
+| On-device models are small and unavailable on older devices | Weaker document and photo understanding; some users get no assistant | Deterministic core carries planning; non-AI fallbacks for every feature; optional user-supplied key for heavy tasks; clear minimum-device messaging |
+| Users won't have or want an API key | Optional upgrade path goes unused | Treat it as a power-user extra; baseline experience must stand on its own |
 | Pantry upkeep fatigue | Inaccurate inventory → bad plans | Make capture nearly free (photo/receipt/voice), auto-deduct, "confidence" decay on stale items |
 | Cultural/regional recipe coverage | Irrelevant suggestions | Seed with household's own dishes; user-added recipes; regional launch focus |
-| LLM cost at scale | Margin pressure | On-device OCR/ASR, caching, structured prompts, smaller models for routine tasks |
+| Recipe library is the content bottleneck | Weak variety or poor regional fit without a generative model | Invest early in a curated, licensed, tagged library; user-added and imported recipes; regional launch focus; content packs as a premium/value driver |
 | Privacy concerns around health/child data | Trust, regulatory | On-device-first, minimal retention, transparent controls |
 
 ## 15. Roadmap (Indicative)
@@ -227,7 +243,7 @@ The "give us your store credentials" model is the highest-risk part of the produ
 | Phase | Scope | Outcome |
 |---|---|---|
 | **0 – Discovery** (4–6 wks) | 15–20 household interviews; prototype planner in a script/notebook; validate Notes/Shortcuts import flow; assess store API landscape for 1 target region | Validated persona, feasibility of inputs and integrations |
-| **1 – MVP** (3 mo) | Household profile, weekly planner with school-lunch slot, pantry (manual + voice + photo), shopping list, Notes share-extension import, guidance import (photo/PDF/text) | TestFlight beta with ~50 households |
+| **1 – MVP** (3 mo) | Three-question onboarding with learned preferences, deterministic planner over a seed recipe library, weekly planner with school-lunch slot, pantry (manual + voice + photo), shopping list, Notes share-extension import, guidance import (photo/PDF/text) | TestFlight beta with ~50 households |
 | **2 – Launch** (2 mo) | iPad layouts, CloudKit family sharing, widgets, notifications, ratings loop, subscription | App Store release |
 | **3 – Smart Kitchen** | Receipt scan, expiry tracking, leftovers, cooking mode, nutrition insights | Retention and daily-habit features |
 | **4 – Shopping Automation** | Add-to-cart for 1–2 stores → auto-order with safeguards | Closed-loop "off my plate" |
@@ -237,11 +253,14 @@ The "give us your store credentials" model is the highest-risk part of the produ
 1. Which **region/cuisines** to launch with first? (Drives datasets, stores, and recipe corpus.)
 2. Which **store(s)** are the priority integration targets, and what access paths exist for each?
 3. Should shopping-list sync prefer **Reminders** (full API) over Notes, with Notes as import-only?
-4. How much processing can run **fully on-device** (Apple Foundation Models / Core ML) versus requiring a backend LLM?
+4. How far can **on-device models** (Apple Foundation Models / Core ML) go on long, messy documents, and when should a task default to the optional user-supplied key? Which minimum iOS version and devices do we support?
 5. Do we pursue a **professional (nutritionist/coach) channel** early, or stay consumer-only for v1?
 6. Pricing: per-household flat subscription vs. per-member tiers?
-7. What is the minimum viable **nutrition accuracy** for credibility with health-guided users, and do we need a registered-dietitian advisor?
+7. Which **recipe and nutrition sources** and licences, and how are content packs distributed and updated?
+8. How aggressive should **learning and reflect-back prompts** be before they feel intrusive? (Start conservative; validate in user testing.)
+9. Which **conservative allergen defaults** for child lunchboxes are appropriate when the user skips the safety question?
+10. What is the minimum viable **nutrition accuracy** for credibility with health-guided users, and do we need a registered-dietitian advisor?
 
 ## 17. Summary
 
-OffMyPlate is a household-aware, pantry-aware, guidance-aware meal planner for iPhone and iPad, driven by the easiest possible inputs — notes, camera, and voice — and ultimately connected to grocery carts. The MVP proves the planning loop (plan → list → cook → pantry update); shopping automation follows once planning is trusted and integration paths are secured.
+OffMyPlate is a household-aware, pantry-aware, guidance-aware meal planner for iPhone and iPad, driven by the easiest possible inputs — notes, camera, and voice — and ultimately connected to grocery carts. It starts in under a minute with three optional questions and then learns quietly from how the household actually eats. It runs on-device with no hosted AI, relying on a deterministic planner, a curated recipe library, Apple's on-device models and, optionally, the user's own API key. The MVP proves the planning loop (plan → list → cook → pantry update); shopping automation follows once planning is trusted and integration paths are secured.
