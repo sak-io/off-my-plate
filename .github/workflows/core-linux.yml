@@ -7,6 +7,8 @@ name: core-linux
 on:
   push:
     branches: ["claude/**", "main"]
+    # Docs-only and team-bookkeeping pushes do not need a build (saves macOS minutes).
+    paths-ignore: ["docs/**", ".autocraft/**", "**/*.md"]
   pull_request:
   workflow_dispatch:
 
