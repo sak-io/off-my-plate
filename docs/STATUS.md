@@ -1,6 +1,6 @@
 # Status
 
-**Phase:** Kickoff, step 2 (plan) — architect and UX designer working
+**Phase:** Kickoff, step 3 (build) — T01 in progress
 **Branch:** `claude/build-v1`
 
 ## Owner decisions at kickoff (2026-10-12)
@@ -12,9 +12,14 @@
 5. **Team:** lean (starter + architect + qa-engineer) plus ux-designer. GitHub handle for `--owner`: to be confirmed.
 
 ## Done
+- UX design (`docs/design/`) and architecture plan, 15 ADRs and 30-task breakdown (`docs/architecture/`, `docs/adr/`). Owner waived plan approval; recommendations R1–R9 apply as defaults.
 - Spec approved by owner ("AGREED", 2026-10-12): `docs/specs/offmyplate-v1.md`. All gap defaults G1–G12 accepted.
 
 ## Next
-- Architect (adopt mode): `docs/architecture/plan.md`, ADRs in `docs/adr/`, task breakdown.
-- UX designer: `docs/design/` flows, screens, states and copy for v1.
-- Then build (no plan approval gate, per owner).
+- Build T01–T30 per `docs/architecture/tasks.md`. Verification is GitHub Actions CI (no local Swift toolchain: download.swift.org is blocked).
+
+## Owner to-dos (non-blocking; defaults applied)
+- R4 restriction definitions and G1 recipe/allergen sign-off (before beta).
+- R6 bundle ID / App Group / team / Xcode version (defaults: `app.offmyplate.OffMyPlate`, `group.app.offmyplate`, team in git-ignored `Local.xcconfig`, Xcode 26).
+- R3 make sure GitHub Actions is enabled for the repo (macOS minutes cost 10× on private repos).
+- R2 (optional) allow download.swift.org in the environment's network settings.
