@@ -1,0 +1,4 @@
+Bad.swift:2: network/web/analytics framework import
+Bad.swift:4: network/web/analytics framework import
+Bad.swift:5: networking API is not allowed
+FAILED with 3 violation(s)

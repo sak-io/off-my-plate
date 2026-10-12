@@ -1,0 +1,1 @@
+Package@swift-6.2.swift:6: Core must have zero package dependencies

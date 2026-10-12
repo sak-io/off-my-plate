@@ -1,0 +1,32 @@
+// swift-tools-version: 6.0
+// OffMyPlate Core: portable, Foundation-only domain logic (ADR 0004, ADR 0005).
+// Builds and tests on Linux (CI: swift:6.2-noble) and on Apple platforms.
+// Zero package dependencies: `scripts/lint-core-imports.sh` fails if one is added.
+import PackageDescription
+
+let package = Package(
+    name: "Core",
+    platforms: [
+        .iOS(.v18),
+        .macOS(.v15),
+    ],
+    products: [
+        .library(name: "OMPDomain", targets: ["OMPDomain"]),
+        .library(name: "OMPSafetyCheck", targets: ["OMPSafetyCheck"]),
+        .library(name: "OMPRecipes", targets: ["OMPRecipes"]),
+        .library(name: "OMPServices", targets: ["OMPServices"]),
+    ],
+    targets: [
+        // Entities, units, safety gate, planner, plan lifecycle, pantry/shopping math,
+        // learning, prompt scheduler and rule-based parsers.
+        .target(name: "OMPDomain"),
+        // The independent hard-rule plan validator (ADR 0007). Depends on the domain types only.
+        .target(name: "OMPSafetyCheck", dependencies: ["OMPDomain"]),
+        // Seed content (versioned JSON, ADR 0010) and its loader. Resources arrive in T04.
+        .target(name: "OMPRecipes", dependencies: ["OMPDomain"]),
+        // Use cases, repository protocols and in-memory repositories.
+        .target(name: "OMPServices", dependencies: ["OMPDomain", "OMPSafetyCheck", "OMPRecipes"]),
+        .testTarget(name: "OMPDomainTests", dependencies: ["OMPDomain"]),
+    ],
+    swiftLanguageModes: [.v6]
+)

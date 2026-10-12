@@ -1,0 +1,7 @@
+Bad.swift:2: 'MeasurementFormatter'
+Bad.swift:3: 'ISO8601DateFormatter'
+Bad.swift:4: '.formatted('
+Bad.swift:5: 'Calendar.current'
+Bad.swift:6: 'Locale.autoupdatingCurrent'
+Bad.swift:7: 'TimeZone.current'
+FAILED with 6 violation(s)

@@ -1,0 +1,1 @@
+Package.swift:7: remote dependency in a package manifest

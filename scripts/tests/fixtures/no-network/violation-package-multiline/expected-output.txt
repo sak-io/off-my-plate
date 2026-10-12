@@ -1,0 +1,2 @@
+Package.swift:9: remote dependency in a package manifest
+FAILED with 1 violation(s)
