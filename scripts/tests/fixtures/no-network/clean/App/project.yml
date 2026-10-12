@@ -1,0 +1,5 @@
+name: OffMyPlate
+targets:
+  OffMyPlate:
+    type: application
+    platform: iOS
