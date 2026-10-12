@@ -27,6 +27,7 @@ let package = Package(
         // Use cases, repository protocols and in-memory repositories.
         .target(name: "OMPServices", dependencies: ["OMPDomain", "OMPSafetyCheck", "OMPRecipes"]),
         .testTarget(name: "OMPDomainTests", dependencies: ["OMPDomain"]),
+        .testTarget(name: "OMPServicesTests", dependencies: ["OMPServices", "OMPDomain"]),
     ],
     swiftLanguageModes: [.v6]
 )
