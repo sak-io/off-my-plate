@@ -29,3 +29,6 @@
 | T06 handoff-1 | Regenerate docs/content/seed-review.md with `swift run seed-review-sheet` and diff (was produced by a Python mirror); consider a CI check | T12 / T29 |
 | T10 review-1 | WeekPlanner.swift:225 unreachable `?? 0` → explicit precondition | T11 |
 | T10 review-1 | `generateWeek` takes `request.weekStart` unchecked; services must pass the clamped `startDate`; note on R8 in plan.md | T18 |
+| T15 review-1 | `cappedPrefix` allocates a String per character; resolver compares every term (fine at seed size) | perf, future |
+| T20 review-1 | Delete all data is record-level; use `PRAGMA secure_delete` or destroy store files and reopen (AC-16.2) | T27 |
+| T20 review-1 | Verify -wal/-shm files get Complete protection on device | T29 (device check) |

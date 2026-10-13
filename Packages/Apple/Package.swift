@@ -52,6 +52,7 @@ let package = Package(
             dependencies: [
                 "OMPData",
                 .product(name: "OMPDomain", package: "Core"),
+                .product(name: "OMPServices", package: "Core"),
             ]
         ),
     ],

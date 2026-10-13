@@ -22,6 +22,10 @@ public protocol MealPlanRepository: Sendable {
     /// All revisions of a series, by ascending `revision`.
     func fetchSeries(_ seriesId: PlanSeriesID) async throws -> [MealPlan]
     func save(_ plan: MealPlan) async throws
+    /// Upserts every plan in `plans` as one all-or-nothing unit (TR-2): either all of them are
+    /// stored, or, when this throws, none of them changed. Approving a revision and
+    /// superseding the previous one must use this, never two separate `save` calls.
+    func save(_ plans: [MealPlan]) async throws
     func delete(id: MealPlanID) async throws
     func deleteAll() async throws
 }
