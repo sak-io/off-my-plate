@@ -32,35 +32,47 @@ Ingredients: 184 (unverified: 29)
 | almond | `tree-nuts` |
 | anda | `egg` |
 | ande | `egg` |
+| andiparippu | `tree-nuts` |
 | atta | `wheat-gluten` |
 | badam | `tree-nuts` |
 | beef | `beef` |
 | cashew | `tree-nuts` |
+| chemmeen | `shellfish` |
 | crab | `shellfish` |
 | dairy | `milk` |
 | doodh | `milk` |
 | dudh | `milk` |
 | egg | `egg` |
 | eggs | `egg` |
+| ellu | `sesame` |
 | fish | `fish` |
 | gehu | `wheat-gluten` |
 | gehun | `wheat-gluten` |
 | gluten | `wheat-gluten` |
+| gothambu | `wheat-gluten` |
 | groundnut | `peanuts` |
 | groundnuts | `peanuts` |
 | jain | `jain` |
+| kaduku | `mustard` |
 | kaju | `tree-nuts` |
+| kappalandi | `peanuts` |
+| konju | `shellfish` |
 | lactose | `milk` |
 | machhi | `fish` |
 | machhli | `fish` |
 | machli | `fish` |
 | maida | `wheat-gluten` |
+| meen | `fish` |
 | milk | `milk` |
 | moongphali | `peanuts` |
 | mustard | `mustard` |
+| mutta | `egg` |
+| nilakkadala | `peanuts` |
+| njandu | `shellfish` |
 | no meat | `vegetarian` |
 | nut | `peanuts`, `tree-nuts` |
 | nuts | `peanuts`, `tree-nuts` |
+| paal | `milk` |
 | peanut | `peanuts` |
 | peanuts | `peanuts` |
 | pistachio | `tree-nuts` |

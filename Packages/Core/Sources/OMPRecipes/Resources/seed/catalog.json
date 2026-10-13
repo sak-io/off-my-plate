@@ -272,6 +272,9 @@
     "ande": [
       "egg"
     ],
+    "andiparippu": [
+      "tree-nuts"
+    ],
     "atta": [
       "wheat-gluten"
     ],
@@ -283,6 +286,9 @@
     ],
     "cashew": [
       "tree-nuts"
+    ],
+    "chemmeen": [
+      "shellfish"
     ],
     "crab": [
       "shellfish"
@@ -302,6 +308,9 @@
     "eggs": [
       "egg"
     ],
+    "ellu": [
+      "sesame"
+    ],
     "fish": [
       "fish"
     ],
@@ -314,6 +323,9 @@
     "gluten": [
       "wheat-gluten"
     ],
+    "gothambu": [
+      "wheat-gluten"
+    ],
     "groundnut": [
       "peanuts"
     ],
@@ -323,8 +335,17 @@
     "jain": [
       "jain"
     ],
+    "kaduku": [
+      "mustard"
+    ],
     "kaju": [
       "tree-nuts"
+    ],
+    "kappalandi": [
+      "peanuts"
+    ],
+    "konju": [
+      "shellfish"
     ],
     "lactose": [
       "milk"
@@ -341,6 +362,9 @@
     "maida": [
       "wheat-gluten"
     ],
+    "meen": [
+      "fish"
+    ],
     "milk": [
       "milk"
     ],
@@ -349,6 +373,15 @@
     ],
     "mustard": [
       "mustard"
+    ],
+    "mutta": [
+      "egg"
+    ],
+    "nilakkadala": [
+      "peanuts"
+    ],
+    "njandu": [
+      "shellfish"
     ],
     "no meat": [
       "vegetarian"
@@ -360,6 +393,9 @@
     "nuts": [
       "peanuts",
       "tree-nuts"
+    ],
+    "paal": [
+      "milk"
     ],
     "peanut": [
       "peanuts"
