@@ -292,8 +292,8 @@ public enum ShoppingTextParser {
         var amount = 0.0
         var unit: MeasureUnit?
         var next = 0
-        if let found = number(tokens, at: 0) {
-            (amount, next) = found
+        if let leading = number(tokens, at: 0) {
+            (amount, next) = leading
             if next < tokens.count {
                 switch tokens[next].kind {
                 case .unit(let found):
@@ -307,14 +307,20 @@ public enum ShoppingTextParser {
         } else {
             switch first.kind {
             case .numberWithUnit(let value, let found):
-                (amount, unit, next) = (value, found, 1)
+                amount = value
+                unit = found
+                next = 1
             case .numberTimes(let value):
                 (amount, next) = (value, 1)
             case .unit(.dozen):
-                (amount, unit, next) = (1, .dozen, 1)
+                amount = 1
+                unit = .dozen
+                next = 1
             case .numberWord(let value, let needsUnit):
                 if tokens.count > 1, case .unit(let found) = tokens[1].kind {
-                    (amount, unit, next) = (value, found, 2)
+                    amount = value
+                    unit = found
+                    next = 2
                 } else if !needsUnit {
                     (amount, next) = (value, 1)
                 } else {
@@ -349,15 +355,19 @@ public enum ShoppingTextParser {
         var nameEnd = 0
         switch tokens[count - 1].kind {
         case .numberWithUnit(let value, let found):
-            (amount, unit, nameEnd) = (value, found, count - 1)
+            amount = value
+            unit = found
+            nameEnd = count - 1
         case .timesNumber(let value), .numberTimes(let value):
             (amount, nameEnd) = (value, count - 1)
         case .unit(let found):
-            guard let number = trailingNumber(tokens, endingBefore: count - 1) else { return nil }
-            (amount, unit, nameEnd) = (number.0, found, number.1)
+            guard let trailing = trailingNumber(tokens, endingBefore: count - 1) else { return nil }
+            amount = trailing.0
+            unit = found
+            nameEnd = trailing.1
         case .number:
-            guard let number = trailingNumber(tokens, endingBefore: count) else { return nil }
-            (amount, nameEnd) = number
+            guard let trailing = trailingNumber(tokens, endingBefore: count) else { return nil }
+            (amount, nameEnd) = trailing
             if nameEnd > 0, tokens[nameEnd - 1].kind == .times { nameEnd -= 1 }
         default:
             return nil
