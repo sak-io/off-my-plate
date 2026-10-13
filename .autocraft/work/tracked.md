@@ -17,3 +17,6 @@
 | T08 review-2 | Planner entry points (T10–T12) must call `clearance.isValid(for:now:timeZone:)`, not `matches` | T10/T11/T12 |
 | T08 review-2 | UI shows the covering rules before `confirmMemberAnswer` | T22 |
 | T07 review-2 | `subtracting` returns nil for non-convertible units; callers decide | T11/T14 |
+| T13 review-1 | Services re-validate at call time (never reuse a UI-supplied report); seed contentVersion change triggers the R1 re-check; test with a rule changing after validation | T18 |
+| T13 review-1 | lint-safety: `PlanApproval(`, `.status = .approved`, `blockedBySafety = false`, `UserConfirmation(` only in PlanLifecycle, the OMPData mapping and tests (planted fixtures) | T12 |
+| T13 review-1 | `weekStart`-only change alters the hash but gives an empty diff (revisions copy weekStart) | T23 |
