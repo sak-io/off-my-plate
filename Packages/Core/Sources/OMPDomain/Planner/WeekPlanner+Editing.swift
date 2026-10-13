@@ -16,7 +16,11 @@ extension PlannedMeal {
     /// This meal with `alternative`'s recipe (a swap or re-roll). The id, day, slot, servings,
     /// lock and cook link are kept; the safety block is cleared because the recipe changed
     /// (`OMPServices` re-validates the plan before showing it, AC-4.2).
-    public func replacingRecipe(with alternative: MealAlternative) -> PlannedMeal {
+    ///
+    /// `package` access (T12 review): it clears the safety block without a clearance, so only
+    /// Core code that re-validates the resulting plan with `PlanValidator` before saving or
+    /// approving it may call it; the app and the Apple package cannot.
+    package func replacingRecipe(with alternative: MealAlternative) -> PlannedMeal {
         var meal = self
         meal.recipeId = alternative.recipeId
         meal.emptyReason = nil

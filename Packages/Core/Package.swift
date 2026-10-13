@@ -31,7 +31,7 @@ let package = Package(
         .testTarget(name: "OMPDomainTests", dependencies: ["OMPDomain"]),
         .testTarget(name: "OMPSafetyCheckTests", dependencies: ["OMPSafetyCheck", "OMPDomain", "OMPRecipes"]),
         .testTarget(name: "OMPRecipesTests", dependencies: ["OMPRecipes", "OMPDomain"]),
-        .testTarget(name: "OMPServicesTests", dependencies: ["OMPServices", "OMPDomain"]),
+        .testTarget(name: "OMPServicesTests", dependencies: ["OMPServices", "OMPDomain", "OMPSafetyCheck", "OMPRecipes"]),
     ],
     swiftLanguageModes: [.v6]
 )
