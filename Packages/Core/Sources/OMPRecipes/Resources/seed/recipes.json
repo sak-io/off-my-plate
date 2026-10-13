@@ -1,0 +1,212 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "2026.10.12-t04",
+  "recipes": [
+    {
+      "id": "dal-tadka",
+      "title": "Dal tadka",
+      "region": "northIndian",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 10,
+      "cookMinutes": 30,
+      "ingredients": [
+        {
+          "ingredientId": "toor-dal",
+          "quantity": 200,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "tomato",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "onion",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "garlic",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "ghee",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "cumin-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "hing",
+          "unit": "pinch",
+          "optional": true
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Rinse the dal and pressure-cook it with three cups of water until soft.",
+        "Cook the chopped onion, garlic, chilli and tomato until soft, then stir in the dal and salt.",
+        "Heat the ghee, crackle the cumin and the hing, and pour it over the dal."
+      ],
+      "declaredTags": [
+        "milk",
+        "wheat",
+        "gluten",
+        "onion",
+        "garlic"
+      ],
+      "provenance": {
+        "source": "OffMyPlate team (original)",
+        "notes": "T04 placeholder; the full library arrives in T06"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "kanda-poha",
+      "title": "Kanda poha",
+      "region": "westIndian",
+      "mealTypes": [
+        "breakfast",
+        "snack"
+      ],
+      "lunchboxSuitable": true,
+      "servings": 3,
+      "prepMinutes": 10,
+      "cookMinutes": 15,
+      "ingredients": [
+        {
+          "ingredientId": "poha",
+          "quantity": 200,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "onion",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "potato",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "peanuts",
+          "quantity": 30,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "mustard-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "unit": "toTaste",
+          "optional": true
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "sunflower-oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Rinse the poha and let it drain.",
+        "Fry the peanuts in the oil, then crackle the mustard seeds and curry leaves.",
+        "Cook the onion, chilli and diced potato until tender, then fold in the poha and salt."
+      ],
+      "declaredTags": [
+        "peanut",
+        "mustard",
+        "rootVegetable",
+        "onion"
+      ],
+      "provenance": {
+        "source": "OffMyPlate team (original)",
+        "notes": "T04 placeholder; the full library arrives in T06"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "jeera-rice",
+      "title": "Jeera rice",
+      "region": "northIndian",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": true,
+      "servings": 4,
+      "prepMinutes": 5,
+      "cookMinutes": 20,
+      "ingredients": [
+        {
+          "ingredientId": "basmati-rice",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "ghee",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "cumin-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Rinse the rice and soak it for 15 minutes.",
+        "Crackle the cumin in the ghee, add the rice, salt and two cups of water, and simmer covered until done."
+      ],
+      "declaredTags": [
+        "milk"
+      ],
+      "provenance": {
+        "source": "OffMyPlate team (original)",
+        "notes": "T04 placeholder; the full library arrives in T06"
+      },
+      "review": {
+        "status": "draft"
+      }
+    }
+  ]
+}

@@ -1,8 +1,7 @@
 import OMPDomain
 
-/// Placeholder for the seed-content loader and validator (ADR 0010, task T04).
-///
-/// Exists so the target builds and its dependency on `OMPDomain` is exercised from day one.
+/// Seed content (ADR 0010): `SeedLoader` reads the bundled JSON, `SeedValidator` checks it and
+/// builds the read-only `SeedLibrary`, and `SeedReviewSheet` renders the sign-off sheet.
 public enum OMPRecipesModule {
     /// The core version this module was built with.
     public static let coreVersion: String = OMPVersion.current

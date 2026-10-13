@@ -22,11 +22,14 @@ let package = Package(
         .target(name: "OMPDomain"),
         // The independent hard-rule plan validator (ADR 0007). Depends on the domain types only.
         .target(name: "OMPSafetyCheck", dependencies: ["OMPDomain"]),
-        // Seed content (versioned JSON, ADR 0010) and its loader. Resources arrive in T04.
-        .target(name: "OMPRecipes", dependencies: ["OMPDomain"]),
+        // Seed content (versioned JSON, ADR 0010), its loader and the seed validator.
+        .target(name: "OMPRecipes", dependencies: ["OMPDomain"], resources: [.copy("Resources/seed")]),
         // Use cases, repository protocols and in-memory repositories.
         .target(name: "OMPServices", dependencies: ["OMPDomain", "OMPSafetyCheck", "OMPRecipes"]),
+        // Prints the markdown seed sign-off sheet (ADR 0010, G1): `swift run seed-review-sheet [out.md]`.
+        .executableTarget(name: "seed-review-sheet", dependencies: ["OMPRecipes"]),
         .testTarget(name: "OMPDomainTests", dependencies: ["OMPDomain"]),
+        .testTarget(name: "OMPRecipesTests", dependencies: ["OMPRecipes", "OMPDomain"]),
         .testTarget(name: "OMPServicesTests", dependencies: ["OMPServices", "OMPDomain"]),
     ],
     swiftLanguageModes: [.v6]
