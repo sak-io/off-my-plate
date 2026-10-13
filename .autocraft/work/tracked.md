@@ -25,3 +25,5 @@
 | T14 review-1 | Exclude optional recipe lines in `forShopping` only (garnish not bought; Mark cooked/safety still see them) | T19 |
 | T14 review-1 | Mark cooked deducts expired items first (literal spec) — owner may prefer last | owner / T24 |
 | T14 review-1 | Pack-size rounding for the shopping list | future |
+| T06 review-1 | Veg + Jain + nut-free breakfast has only 2 options; puttu/idiyappam carry mayContain gluten via rice flour | owner sign-off / content |
+| T06 handoff-1 | Regenerate docs/content/seed-review.md with `swift run seed-review-sheet` and diff (was produced by a Python mirror); consider a CI check | T12 / T29 |
