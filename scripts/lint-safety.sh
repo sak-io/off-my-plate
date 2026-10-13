@@ -17,7 +17,10 @@
 #      (Packages/Apple/Sources/OMPData/Mapping/) and tests. One reviewed exception:
 #      `blockedBySafety = false` in Planner/WeekPlanner+Editing.swift (a meal whose recipe the
 #      planner replaced from the hard filter is no longer the meal that was blocked; the
-#      result is a draft that is validated again before display);
+#      result is a draft that is validated again before display) and, likewise, in
+#      OMPServices/PlanningEngine.swift `emptied` (T18: a meal emptied by the validator or by a
+#      re-plan no longer has the recipe that was blocked; the plan is validated again before it
+#      is saved);
 #   5. `UserConfirmation(` (or `.init(`, or `confirmation: .init(`) appears outside tests and
 #      the approval sheet (Packages/Apple/Sources/OMPFeatures/**/Approval*.swift);
 #   6. the safety suite (Packages/Core/Tests/OMPSafetySuiteTests/) contains `.disabled`,
@@ -138,8 +141,9 @@ scan "(^|$w)PlanApproval[[:space:]]*(\\.init)?[[:space:]]*\\(" \
   "PlanApproval may be created only in $lifecycle_file, the OMPData mapping and tests (ADR 0008)" approval_allowed
 scan "(^|$w)status[[:space:]]*=[[:space:]]*(PlanStatus)?\\.approved($w|\$)|(^|$w)status[[:space:]]*:[[:space:]]*(PlanStatus)?\\.approved($w|\$)" \
   "a plan may be marked approved only in $lifecycle_file, the OMPData mapping and tests (ADR 0008)" approval_allowed
+planning_engine_file="Packages/Core/Sources/OMPServices/PlanningEngine.swift"
 unblock_allowed() {
-  approval_allowed "$1" || [[ "$1" == "$planner_editing_file" ]]
+  approval_allowed "$1" || [[ "$1" == "$planner_editing_file" || "$1" == "$planning_engine_file" ]]
 }
 scan "(^|$w)blockedBySafety[[:space:]]*=[[:space:]]*false($w|\$)" \
   "a safety block may be cleared only in $lifecycle_file, the OMPData mapping and tests (ADR 0008, R1)" unblock_allowed
