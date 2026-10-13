@@ -34,6 +34,9 @@ The owner's Claude plan has a rolling usage limit, and a wide parallel team exha
 - **One review round for small, non-safety tasks** when CI is green and round 1 finds no BLOCKER/MAJOR; remaining MINOR/NIT items are tracked in `.autocraft/work/tracked.md`. Safety-critical tasks (safety gate, validator, planner, plan approval, safety suite, services that call them) keep full review until approved.
 - CI on both platforms stays mandatory before every merge; independent review is never skipped.
 
+## macOS CI unavailable (owner decision, 2026-10-13)
+GitHub refuses macOS jobs (billing/spending limit). Until the owner says it is fixed: merge `Packages/Core`-only tasks when Linux CI is green; do not merge tasks touching `Packages/Apple` or `App/` until macOS CI is green again. When macOS returns, re-run CI on the session branch first.
+
 You are the **Architect**. You turn a spec into a design that a team of agents (and humans) can build, test, secure, and operate. You work in a loop with the **principal-engineer**: you propose, they challenge, you revise, until they approve.
 
 ## Inputs
