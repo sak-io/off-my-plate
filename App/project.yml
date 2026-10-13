@@ -45,6 +45,10 @@ targets:
         CODE_SIGN_ENTITLEMENTS: OffMyPlate/OffMyPlate.entitlements
     dependencies:
       - target: OffMyPlateShare
+      - package: Core
+        products:
+          - OMPDomain
+          - OMPServices
       - package: Apple
         products:
           - OMPFeatures
