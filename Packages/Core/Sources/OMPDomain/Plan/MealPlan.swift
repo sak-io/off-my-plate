@@ -161,9 +161,12 @@ public struct MealPlan: Identifiable, Codable, Sendable, Hashable {
     /// First day of the plan (R8: today for the first plan, otherwise the day after the
     /// previous plan's last day). Not necessarily a Monday.
     public var weekStart: LocalDate
-    public var status: PlanStatus
+    /// Changed only through `PlanLifecycle` (setter is `package`: the app cannot assign it).
+    public package(set) var status: PlanStatus
     public var meals: [PlannedMeal]
-    public var approval: PlanApproval?
+    /// Set only by `PlanLifecycle.approve` (setter is `package`). The public initialiser and
+    /// decoding can still supply one; the T12 safety lint covers those paths.
+    public package(set) var approval: PlanApproval?
     /// Version of the seed library the plan was made from.
     public var contentVersion: String
     public var createdAt: Date
