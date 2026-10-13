@@ -1,6 +1,6 @@
 # Status
 
-**Phase:** Kickoff, step 3 (build) — 17 of 30 tasks merged; app-screen tasks on hold until macOS CI works
+**Phase:** Kickoff, step 3 (build) — 16 of 30 tasks merged; app-screen tasks on hold until macOS CI works
 **Branch:** `claude/build-v1`
 
 ## Owner decisions at kickoff (2026-10-12)
