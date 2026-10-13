@@ -6,6 +6,7 @@ import Testing
 
 /// Cross-check (T10, AC-4.1, ADR 0007): every draft the planner produces passes the independent
 /// `PlanValidator`. The planner and validator share no code; this test is where they meet.
+/// T11 adds scoring signals and the editing entry points (swap, re-roll, regenerate).
 /// T12's safety suite extends this to restriction pairs and generated households.
 private enum Agreement {
     static let utc = TimeZone(identifier: "UTC")!
@@ -69,6 +70,75 @@ private enum Agreement {
             review: RecipeReview(status: .signedOff))
     }
 
+    /// Every soft signal pointing at every recipe: favourites, cuisine affinity, and every
+    /// ingredient in the pantry and about to expire. Scores must never beat the hard filter.
+    static func maximalSignals(recipes: [Recipe], ingredients: [Ingredient]) -> PlannerSignals {
+        var facts: [Fact] = recipes.map {
+            Fact(
+                id: FactID("fav-" + $0.id.rawValue), statement: .favouriteRecipe($0.id), origin: .stated,
+                confidence: 1, status: .active, createdAt: now, updatedAt: now)
+        }
+        for region in Set(recipes.map(\.region)).sorted() {
+            facts.append(
+                Fact(
+                    id: FactID("cuisine-" + region.rawValue), statement: .cuisineAffinity(region), origin: .confirmed,
+                    confidence: 1, status: .active, createdAt: now, updatedAt: now))
+        }
+        let pantry = ingredients.map {
+            PantryItem(
+                id: PantryItemID("p-" + $0.id.rawValue), item: .ingredient($0.id), quantity: 1, unit: .kilogram,
+                location: .shelf, expiresOn: monday.adding(days: 1), lastConfirmedAt: now, source: .manual)
+        }
+        return PlannerSignals(pantry: pantry, facts: facts)
+    }
+
+    /// Exercises every T11 entry point on `household` and returns every resulting plan:
+    /// the scored week, every meal swapped to each alternative, every meal re-rolled with each
+    /// reason, and a regenerate with every third meal locked.
+    static func editedPlans(
+        _ household: Household, recipes: [Recipe], ingredients: [Ingredient], seed: UInt64
+    ) throws -> [MealPlan] {
+        let clearance = try SafetyGate.evaluate(household, now: now, timeZone: utc).get()
+        let library = PlannerLibrary(recipes: recipes, ingredients: ingredients, contentVersion: "test")
+        let signals = maximalSignals(recipes: recipes, ingredients: ingredients)
+        var plan = try WeekPlanner.generateWeek(
+            clearance: clearance, household: household, library: library,
+            request: WeekPlanRequest(
+                planId: "plan-1", seriesId: "series-1", weekStart: monday, seed: PlannerSeed(seed)),
+            signals: signals, now: now, timeZone: utc)
+
+        let reasons: [RerollReason?] = [nil, .dontFeelLikeIt, .tooLong, .kidsWontEatIt]
+        var swapped: [PlannedMeal] = []
+        var rerolled: [PlannedMeal] = []
+        for meal in plan.meals {
+            let alternatives = try WeekPlanner.alternatives(
+                for: meal.id, in: plan, clearance: clearance, household: household, library: library,
+                signals: signals, now: now, timeZone: utc)
+            swapped += alternatives.map { meal.replacingRecipe(with: $0) }
+            for reason in reasons {
+                if let replacement = try WeekPlanner.reroll(
+                    meal.id, in: plan, reason: reason, clearance: clearance, household: household, library: library,
+                    signals: signals, now: now, timeZone: utc)
+                {
+                    rerolled.append(replacement)
+                }
+            }
+        }
+        var swappedPlan = plan
+        swappedPlan.meals = swapped
+        var rerolledPlan = plan
+        rerolledPlan.meals = rerolled
+
+        for index in plan.meals.indices where index % 3 == 0 {
+            plan.meals[index].locked = true
+        }
+        var regenerated = plan
+        regenerated.meals = try WeekPlanner.regenerate(
+            plan, clearance: clearance, household: household, library: library, signals: signals, now: now,
+            timeZone: utc)
+        return [plan, swappedPlan, rerolledPlan, regenerated]
+    }
+
     /// A tricky library: optional may-contain lines, unverified ingredients, undeclared tags,
     /// a recipe with an ingredient missing from the taxonomy.
     static let ingredients: [Ingredient] = [
@@ -108,6 +178,55 @@ struct PlannerValidatorAgreementTests {
                     household, recipes: seedLibrary.recipes, ingredients: seedLibrary.ingredients, seed: seed)
                 #expect(report.passedForEveryone, "\(household.rules.map(\.restriction)): \(report.violations)")
                 #expect(plan.status == .draft)
+            }
+        }
+    }
+
+    @Test("T11: scored plans, swaps, re-rolls and regenerate pass on the bundled seed for every restriction")
+    func bundledSeedEditing() throws {
+        let seedLibrary = try SeedLoader.loadBundled()
+        var households = [Agreement.household(rules: [])]
+        for restriction in seedLibrary.catalog.restrictions {
+            for scope in [RuleScope.member(Agreement.child), .household] {
+                let rule = Rule(id: "rule-1", scope: scope, restriction: restriction, createdAt: Agreement.now)
+                households.append(Agreement.household(rules: [rule]))
+            }
+        }
+        var checkedMeals = 0
+        for household in households {
+            let plans = try Agreement.editedPlans(
+                household, recipes: seedLibrary.recipes, ingredients: seedLibrary.ingredients, seed: 1)
+            for plan in plans {
+                let report = PlanValidator.validate(
+                    plan, household: household,
+                    library: SafetyCheckLibrary(recipes: seedLibrary.recipes, ingredients: seedLibrary.ingredients))
+                #expect(report.passedForEveryone, "\(household.rules.map(\.restriction)): \(report.violations)")
+                checkedMeals += plan.meals.filter { $0.recipeId != nil }.count
+            }
+        }
+        #expect(checkedMeals > 0)
+    }
+
+    @Test("T11: edits on the tricky library pass for every tag combination")
+    func trickyLibraryEditing() throws {
+        let tagSets: [Set<FoodTag>] = [[], [.peanut], [.milk], [.wheat, .gluten], [.egg], [.poultry, .onion]]
+        for tags in tagSets {
+            for scope in [RuleScope.member(Agreement.child), .household] {
+                let rules: [Rule] =
+                    tags.isEmpty
+                    ? [] : [Rule(id: "r", scope: scope, restriction: "r", excludedTags: tags, createdAt: Agreement.now)]
+                let household = Agreement.household(rules: rules)
+                for seed in UInt64(0)..<3 {
+                    let plans = try Agreement.editedPlans(
+                        household, recipes: Agreement.recipes, ingredients: Agreement.ingredients, seed: seed)
+                    for plan in plans {
+                        let report = PlanValidator.validate(
+                            plan, household: household,
+                            library: SafetyCheckLibrary(recipes: Agreement.recipes, ingredients: Agreement.ingredients))
+                        #expect(report.passedForEveryone, "\(tags) \(scope) seed \(seed): \(report.violations)")
+                        #expect(!plan.meals.contains { $0.recipeId == "mystery" })
+                    }
+                }
             }
         }
     }
