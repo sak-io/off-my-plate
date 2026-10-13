@@ -272,4 +272,12 @@ struct SpokenCommandParserTests {
             #expect(parser.parse(transcript) == parser.parse(transcript))
         }
     }
+
+    @Test("a space followed by a combining mark does not break the grammar (macOS fuzz regression)")
+    func orphanMarks() {
+        #expect(SpokenFixture.describe(parser.parse("I bought \u{0301}2 kg rice")) == ["add rice 2 kg"])
+        #expect(SpokenFixture.describe(parser.parse("add \u{0D57}rice and \u{0D3E}milk")) == ["add rice", "add milk"])
+        #expect(parser.parse("approve \u{0301}").commands == [.openApprovalSheet])
+        #expect(parser.parse("pinch \u{0949}muttahalf").commands.isEmpty)
+    }
 }

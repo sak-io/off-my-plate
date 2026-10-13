@@ -108,7 +108,8 @@ public struct SpokenCommandParser: Sendable {
         self.resolver = resolver
     }
 
-    public func parse(_ transcript: String) -> SpokenCommandParseResult {
+    public func parse(_ input: String) -> SpokenCommandParseResult {
+        let transcript = TranscriptSanitiser.sanitise(input)
         let capped = transcript.prefix(SpokenCommandParser.maxTranscriptLength)
         let wasTruncated = capped.endIndex != transcript.endIndex
         let tokens = SpokenCommandParser.tokenize(capped)

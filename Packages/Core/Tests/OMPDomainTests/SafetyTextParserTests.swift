@@ -110,7 +110,7 @@ enum SafetyFixture {
             }
         }
         var dropped: [String] = []
-        for word in IngredientResolver.normalise(text).split(separator: " ").map(String.init) {
+        for word in IngredientResolver.normalise(TranscriptSanitiser.sanitise(text)).split(separator: " ").map(String.init) {
             if coveredElsewhere.contains(word) || reported.contains(word) { continue }
             // "Meera's" is reported as "Meera"; "nuts's" as "nuts".
             if word.hasSuffix("s") {
@@ -250,5 +250,38 @@ struct SafetyTextParserTests {
         for keyword in SafetyFixture.keywords.keys {
             #expect(!SafetyTextParser.ignoredWords.contains(IngredientResolver.normalise(keyword)), "\(keyword)")
         }
+    }
+
+    /// Strings from the macOS CI fuzz failure: a space followed by a combining mark is ONE Swift
+    /// Character that starts with whitespace, which used to swallow the mark and hide a boundary.
+    static let orphanMarkStrings: [String] = [
+        "up \u{0962}", "allergy \u{0D3E}", "and \u{0D57}a", "one \u{0367}", "of \u{0D4C}",
+        "1 \u{0365}riceapprove\u{00BD}1", "pinch \u{0949}muttahalf", "no \u{0301}nuts", "no \u{200D}nuts",
+        "nuts \u{0D4D}", " \u{0301}", "\u{0301}beef", "no \u{1F3FD}beef", "no\u{0301} beef",
+    ]
+
+    @Test("a space followed by a combining mark never hides or drops text (macOS fuzz regression)")
+    func orphanMarks() {
+        for text in Self.orphanMarkStrings {
+            let candidates = parser.parse(text)
+            #expect(SafetyFixture.droppedWords(text, candidates).isEmpty, "\(text.debugDescription)")
+            #expect(!candidates.contains { candidate in
+                if case .unmapped(let unmapped, _) = candidate { return unmapped.contains("\u{FFFD}") }
+                return false
+            }, "\(text.debugDescription)")
+        }
+        #expect(SafetyFixture.describe(parser.parse("no \u{0301}nuts")) == ["peanuts", "tree-nuts"])
+        #expect(SafetyFixture.describe(parser.parse("no \u{200D}beef")) == ["beef"])
+        let accented = SafetyFixture.describe(parser.parse("no\u{0301} beef"))
+        #expect(accented.contains("beef") && accented.contains { $0.hasPrefix("?") })
+        #expect(SafetyFixture.describe(parser.parse("kiwi \u{0301}")) == ["?kiwi"])
+    }
+
+    @Test("the sanitiser keeps marks that follow a letter and replaces orphans")
+    func sanitiser() {
+        #expect(TranscriptSanitiser.sanitise("ka\u{0D4D}ppa") == "ka\u{0D4D}ppa")
+        #expect(TranscriptSanitiser.sanitise("a \u{0301}b") == "a \u{FFFD}b")
+        #expect(TranscriptSanitiser.sanitise("\u{0301}\u{0301}") == "\u{FFFD}\u{FFFD}")
+        #expect(TranscriptSanitiser.sanitise("a\u{0301}\u{0302}") == "a\u{0301}\u{0302}")
     }
 }
