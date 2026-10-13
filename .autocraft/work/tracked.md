@@ -27,3 +27,5 @@
 | T14 review-1 | Pack-size rounding for the shopping list | future |
 | T06 review-1 | Veg + Jain + nut-free breakfast has only 2 options; puttu/idiyappam carry mayContain gluten via rice flour | owner sign-off / content |
 | T06 handoff-1 | Regenerate docs/content/seed-review.md with `swift run seed-review-sheet` and diff (was produced by a Python mirror); consider a CI check | T12 / T29 |
+| T10 review-1 | WeekPlanner.swift:225 unreachable `?? 0` → explicit precondition | T11 |
+| T10 review-1 | `generateWeek` takes `request.weekStart` unchecked; services must pass the clamped `startDate`; note on R8 in plan.md | T18 |
