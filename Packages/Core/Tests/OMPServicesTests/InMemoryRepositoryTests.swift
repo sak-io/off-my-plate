@@ -73,6 +73,20 @@ struct InMemoryRepositoryTests {
         #expect(try await repository.fetchAll().isEmpty)
     }
 
+    @Test("meal plans: saving several plans at once upserts all of them in order")
+    func mealPlanBatchSave() async throws {
+        let repository: any MealPlanRepository = InMemoryMealPlanRepository()
+        try await repository.save(plan("p1", series: "s1", revision: 1))
+        try await repository.save([
+            plan("p1", series: "s1", revision: 1, status: .superseded),
+            plan("p2", series: "s1", revision: 2, status: .approved),
+        ])
+        #expect(try await repository.fetchAll().map(\.id) == ["p1", "p2"])
+        #expect(try await repository.fetchSeries("s1").map(\.status) == [.superseded, .approved])
+        try await repository.save([MealPlan]())
+        #expect(try await repository.fetchAll().count == 2)
+    }
+
     @Test("pantry: create, read, update, delete")
     func pantryCRUD() async throws {
         let repository: any PantryRepository = InMemoryPantryRepository()
