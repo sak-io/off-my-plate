@@ -29,7 +29,7 @@ let package = Package(
         // Prints the markdown seed sign-off sheet (ADR 0010, G1): `swift run seed-review-sheet [out.md]`.
         .executableTarget(name: "seed-review-sheet", dependencies: ["OMPRecipes"]),
         .testTarget(name: "OMPDomainTests", dependencies: ["OMPDomain"]),
-        .testTarget(name: "OMPSafetyCheckTests", dependencies: ["OMPSafetyCheck", "OMPDomain"]),
+        .testTarget(name: "OMPSafetyCheckTests", dependencies: ["OMPSafetyCheck", "OMPDomain", "OMPRecipes"]),
         .testTarget(name: "OMPRecipesTests", dependencies: ["OMPRecipes", "OMPDomain"]),
         .testTarget(name: "OMPServicesTests", dependencies: ["OMPServices", "OMPDomain"]),
     ],

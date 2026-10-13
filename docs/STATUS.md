@@ -1,6 +1,6 @@
 # Status
 
-**Phase:** Kickoff, step 3 (build) — T13 and T17 in second review
+**Phase:** Kickoff, step 3 (build) — 13 of 30 tasks merged; T15 and T20 in progress
 **Branch:** `claude/build-v1`
 
 ## Owner decisions at kickoff (2026-10-12)
@@ -19,7 +19,8 @@
 - T01 foundation merged; both CI jobs green on 0884abe (Linux Swift 6.2, macOS Xcode 26.3 / Swift 6.2.4). T01 lint follow-up merged.
 - T02 app walking skeleton merged (d75f9ec): CI green before merge, incl. app build and UI tests on iPhone and iPad simulators.
 - T03 domain contracts, T07 units, T08 safety gate, T04 seed loader merged (CI green on both platforms before merge).
-- T13 plan lifecycle and T17 learner: fixes done; second reviews were cut off by the usage limit and are being re-run.
+- T13 plan lifecycle, T17 learner, T09 plan validator, T05 ingredients (184, Kerala staples), T14 pantry/shopping math, T06 30 seed recipes (26 Kerala), T10 planner core merged (CI green on both platforms; combined branch green at a1a4ac4).
+- T15 Notes parser and T20 SwiftData persistence: in progress (interrupted by the usage limit at ~05:00 UTC, resumed after reset).
 - Tracked review follow-ups: `.autocraft/work/tracked.md`.
 
 Process note: task branches are pushed as `claude/ci-tNN` so CI runs before merge (deviation from session-branch mode). The git proxy does not allow deleting remote branches; the owner can delete `claude/ci-*` branches on GitHub.
