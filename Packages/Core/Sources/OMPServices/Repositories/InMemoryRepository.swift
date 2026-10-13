@@ -54,6 +54,13 @@ extension InMemoryRepository: MealPlanRepository where Entity == MealPlan {
     public func fetchSeries(_ seriesId: PlanSeriesID) -> [MealPlan] {
         items.filter { $0.seriesId == seriesId }.sorted { $0.revision < $1.revision }
     }
+
+    /// Saves every plan in order. Atomic because the actor never suspends or throws here.
+    public func save(_ plans: [MealPlan]) {
+        for plan in plans {
+            save(plan)
+        }
+    }
 }
 
 extension InMemoryRepository: PantryRepository where Entity == PantryItem {}
