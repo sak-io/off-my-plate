@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "contentVersion": "2026.10.12-t04",
+  "contentVersion": "2026.10.13-t05",
   "foodTags": [
     {
       "id": "peanut",
@@ -129,6 +129,10 @@
     {
       "id": "southIndian",
       "labelKey": "cuisine.southIndian"
+    },
+    {
+      "id": "kerala",
+      "labelKey": "cuisine.kerala"
     },
     {
       "id": "westIndian",
@@ -262,6 +266,12 @@
     "almond": [
       "tree-nuts"
     ],
+    "anda": [
+      "egg"
+    ],
+    "ande": [
+      "egg"
+    ],
     "atta": [
       "wheat-gluten"
     ],
@@ -280,6 +290,12 @@
     "dairy": [
       "milk"
     ],
+    "doodh": [
+      "milk"
+    ],
+    "dudh": [
+      "milk"
+    ],
     "egg": [
       "egg"
     ],
@@ -288,6 +304,12 @@
     ],
     "fish": [
       "fish"
+    ],
+    "gehu": [
+      "wheat-gluten"
+    ],
+    "gehun": [
+      "wheat-gluten"
     ],
     "gluten": [
       "wheat-gluten"
@@ -306,6 +328,15 @@
     ],
     "lactose": [
       "milk"
+    ],
+    "machhi": [
+      "fish"
+    ],
+    "machhli": [
+      "fish"
+    ],
+    "machli": [
+      "fish"
     ],
     "maida": [
       "wheat-gluten"
