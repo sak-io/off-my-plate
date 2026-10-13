@@ -10,7 +10,9 @@
         "pyaaz",
         "kanda",
         "vengayam",
-        "red onion"
+        "red onion",
+        "savala",
+        "valiya ulli"
       ],
       "tags": [
         "onion"
@@ -28,7 +30,9 @@
       "synonyms": [
         "sambar onion",
         "small onion",
-        "chinna vengayam"
+        "chinna vengayam",
+        "kunjulli",
+        "cheriya ulli"
       ],
       "tags": [
         "onion"
@@ -196,7 +200,8 @@
         "arbi",
         "arvi",
         "taro root",
-        "seppankizhangu"
+        "seppankizhangu",
+        "chembu"
       ],
       "tags": [
         "rootVegetable"
@@ -215,7 +220,8 @@
         "suran",
         "jimikand",
         "oal",
-        "senai kizhangu"
+        "senai kizhangu",
+        "chena"
       ],
       "tags": [
         "rootVegetable"
@@ -225,6 +231,43 @@
       "aisle": "vegetablesAndFruit",
       "defaultUnit": "g",
       "defaultLocation": "shelf"
+    },
+    {
+      "id": "tapioca",
+      "name": "Tapioca",
+      "synonyms": [
+        "kappa",
+        "cassava",
+        "maravalli kizhangu",
+        "kolli kizhangu"
+      ],
+      "tags": [
+        "rootVegetable"
+      ],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "vegetablesAndFruit",
+      "defaultUnit": "g",
+      "gramsPerPiece": 300,
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "raw-jackfruit",
+      "name": "Raw jackfruit",
+      "synonyms": [
+        "chakka",
+        "idichakka",
+        "kathal",
+        "kacha kathal",
+        "palakkai"
+      ],
+      "tags": [],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "vegetablesAndFruit",
+      "defaultUnit": "g",
+      "defaultLocation": "fridge",
+      "fridgeShelfLifeDays": 4
     },
     {
       "id": "tomato",
@@ -380,6 +423,25 @@
       "gramsPerPiece": 800,
       "defaultLocation": "fridge",
       "fridgeShelfLifeDays": 6
+    },
+    {
+      "id": "ash-gourd",
+      "name": "Ash gourd",
+      "synonyms": [
+        "kumbalanga",
+        "petha",
+        "safed kaddu",
+        "white pumpkin",
+        "winter melon",
+        "neer poosanikai"
+      ],
+      "tags": [],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "vegetablesAndFruit",
+      "defaultUnit": "g",
+      "defaultLocation": "fridge",
+      "fridgeShelfLifeDays": 10
     },
     {
       "id": "ridge-gourd",
@@ -560,7 +622,8 @@
         "kadi patta",
         "kadhi patta",
         "kariveppilai",
-        "karibevu"
+        "karibevu",
+        "kariveppila"
       ],
       "tags": [],
       "mayContain": [],
@@ -578,7 +641,8 @@
         "moringa pods",
         "sahjan",
         "shevga",
-        "murungakkai"
+        "murungakkai",
+        "muringakka"
       ],
       "tags": [],
       "mayContain": [],
@@ -632,7 +696,9 @@
         "kaccha kela",
         "plantain",
         "vazhakkai",
-        "green banana"
+        "green banana",
+        "nendran",
+        "nenthrakaya"
       ],
       "tags": [],
       "mayContain": [],
@@ -767,7 +833,9 @@
         "nariyal",
         "whole coconut",
         "thengai",
-        "narial"
+        "narial",
+        "thenga",
+        "nalikeram"
       ],
       "tags": [],
       "mayContain": [],
@@ -783,7 +851,8 @@
       "synonyms": [
         "fresh grated coconut",
         "kasa hua nariyal",
-        "scraped coconut"
+        "scraped coconut",
+        "chirakiya thenga"
       ],
       "tags": [],
       "mayContain": [],
@@ -975,7 +1044,8 @@
         "ande",
         "eggs",
         "hen egg",
-        "muttai"
+        "muttai",
+        "mutta"
       ],
       "tags": [
         "egg"
@@ -1013,7 +1083,10 @@
         "white rice",
         "sona masoori",
         "kolam rice",
-        "arisi"
+        "arisi",
+        "pachari",
+        "raw rice",
+        "appam rice"
       ],
       "tags": [],
       "mayContain": [],
@@ -1045,6 +1118,24 @@
         "parboiled rice",
         "ukda chawal",
         "puzhungal arisi"
+      ],
+      "tags": [],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "grainsAndFlours",
+      "defaultUnit": "g",
+      "gramsPerMl": 0.85,
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "matta-rice",
+      "name": "Matta rice",
+      "synonyms": [
+        "rosematta rice",
+        "kerala red rice",
+        "palakkadan matta",
+        "kuthari",
+        "red parboiled rice"
       ],
       "tags": [],
       "mayContain": [],
@@ -1220,7 +1311,8 @@
       ],
       "mayContain": [
         "egg",
-        "soy"
+        "soy",
+        "sesame"
       ],
       "tagStatus": "unverified",
       "aisle": "grainsAndFlours",
@@ -1237,7 +1329,10 @@
         "chana atta"
       ],
       "tags": [],
-      "mayContain": [],
+      "mayContain": [
+        "wheat",
+        "gluten"
+      ],
       "tagStatus": "verified",
       "aisle": "grainsAndFlours",
       "defaultUnit": "g",
@@ -1250,15 +1345,60 @@
       "synonyms": [
         "chawal ka atta",
         "akki hittu",
-        "arisi maavu"
+        "arisi maavu",
+        "idiyappam podi",
+        "appam podi",
+        "pathiri podi"
       ],
       "tags": [],
-      "mayContain": [],
+      "mayContain": [
+        "wheat",
+        "gluten"
+      ],
       "tagStatus": "verified",
       "aisle": "grainsAndFlours",
       "defaultUnit": "g",
       "gramsPerMl": 0.55,
       "defaultLocation": "shelf"
+    },
+    {
+      "id": "puttu-flour",
+      "name": "Puttu podi",
+      "synonyms": [
+        "puttu flour",
+        "puttu powder",
+        "steamed rice flour"
+      ],
+      "tags": [],
+      "mayContain": [
+        "wheat",
+        "gluten"
+      ],
+      "tagStatus": "unverified",
+      "aisle": "grainsAndFlours",
+      "defaultUnit": "g",
+      "gramsPerMl": 0.55,
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "appam-batter",
+      "name": "Appam batter",
+      "synonyms": [
+        "palappam batter",
+        "vellayappam batter",
+        "ready appam maavu"
+      ],
+      "tags": [],
+      "mayContain": [
+        "wheat",
+        "gluten"
+      ],
+      "tagStatus": "unverified",
+      "aisle": "grainsAndFlours",
+      "defaultUnit": "g",
+      "gramsPerMl": 1.05,
+      "defaultLocation": "fridge",
+      "fridgeShelfLifeDays": 3
     },
     {
       "id": "ragi-flour",
@@ -1270,7 +1410,10 @@
         "ragi"
       ],
       "tags": [],
-      "mayContain": [],
+      "mayContain": [
+        "wheat",
+        "gluten"
+      ],
       "tagStatus": "verified",
       "aisle": "grainsAndFlours",
       "defaultUnit": "g",
@@ -1286,7 +1429,10 @@
         "jonna pindi"
       ],
       "tags": [],
-      "mayContain": [],
+      "mayContain": [
+        "wheat",
+        "gluten"
+      ],
       "tagStatus": "verified",
       "aisle": "grainsAndFlours",
       "defaultUnit": "g",
@@ -1302,7 +1448,10 @@
         "kambu maavu"
       ],
       "tags": [],
-      "mayContain": [],
+      "mayContain": [
+        "wheat",
+        "gluten"
+      ],
       "tagStatus": "verified",
       "aisle": "grainsAndFlours",
       "defaultUnit": "g",
@@ -1318,7 +1467,10 @@
         "cornmeal"
       ],
       "tags": [],
-      "mayContain": [],
+      "mayContain": [
+        "wheat",
+        "gluten"
+      ],
       "tagStatus": "verified",
       "aisle": "grainsAndFlours",
       "defaultUnit": "g",
@@ -1334,7 +1486,10 @@
         "corn flour"
       ],
       "tags": [],
-      "mayContain": [],
+      "mayContain": [
+        "wheat",
+        "gluten"
+      ],
       "tagStatus": "verified",
       "aisle": "grainsAndFlours",
       "defaultUnit": "g",
@@ -1401,7 +1556,8 @@
         "sabut moong",
         "green gram",
         "green moong",
-        "hesaru kalu"
+        "hesaru kalu",
+        "cherupayar"
       ],
       "tags": [],
       "mayContain": [],
@@ -1534,6 +1690,24 @@
         "chawli",
         "alsande",
         "karamani"
+      ],
+      "tags": [],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "pulsesAndLentils",
+      "defaultUnit": "g",
+      "gramsPerMl": 0.8,
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "red-cowpeas",
+      "name": "Red cowpeas",
+      "synonyms": [
+        "vanpayar",
+        "van payar",
+        "lal lobia",
+        "red chawli",
+        "karamani red"
       ],
       "tags": [],
       "mayContain": [],
@@ -2064,7 +2238,8 @@
         "elaichi",
         "choti elaichi",
         "elakkai",
-        "cardamom"
+        "cardamom",
+        "elakka"
       ],
       "tags": [],
       "mayContain": [],
@@ -2274,7 +2449,12 @@
         "garam masala powder"
       ],
       "tags": [],
-      "mayContain": [],
+      "mayContain": [
+        "wheat",
+        "gluten",
+        "mustard",
+        "sesame"
+      ],
       "tagStatus": "unverified",
       "aisle": "spicesAndMasalas",
       "defaultUnit": "g",
@@ -2378,7 +2558,12 @@
         "pulao masala"
       ],
       "tags": [],
-      "mayContain": [],
+      "mayContain": [
+        "wheat",
+        "gluten",
+        "mustard",
+        "sesame"
+      ],
       "tagStatus": "unverified",
       "aisle": "spicesAndMasalas",
       "defaultUnit": "g",
@@ -2393,7 +2578,12 @@
         "tikka masala powder"
       ],
       "tags": [],
-      "mayContain": [],
+      "mayContain": [
+        "wheat",
+        "gluten",
+        "mustard",
+        "sesame"
+      ],
       "tagStatus": "unverified",
       "aisle": "spicesAndMasalas",
       "defaultUnit": "g",
@@ -2405,8 +2595,24 @@
       "name": "Kokum",
       "synonyms": [
         "amsul",
+        "punarpuli"
+      ],
+      "tags": [],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "spicesAndMasalas",
+      "defaultUnit": "g",
+      "gramsPerPiece": 3,
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "malabar-tamarind",
+      "name": "Malabar tamarind",
+      "synonyms": [
         "kudampuli",
-        "garcinia"
+        "kodampuli",
+        "fish tamarind",
+        "gamboge"
       ],
       "tags": [],
       "mayContain": [],
@@ -2493,7 +2699,9 @@
       "synonyms": [
         "nariyal tel",
         "thengai ennai",
-        "khobrel"
+        "khobrel",
+        "velichenna",
+        "velichanna"
       ],
       "tags": [],
       "mayContain": [],
@@ -2641,7 +2849,8 @@
         "king fish",
         "kingfish",
         "vanjaram",
-        "neymeen"
+        "neymeen",
+        "ney meen"
       ],
       "tags": [
         "fish"
@@ -2654,6 +2863,65 @@
       "fridgeShelfLifeDays": 1
     },
     {
+      "id": "sardine",
+      "name": "Sardine",
+      "synonyms": [
+        "mathi",
+        "chaala",
+        "mathi meen",
+        "oil sardine",
+        "pedvey"
+      ],
+      "tags": [
+        "fish"
+      ],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "meatAndFish",
+      "defaultUnit": "g",
+      "gramsPerPiece": 40,
+      "defaultLocation": "fridge",
+      "fridgeShelfLifeDays": 1
+    },
+    {
+      "id": "mackerel",
+      "name": "Mackerel",
+      "synonyms": [
+        "ayala",
+        "bangda",
+        "bangude",
+        "ayila"
+      ],
+      "tags": [
+        "fish"
+      ],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "meatAndFish",
+      "defaultUnit": "g",
+      "gramsPerPiece": 120,
+      "defaultLocation": "fridge",
+      "fridgeShelfLifeDays": 1
+    },
+    {
+      "id": "pearl-spot",
+      "name": "Pearl spot",
+      "synonyms": [
+        "karimeen",
+        "green chromide"
+      ],
+      "tags": [
+        "fish"
+      ],
+      "mayContain": [],
+      "tagStatus": "verified",
+      "aisle": "meatAndFish",
+      "defaultUnit": "g",
+      "gramsPerPiece": 200,
+      "defaultLocation": "fridge",
+      "fridgeShelfLifeDays": 1
+    },
+    {
       "id": "prawns",
       "name": "Prawns",
       "synonyms": [
@@ -2662,7 +2930,8 @@
         "kolambi",
         "chemmeen",
         "shrimp",
-        "eral"
+        "eral",
+        "konju"
       ],
       "tags": [
         "shellfish"
@@ -2772,7 +3041,9 @@
         "gur",
         "bellam",
         "vellam",
-        "sarkarai"
+        "sarkarai",
+        "sharkara",
+        "sarkara"
       ],
       "tags": [],
       "mayContain": [],
@@ -2945,7 +3216,12 @@
       "synonyms": [
         "nariyal ka doodh",
         "thengai paal",
-        "coconut cream"
+        "coconut cream",
+        "thenga paal",
+        "thick coconut milk",
+        "thin coconut milk",
+        "onnam paal",
+        "randam paal"
       ],
       "tags": [],
       "mayContain": [],
@@ -2967,7 +3243,9 @@
       "tags": [],
       "mayContain": [
         "wheat",
-        "gluten"
+        "gluten",
+        "sesame",
+        "peanut"
       ],
       "tagStatus": "unverified",
       "aisle": "other",
@@ -3018,6 +3296,27 @@
       "aisle": "other",
       "defaultUnit": "g",
       "gramsPerMl": 0.3,
+      "defaultLocation": "shelf"
+    },
+    {
+      "id": "chikki",
+      "name": "Chikki",
+      "synonyms": [
+        "peanut chikki",
+        "gur chikki",
+        "kadalai mittai",
+        "moongphali chikki"
+      ],
+      "tags": [
+        "peanut"
+      ],
+      "mayContain": [
+        "sesame"
+      ],
+      "tagStatus": "unverified",
+      "aisle": "other",
+      "defaultUnit": "g",
+      "gramsPerPiece": 25,
       "defaultLocation": "shelf"
     },
     {

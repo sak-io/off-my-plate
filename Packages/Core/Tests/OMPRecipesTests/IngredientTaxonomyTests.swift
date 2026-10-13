@@ -70,6 +70,34 @@ struct IngredientTaxonomyTests {
         }
     }
 
+    @Test("Kerala staples resolve by their Malayalam names")
+    func keralaStaples() throws {
+        let library = try Self.library()
+        var byName: [String: IngredientID] = [:]
+        for ingredient in library.ingredients {
+            for text in [ingredient.name] + ingredient.synonyms {
+                byName[text.lowercased()] = ingredient.id
+            }
+        }
+        let expected: [(String, IngredientID)] = [
+            ("thenga", "coconut"), ("velichenna", "coconut-oil"), ("thenga paal", "coconut-milk"),
+            ("kudampuli", "malabar-tamarind"), ("kunjulli", "shallots"), ("nendran", "raw-banana"),
+            ("kappa", "tapioca"), ("chakka", "raw-jackfruit"), ("kumbalanga", "ash-gourd"), ("chena", "elephant-foot-yam"),
+            ("chembu", "colocasia"), ("muringakka", "drumstick"), ("vanpayar", "red-cowpeas"), ("kadala", "kala-chana"),
+            ("cherupayar", "whole-moong"), ("rosematta rice", "matta-rice"), ("pachari", "rice"),
+            ("puttu podi", "puttu-flour"), ("idiyappam podi", "rice-flour"), ("appam batter", "appam-batter"),
+            ("mathi", "sardine"), ("ayala", "mackerel"), ("karimeen", "pearl-spot"), ("meen", "fish"), ("mutta", "egg"),
+        ]
+        for (name, id) in expected {
+            #expect(byName[name] == id, "\(name)")
+        }
+        for id: IngredientID in ["sardine", "mackerel", "pearl-spot"] {
+            #expect(try Self.ingredient(id, in: library).tags.contains(.fish), "\(id)")
+        }
+        #expect(try Self.ingredient("tapioca", in: library).tags.contains(.rootVegetable))
+        #expect(library.catalog.cuisines.map(\.id).contains("kerala"))
+    }
+
     @Test("R4: hing may contain wheat and gluten and is unverified")
     func hing() throws {
         let hing = try Self.ingredient("hing", in: try Self.library())
@@ -85,14 +113,13 @@ struct IngredientTaxonomyTests {
         #expect(ingredient.tags.contains(.milk))
     }
 
-    @Test("besan and rice flour have no wheat or gluten and are verified")
-    func glutenFreeFlours() throws {
-        let library = try Self.library()
-        for id: IngredientID in ["besan", "rice-flour"] {
-            let ingredient = try Self.ingredient(id, in: library)
-            #expect(Self.effectiveTags(ingredient).isDisjoint(with: [.wheat, .gluten]), "\(id)")
-            #expect(ingredient.tagStatus == .verified, "\(id)")
-        }
+    @Test("non-wheat flours have no wheat tag but may contain wheat and gluten (shared mills)", arguments: [
+        "besan", "rice-flour", "ragi-flour", "jowar-flour", "bajra-flour", "maize-flour", "cornflour",
+    ] as [IngredientID])
+    func sharedMillFlours(id: IngredientID) throws {
+        let ingredient = try Self.ingredient(id, in: try Self.library())
+        #expect(ingredient.tags.isDisjoint(with: [.wheat, .gluten]))
+        #expect(ingredient.mayContain.isSuperset(of: [.wheat, .gluten]))
     }
 
     @Test("wheat products carry wheat and gluten", arguments: [
@@ -149,7 +176,8 @@ struct IngredientTaxonomyTests {
 
     @Test("packaged blends, sauces, papad and pickles are unverified", arguments: [
         "garam-masala", "chaat-masala", "sambar-powder", "rasam-powder", "pav-bhaji-masala", "chole-masala",
-        "papad", "mango-pickle", "tomato-ketchup", "green-chilli-sauce", "vinegar", "baking-powder", "sev",
+        "papad", "mango-pickle", "tomato-ketchup", "green-chilli-sauce", "vinegar", "baking-powder", "sev", "chikki",
+        "puttu-flour", "appam-batter",
     ] as [IngredientID])
     func packagedIsUnverified(id: IngredientID) throws {
         let ingredient = try Self.ingredient(id, in: try Self.library())
@@ -162,6 +190,27 @@ struct IngredientTaxonomyTests {
     func hingBlends(id: IngredientID) throws {
         let ingredient = try Self.ingredient(id, in: try Self.library())
         #expect(ingredient.mayContain.isSuperset(of: [.wheat, .gluten]))
+    }
+
+    @Test("ready masalas may contain wheat, gluten, mustard and sesame", arguments: [
+        "garam-masala", "biryani-masala", "tandoori-masala",
+    ] as [IngredientID])
+    func readyMasalas(id: IngredientID) throws {
+        let ingredient = try Self.ingredient(id, in: try Self.library())
+        #expect(ingredient.mayContain.isSuperset(of: [.wheat, .gluten, .mustard, .sesame]))
+        #expect(ingredient.tagStatus == .unverified)
+    }
+
+    @Test("hidden sesame and peanut in noodles, papad and chikki")
+    func hiddenSesameAndPeanut() throws {
+        let library = try Self.library()
+        #expect(try Self.ingredient("noodles", in: library).mayContain.contains(.sesame))
+        let papad = try Self.ingredient("papad", in: library)
+        #expect(papad.mayContain.isSuperset(of: [.sesame, .peanut]))
+        let chikki = try Self.ingredient("chikki", in: library)
+        #expect(chikki.tags.contains(.peanut))
+        #expect(Self.effectiveTags(chikki).contains(.sesame))
+        #expect(chikki.tagStatus == .unverified)
     }
 
     @Test("R4 Jain: onion, garlic, roots and mushroom are tagged")

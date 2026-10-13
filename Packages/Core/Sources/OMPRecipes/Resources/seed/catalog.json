@@ -131,6 +131,10 @@
       "labelKey": "cuisine.southIndian"
     },
     {
+      "id": "kerala",
+      "labelKey": "cuisine.kerala"
+    },
+    {
       "id": "westIndian",
       "labelKey": "cuisine.westIndian"
     },
