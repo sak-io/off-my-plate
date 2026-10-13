@@ -5,6 +5,10 @@ public enum PlannerError: Error, Sendable, Hashable {
     /// The clearance does not match the household any more, or the safety gate no longer passes
     /// at `now` (for example a re-confirmation fell due). Run the gate again.
     case clearanceNotValid
+    /// The plan has no meal with this id.
+    case mealNotFound(PlannedMealID)
+    /// The meal is locked; locked meals never change (AC-8.3). Unlock it first.
+    case mealLocked(PlannedMealID)
 }
 
 /// The seed for the planner's deterministic tie-breaks (ADR 0009, AC-4.6).
@@ -19,7 +23,11 @@ public struct PlannerSeed: Codable, Sendable, Hashable {
     /// its revision (ADR 0009), through SHA-256 so it is the same on every platform and run
     /// (Swift's `Hasher` is randomly seeded per process, so it must not be used here).
     public static func derived(householdID: HouseholdID, weekStart: LocalDate, revision: Int) -> PlannerSeed {
-        let text = householdID.rawValue + "|" + weekStart.isoString + "|" + String(revision)
+        hashed(householdID.rawValue + "|" + weekStart.isoString + "|" + String(revision))
+    }
+
+    /// A seed from the first 8 bytes (big-endian) of SHA-256 of `text`.
+    static func hashed(_ text: String) -> PlannerSeed {
         let digest = SHA256.hash(Array(text.utf8))
         var value: UInt64 = 0
         for byte in digest.prefix(8) {
@@ -64,9 +72,11 @@ public struct WeekPlanRequest: Sendable, Hashable {
 /// The deterministic greedy planner (ADR 0009; plan section 5).
 ///
 /// Pipeline: date range (R8) -> expand slots -> hard filter -> greedy select in date/slot
-/// order with seeded tie-breaks and the variety rule -> servings. Scoring and explanations
-/// (plan section 5 steps 4 and 7) are added by T11; until then every safe candidate scores the
-/// same, so selection is the seeded tie-break among variety-respecting candidates.
+/// order: the variety rule filters, `PlannerScoring` ranks, seeded tie-breaks decide among equal
+/// scores -> servings -> explanations (top two positive score components). Soft signals
+/// (pantry, Facts, cook log) only ever rank candidates the hard filter already allowed (AC-12.6).
+///
+/// Editing entry points (`alternatives`, `reroll`, `regenerate`) are in `WeekPlanner+Editing`.
 ///
 /// The output is always a **draft**. `OMPServices` runs `PlanValidator` on it before showing it
 /// (AC-4.2); the planner never approves anything.
@@ -86,6 +96,7 @@ public enum WeekPlanner {
     ///   - household: the current household, used only to re-check the clearance.
     ///   - library: the recipe library and its tag index.
     ///   - request: plan ids, start date, absences and optional seed.
+    ///   - signals: pantry, Facts and cook log for scoring; they never affect safety.
     ///   - now: the current instant (also the plan's `createdAt`).
     ///   - timeZone: explicit time zone for the gate's day arithmetic.
     /// - Throws: `PlannerError.clearanceNotValid` if `clearance.isValid(for:now:timeZone:)` fails.
@@ -94,6 +105,7 @@ public enum WeekPlanner {
         household: Household,
         library: PlannerLibrary,
         request: WeekPlanRequest,
+        signals: PlannerSignals = PlannerSignals(),
         now: Date,
         timeZone: TimeZone
     ) throws(PlannerError) -> MealPlan {
@@ -108,6 +120,7 @@ public enum WeekPlanner {
         let slots = SlotExpansion.slots(
             dates: PlanDateRange.dates(from: request.weekStart), members: clearance.members,
             settings: clearance.settings, absences: request.absences)
+        let context = PlannerScoring.Context(signals: signals, now: now, timeZone: timeZone)
 
         var uses: [RecipeID: [LocalDate]] = [:]
         var meals: [PlannedMeal] = []
@@ -117,7 +130,8 @@ public enum WeekPlanner {
             let mealID = PlannedMealID(
                 request.planId.rawValue + ":" + slot.date.isoString + ":" + slot.slot.rawValue)
 
-            guard let choice = select(from: candidates, on: slot.date, uses: uses, rng: &rng) else {
+            let target = Target(date: slot.date, slot: slot.slot, eaterIDs: slot.eaterIDs)
+            guard let choice = select(from: candidates, for: target, uses: uses, context: context, rng: &rng) else {
                 meals.append(
                     PlannedMeal(
                         id: mealID, date: slot.date, slot: slot.slot, recipeId: nil, emptyReason: .noSafeRecipe,
@@ -128,7 +142,7 @@ public enum WeekPlanner {
             meals.append(
                 PlannedMeal(
                     id: mealID, date: slot.date, slot: slot.slot, recipeId: choice.recipeId,
-                    servings: slot.servings, reasons: choice.relaxedVariety ? [.repeatedFewSafeOptions] : []))
+                    servings: slot.servings, reasons: choice.reasons))
         }
 
         return MealPlan(
@@ -137,48 +151,94 @@ public enum WeekPlanner {
             createdAt: now)
     }
 
+    /// One meal to fill: its day, slot and eaters.
+    struct Target: Equatable {
+        var date: LocalDate
+        var slot: MealSlot
+        var eaterIDs: [MemberID]
+    }
+
     /// A planner choice for one slot.
     struct Choice: Equatable {
         var recipeId: RecipeID
         /// The variety rule had to be relaxed (G5).
         var relaxedVariety: Bool
+        /// The explanation to store on the meal (AC-4.7).
+        var reasons: [ExplanationReason]
+    }
+
+    /// Whether `reason` is a zero-point filler rather than a score component.
+    static func isFiller(_ reason: ExplanationReason) -> Bool {
+        reason == .goodForLunchboxes || reason == .differentFromYesterday
+    }
+
+    /// The explanation for a choice: the score's reasons, or, when variety was relaxed, the
+    /// relaxation note plus the best real score reason.
+    static func reasons(_ breakdown: PlannerScoring.Breakdown, relaxedVariety: Bool) -> [ExplanationReason] {
+        guard relaxedVariety else { return breakdown.reasons }
+        var result: [ExplanationReason] = [.repeatedFewSafeOptions]
+        result.append(contentsOf: breakdown.reasons.filter { !isFiller($0) }.prefix(1))
+        return result
+    }
+
+    /// The day distance from `date` to the nearest other use of `id`, or `nil` if unused.
+    static func nearestUse(_ id: RecipeID, to date: LocalDate, uses: [RecipeID: [LocalDate]]) -> Int? {
+        uses[id]?.map { abs(date.daysSince($0)) }.min()
     }
 
     /// Greedy selection for one slot (plan section 5 step 5).
     ///
     /// Candidates that respect the variety rule are preferred. Only when none remains is the
     /// rule relaxed: then the candidates whose nearest previous use is furthest away are kept.
-    /// Ties are broken by `rng` over the candidates in recipe-id order. `nil` when there is no
-    /// candidate at all (the slot stays empty, AC-4.4).
+    /// Among those, the highest score plus `adjustment` wins; ties are broken by `rng` over the
+    /// tied candidates in recipe-id order. `nil` when there is no candidate at all (the slot
+    /// stays empty, AC-4.4).
     static func select(
-        from candidates: [PlannerLibrary.Entry], on date: LocalDate, uses: [RecipeID: [LocalDate]],
+        from candidates: [PlannerLibrary.Entry], for target: Target, uses: [RecipeID: [LocalDate]],
+        context: PlannerScoring.Context, adjustment: (PlannerLibrary.Entry) -> Int = { _ in 0 },
         rng: inout SplitMix64
     ) -> Choice? {
         guard !candidates.isEmpty else { return nil }
 
-        func nearestUse(_ id: RecipeID) -> Int? {
-            uses[id]?.map { abs(date.daysSince($0)) }.min()
-        }
-
-        let fresh = candidates.filter { entry in
-            guard let distance = nearestUse(entry.id) else { return true }
+        var pool = candidates.filter { entry in
+            guard let distance = nearestUse(entry.id, to: target.date, uses: uses) else { return true }
             return distance >= varietyWindowDays
         }
-        if !fresh.isEmpty {
-            let ids = fresh.map(\.id).sorted()
-            return Choice(recipeId: ids[rng.nextIndex(below: ids.count)], relaxedVariety: false)
+        let relaxed = pool.isEmpty
+        if relaxed {
+            // Every candidate was used within the window, so every one has a nearest use.
+            let distances = candidates.compactMap { nearestUse($0.id, to: target.date, uses: uses) }
+            precondition(distances.count == candidates.count, "relaxed variety needs a use for every candidate")
+            guard let furthest = distances.max() else {
+                preconditionFailure("candidates is not empty")
+            }
+            pool = candidates.filter { nearestUse($0.id, to: target.date, uses: uses) == furthest }
         }
 
-        // Every candidate was used within the window; all have a nearest use.
-        let furthest = candidates.compactMap { nearestUse($0.id) }.max() ?? 0
-        let ids = candidates.filter { nearestUse($0.id) == furthest }.map(\.id).sorted()
-        return Choice(recipeId: ids[rng.nextIndex(below: ids.count)], relaxedVariety: true)
+        typealias Scored = (entry: PlannerLibrary.Entry, breakdown: PlannerScoring.Breakdown, rank: Int)
+        let scored = pool.map { entry -> Scored in
+            let breakdown = PlannerScoring.score(
+                entry, date: target.date, slot: target.slot, eaterIDs: target.eaterIDs, plannedUses: uses,
+                context: context)
+            return (entry: entry, breakdown: breakdown, rank: breakdown.total + adjustment(entry))
+        }
+        guard let best = scored.map({ $0.rank }).max() else {
+            preconditionFailure("the pool is not empty")
+        }
+        let tied = scored.filter { $0.rank == best }.sorted { $0.entry.id < $1.entry.id }
+        let pick = tied[rng.nextIndex(below: tied.count)]
+        return Choice(
+            recipeId: pick.entry.id, relaxedVariety: relaxed,
+            reasons: reasons(pick.breakdown, relaxedVariety: relaxed))
     }
 
     /// An independent generator per (date, slot), so one slot's tie-break does not depend on
     /// how many draws earlier slots made.
     static func slotGenerator(seed: PlannerSeed, date: LocalDate, slot: MealSlot) -> SplitMix64 {
-        let slotIndex = UInt64(MealSlot.allCases.firstIndex(of: slot) ?? 0)
+        guard let index = MealSlot.allCases.firstIndex(of: slot) else {
+            preconditionFailure("every MealSlot is in allCases")
+        }
+        let slotIndex = UInt64(index)
         let day = UInt64(bitPattern: Int64(date.daysSinceEpoch))
         let key = SplitMix64.mix(day &* 8 &+ slotIndex)
         return SplitMix64(seed: SplitMix64.mix(seed.value ^ key))

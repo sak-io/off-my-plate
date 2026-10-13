@@ -44,9 +44,15 @@ public enum HardFilter {
     public static func candidates(
         for slot: PlannerSlot, library: PlannerLibrary, clearance: SafetyClearance
     ) -> [PlannerLibrary.Entry] {
-        let eaters = slot.eaterIDs
-        return library.entries.filter { entry in
-            fits(entry, slot: slot.slot) && isSafe(entry, eaterIDs: eaters, clearance: clearance)
+        candidates(for: slot.slot, eaterIDs: slot.eaterIDs, library: library, clearance: clearance)
+    }
+
+    /// The recipes that fit `slot` and are safe for `eaterIDs`, in id order.
+    public static func candidates(
+        for slot: MealSlot, eaterIDs: [MemberID], library: PlannerLibrary, clearance: SafetyClearance
+    ) -> [PlannerLibrary.Entry] {
+        library.entries.filter { entry in
+            fits(entry, slot: slot) && isSafe(entry, eaterIDs: eaterIDs, clearance: clearance)
         }
     }
 }
