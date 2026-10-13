@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// A centred title and message, used by the walking-skeleton screens in the app and the
-/// share extension until the design system arrives (task T21).
+/// share extension (kept for the share extension; the design system is in Tokens/ and Components/).
 public struct PlaceholderMessage: View {
     private let title: LocalizedStringKey
     private let message: LocalizedStringKey
