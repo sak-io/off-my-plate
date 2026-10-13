@@ -79,7 +79,7 @@ struct CodableRoundTripTests {
         let reasons: [ExplanationReason] = [
             .usesYourIngredient("ghee"), .usesExpiringIngredient("paneer"), .quickWeekday(.dinner),
             .goodForLunchboxes, .differentFromYesterday, .cookedOften, .cuisineYouLike("southIndian"),
-            .repeatedFewSafeOptions,
+            .repeatedFewSafeOptions, .lockedMealNoLongerSafe,
         ]
         #expect(try roundTrip(reasons).0 == reasons)
     }

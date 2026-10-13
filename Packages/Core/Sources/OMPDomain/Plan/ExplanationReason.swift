@@ -20,4 +20,7 @@ public enum ExplanationReason: Codable, Sendable, Hashable {
     case cuisineYouLike(CuisineID)
     /// The 3-day variety rule had to be relaxed because too few safe recipes remain (G5).
     case repeatedFewSafeOptions
+    /// The meal was locked, but its recipe is no longer safe for the people eating it (a hard
+    /// rule changed), so regenerate replaced it and unlocked it. Always first in `reasons`.
+    case lockedMealNoLongerSafe
 }

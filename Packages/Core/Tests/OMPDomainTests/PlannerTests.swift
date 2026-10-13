@@ -306,7 +306,7 @@ struct PlannerSelectionTests {
             for meal in plan.meals {
                 let id = try #require(meal.recipeId)
                 uses[id, default: []].append(meal.date)
-                #expect(meal.reasons == [])
+                #expect(!meal.reasons.contains(.repeatedFewSafeOptions))
             }
             for (id, dates) in uses {
                 for (i, a) in dates.enumerated() {
@@ -323,8 +323,15 @@ struct PlannerSelectionTests {
         let library = P.makeLibrary([P.recipe("d-veg-pulao", [.dinner], ["rice", "vegetables"])])
         let dinners = try P.meals(P.generate(P.household(), library: library), .dinner)
         #expect(dinners.allSatisfy { $0.recipeId == "d-veg-pulao" })
-        #expect(dinners[0].reasons == [])
-        #expect(dinners.dropFirst().allSatisfy { $0.reasons == [.repeatedFewSafeOptions] })
+        #expect(!dinners[0].reasons.contains(.repeatedFewSafeOptions))
+        // T11: the relaxation note comes first, then the best real score reason (weekday dinners
+        // of 30 minutes are quick weekday dinners; weekends have none).
+        for meal in dinners.dropFirst() {
+            let weekday = PlannerScoring.weekdays.contains(meal.date.weekday)
+            let expected: [ExplanationReason] =
+                weekday ? [.repeatedFewSafeOptions, .quickWeekday(.dinner)] : [.repeatedFewSafeOptions]
+            #expect(meal.reasons == expected)
+        }
     }
 
     @Test("G5: relaxation picks the least recently used recipe (two recipes alternate)")
@@ -336,10 +343,11 @@ struct PlannerSelectionTests {
         for seed in UInt64(0)..<10 {
             let dinners = try P.meals(P.generate(P.household(), library: library, seed: PlannerSeed(seed)), .dinner)
             #expect(dinners[0].recipeId != dinners[1].recipeId)
-            #expect(dinners[0].reasons == [] && dinners[1].reasons == [])
+            #expect(!dinners[0].reasons.contains(.repeatedFewSafeOptions))
+            #expect(!dinners[1].reasons.contains(.repeatedFewSafeOptions))
             for index in 2..<dinners.count {
                 #expect(dinners[index].recipeId == dinners[index - 2].recipeId)
-                #expect(dinners[index].reasons == [.repeatedFewSafeOptions])
+                #expect(dinners[index].reasons.first == .repeatedFewSafeOptions)
             }
         }
     }

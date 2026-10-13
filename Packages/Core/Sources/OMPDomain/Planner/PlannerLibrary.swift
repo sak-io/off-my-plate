@@ -15,7 +15,8 @@
 /// Duplicate ids are merged conservatively so a duplicate can never weaken a check:
 /// duplicate ingredients union their tags (unverified if either is); duplicate recipes
 /// concatenate their lines, intersect their meal types and are lunchbox-suitable only if every
-/// copy is.
+/// copy is. For scoring only (never safety), duplicates keep the first region, take the longest
+/// time and union their required ingredients.
 public struct PlannerLibrary: Sendable, Hashable {
     /// What the planner knows about one recipe.
     public struct Entry: Sendable, Hashable {
@@ -28,6 +29,13 @@ public struct PlannerLibrary: Sendable, Hashable {
         public let hasUnverifiedIngredient: Bool
         /// Some line uses an ingredient missing from the taxonomy (fail closed).
         public let hasUnknownIngredient: Bool
+        /// Cuisine/region, for cuisine-affinity scoring (T11).
+        public let region: CuisineID
+        /// Prep plus cook time in minutes, for weekday time fit and the "too long" re-roll.
+        public let totalMinutes: Int
+        /// Ingredients of the non-optional lines, in line order without repeats. Used only for
+        /// scoring (pantry coverage, disliked ingredients); safety uses `containedTags`.
+        public let requiredIngredients: [IngredientID]
     }
 
     /// Version of the content the plan is made from; copied into `MealPlan.contentVersion`.
@@ -52,7 +60,11 @@ public struct PlannerLibrary: Sendable, Hashable {
             var tags = Set<FoodTag>()
             var unverified = false
             var unknown = false
+            var required: [IngredientID] = []
             for line in recipe.ingredients {
+                if !line.isOptional && !required.contains(line.ingredientId) {
+                    required.append(line.ingredientId)
+                }
                 guard let fact = facts[line.ingredientId] else {
                     unknown = true
                     continue
@@ -67,11 +79,16 @@ public struct PlannerLibrary: Sendable, Hashable {
                     lunchboxSuitable: existing.lunchboxSuitable && recipe.lunchboxSuitable,
                     containedTags: existing.containedTags.union(tags),
                     hasUnverifiedIngredient: existing.hasUnverifiedIngredient || unverified,
-                    hasUnknownIngredient: existing.hasUnknownIngredient || unknown)
+                    hasUnknownIngredient: existing.hasUnknownIngredient || unknown,
+                    region: existing.region,
+                    totalMinutes: max(existing.totalMinutes, recipe.totalMinutes),
+                    requiredIngredients: existing.requiredIngredients
+                        + required.filter { !existing.requiredIngredients.contains($0) })
             } else {
                 byID[recipe.id] = Entry(
                     id: recipe.id, mealTypes: recipe.mealTypes, lunchboxSuitable: recipe.lunchboxSuitable,
-                    containedTags: tags, hasUnverifiedIngredient: unverified, hasUnknownIngredient: unknown)
+                    containedTags: tags, hasUnverifiedIngredient: unverified, hasUnknownIngredient: unknown,
+                    region: recipe.region, totalMinutes: recipe.totalMinutes, requiredIngredients: required)
             }
         }
 
