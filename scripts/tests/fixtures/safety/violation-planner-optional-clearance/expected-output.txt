@@ -1,0 +1,1 @@
+Packages/Core/Sources/OMPDomain/Planner/WeekPlanner+Editing.swift:3: public planner function 'regenerate' has no SafetyClearance parameter (ADR 0007)

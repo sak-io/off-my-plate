@@ -1,0 +1,3 @@
+Packages/Core/Sources/OMPDomain/Planner/HardFilter.swift:4: public planner function 'candidatesForAnyone' has no SafetyClearance parameter
+Packages/Core/Sources/OMPDomain/Planner/HardFilter.swift:8: public planner function 'unsafeCandidates' has no SafetyClearance parameter
+lint-safety: FAILED with 2 violation(s)

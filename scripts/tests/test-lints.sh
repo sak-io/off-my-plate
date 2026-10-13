@@ -90,6 +90,7 @@ fi
 
 run_fixtures lint-core-imports.sh core-imports
 run_fixtures lint-no-network.sh no-network
+run_fixtures lint-safety.sh safety
 
 echo "test-lints: $passed passed, $failed failed"
 [[ "$failed" -eq 0 ]]

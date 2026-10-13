@@ -1,6 +1,7 @@
 # Core on Linux: the verification of record for Packages/Core (plan section 9, ADR 0005).
-# Runs lint self-tests, all lints, then builds and tests the Core package with the
-# official Swift 6.2 image (matches the owner's Xcode 26 toolchain).
+# Runs lint self-tests, all lints (including lint-safety.sh), then builds and tests the Core
+# package with the official Swift 6.2 image (matches the owner's Xcode 26 toolchain), runs
+# the safety suite as its own step, and checks the seed sign-off sheet is current.
 name: core-linux
 
 # Pushes: the session/agent branches and main. Local feat/* task branches are never pushed.
@@ -51,3 +52,32 @@ jobs:
         run: |
           swift test --package-path Packages/Core --skip-build 2>&1 | tee "$RUNNER_TEMP/core-tests.log"
           scripts/assert-tests-ran.sh "$RUNNER_TEMP/core-tests.log"
+
+      # The non-skippable safety suite (T12, plan section 8, ADR 0007) as its own step, so its
+      # result is visible on its own and a filter that matches nothing cannot pass: at least
+      # SAFETY_SUITE_MIN_TESTS Swift Testing tests must run (the suite has 8 @Test functions;
+      # raise the minimum when adding tests). `scripts/lint-safety.sh` forbids disabling any.
+      - name: Safety suite (OMPSafetySuiteTests only; fails if fewer tests ran than the minimum)
+        env:
+          SAFETY_SUITE_MIN_TESTS: "8"
+        run: |
+          swift test --package-path Packages/Core --skip-build --filter OMPSafetySuiteTests 2>&1 \
+            | tee "$RUNNER_TEMP/safety-suite.log"
+          scripts/assert-tests-ran.sh "$RUNNER_TEMP/safety-suite.log" "$SAFETY_SUITE_MIN_TESTS"
+
+  # The committed seed sign-off sheet must equal what the code prints (ADR 0010, G1). A separate
+  # job so a stale sheet is reported on its own and does not hide the Core results. On failure
+  # the log shows the diff; regenerating and re-reviewing the sheet is a human step.
+  seed-review:
+    name: Seed sign-off sheet is current (Linux, Swift 6.2)
+    runs-on: ubuntu-latest
+    container: swift:6.2-noble
+    timeout-minutes: 20
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
+        with:
+          persist-credentials: false
+
+      - name: docs/content/seed-review.md equals `swift run seed-review-sheet`
+        run: scripts/check-seed-review.sh

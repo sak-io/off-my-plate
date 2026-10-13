@@ -1,0 +1,4 @@
+Packages/Core/Sources/OMPServices/Approve.swift:3: a plan may be marked approved only in Packages/Core/Sources/OMPDomain/Plan/PlanLifecycle.swift, the OMPData mapping and tests (ADR 0008)
+Packages/Core/Sources/OMPServices/Approve.swift:4: a plan may be marked approved only in
+Packages/Core/Sources/OMPServices/Approve.swift:5: a plan may be marked approved only in
+lint-safety: FAILED with 3 violation(s)

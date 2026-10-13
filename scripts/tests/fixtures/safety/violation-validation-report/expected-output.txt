@@ -1,0 +1,5 @@
+Packages/Core/Sources/OMPServices/ApprovePlan.swift:2: ValidationReport may be created only in Packages/Core/Sources/OMPSafetyCheck/ and tests (ADR 0007)
+Packages/Core/Sources/OMPServices/ApprovePlan.swift:3: ValidationReport may be created only in
+Packages/Core/Sources/OMPServices/ApprovePlan.swift:6: ValidationReport may be extended only in its own file
+Packages/Apple/Sources/OMPFeatures/Plan/PlanModel.swift:1: ValidationReport may be created only in
+lint-safety: FAILED with 4 violation(s)
