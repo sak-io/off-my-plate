@@ -22,3 +22,6 @@
 | T13 review-1 | `weekStart`-only change alters the hash but gives an empty diff (revisions copy weekStart) | T23 |
 | T05 review-1 | "Certified gluten-free" path for coeliac users (flours currently mayContain gluten) | future |
 | T05 handoff-2 | Label/translation for the new `kerala` cuisine chip (C-035b) | T22 |
+| T14 review-1 | Exclude optional recipe lines in `forShopping` only (garnish not bought; Mark cooked/safety still see them) | T19 |
+| T14 review-1 | Mark cooked deducts expired items first (literal spec) — owner may prefer last | owner / T24 |
+| T14 review-1 | Pack-size rounding for the shopping list | future |
