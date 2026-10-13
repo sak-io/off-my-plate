@@ -20,3 +20,5 @@
 | T13 review-1 | Services re-validate at call time (never reuse a UI-supplied report); seed contentVersion change triggers the R1 re-check; test with a rule changing after validation | T18 |
 | T13 review-1 | lint-safety: `PlanApproval(`, `.status = .approved`, `blockedBySafety = false`, `UserConfirmation(` only in PlanLifecycle, the OMPData mapping and tests (planted fixtures) | T12 |
 | T13 review-1 | `weekStart`-only change alters the hash but gives an empty diff (revisions copy weekStart) | T23 |
+| T05 review-1 | "Certified gluten-free" path for coeliac users (flours currently mayContain gluten) | future |
+| T05 handoff-2 | Label/translation for the new `kerala` cuisine chip (C-035b) | T22 |
