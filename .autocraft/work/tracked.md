@@ -32,3 +32,4 @@
 | T15 review-1 | `cappedPrefix` allocates a String per character; resolver compares every term (fine at seed size) | perf, future |
 | T20 review-1 | Delete all data is record-level; use `PRAGMA secure_delete` or destroy store files and reopen (AC-16.2) | T27 |
 | T20 review-1 | Verify -wal/-shm files get Complete protection on device | T29 (device check) |
+| T11 review-1 | Copy for ExplanationReason.lockedMealNoLongerSafe ("Changed: no longer safe for …") | T23 |
