@@ -1,0 +1,89 @@
+import Foundation
+import OMPData
+import OMPDomain
+import OMPFeatures
+import OMPServices
+
+/// The composition root (ADR 0004): the only place that chooses concrete implementations.
+///
+/// Production: the SwiftData store (`PersistenceStore`, T20) in the app's own container.
+/// UI tests (Debug builds only): an in-memory store seeded by a launch argument, see
+/// `UITestSeed`. The use-case services of T18/T19 are wired here when they land.
+@MainActor
+enum CompositionRoot {
+    static func makeAppModel(arguments: [String]) -> AppModel {
+        let clock = SystemClock(timeZone: TimeZone.autoupdatingCurrent)
+
+        #if DEBUG
+        if let seed = UITestSeed(arguments: arguments) {
+            OMPLog.app.info("UI test seed \(seed.rawValue, privacy: .public): in-memory store")
+            return AppModel(repositories: seed.repositories(now: clock.now), clock: clock)
+        }
+        #endif
+
+        do {
+            let store = try PersistenceStore(location: try StoreLocation.appDefault())
+            return AppModel(repositories: store.makeRepositories(), clock: clock)
+        } catch {
+            let kind = OMPLog.errorKind(error)
+            OMPLog.app.fault("Store could not be opened: \(kind, privacy: .public)")
+            return AppModel.storeUnavailable(clock: clock)
+        }
+    }
+}
+
+#if DEBUG
+/// Households the UI tests start with: `-OMPUITestSeed <name>` (Debug builds only, never in
+/// Release). Every seed uses a fresh in-memory store, so tests never touch real data.
+enum UITestSeed: String {
+    /// No household (before onboarding).
+    case empty
+    /// Adult 1 and Child 1, both answered today: no gate cover.
+    case answered
+    /// Adult 1 answered; Child 1 and Child 2 unasked: the gate cover shows "1 of 2".
+    case unasked
+
+    static let argument = "-OMPUITestSeed"
+
+    init?(arguments: [String]) {
+        guard let index = arguments.firstIndex(of: Self.argument), arguments.indices.contains(index + 1)
+        else { return nil }
+        self.init(rawValue: arguments[index + 1])
+    }
+
+    func repositories(now: Date) -> Repositories {
+        let empty = Repositories.inMemory()
+        let seeded: [Household]
+        switch self {
+        case .empty:
+            return empty
+        case .answered:
+            seeded = [Self.household(now: now, members: [
+                Self.member(.adult, 1, answeredAt: now), Self.member(.child, 1, answeredAt: now),
+            ])]
+        case .unasked:
+            seeded = [Self.household(now: now, members: [
+                Self.member(.adult, 1, answeredAt: now), Self.member(.child, 1, answeredAt: nil),
+                Self.member(.child, 2, answeredAt: nil),
+            ])]
+        }
+        return Repositories(
+            household: InMemoryRepository<Household>(seeded), mealPlans: empty.mealPlans, pantry: empty.pantry,
+            shopping: empty.shopping, cookLogs: empty.cookLogs, facts: empty.facts,
+            learningEvents: empty.learningEvents, promptStates: empty.promptStates)
+    }
+
+    private static func household(now: Date, members: [Member]) -> Household {
+        Household(id: HouseholdID.generate(), members: members, createdAt: now, updatedAt: now)
+    }
+
+    private static func member(_ role: MemberRole, _ number: Int, answeredAt: Date?) -> Member {
+        Member(
+            id: MemberID.generate(),
+            label: MemberLabel(role: role, number: number),
+            ageBand: role == .adult ? .adult : .child,
+            safetyStatus: answeredAt == nil ? .unasked : .confirmedNone,
+            safetyConfirmedAt: answeredAt)
+    }
+}
+#endif

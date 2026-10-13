@@ -44,6 +44,7 @@ let package = Package(
             dependencies: [
                 "OMPUI",
                 "OMPCapture",
+                .product(name: "OMPDomain", package: "Core"),
                 .product(name: "OMPServices", package: "Core"),
             ]
         ),
@@ -51,6 +52,18 @@ let package = Package(
             name: "OMPDataTests",
             dependencies: [
                 "OMPData",
+                .product(name: "OMPDomain", package: "Core"),
+                .product(name: "OMPServices", package: "Core"),
+            ]
+        ),
+        .testTarget(
+            name: "OMPUITests",
+            dependencies: ["OMPUI"]
+        ),
+        .testTarget(
+            name: "OMPFeaturesTests",
+            dependencies: [
+                "OMPFeatures",
                 .product(name: "OMPDomain", package: "Core"),
                 .product(name: "OMPServices", package: "Core"),
             ]

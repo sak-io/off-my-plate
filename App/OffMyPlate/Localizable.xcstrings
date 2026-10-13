@@ -1,0 +1,222 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "C-021": {
+      "comment": "One-sentence reason on the safety question (S-02 and gate cover).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I'll never put these in a plan, so I need to know before I suggest anything."
+          }
+        }
+      }
+    },
+    "C-030": {
+      "comment": "Safety gate cover title for one member. %@ is the member's name or label.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Does %@ have an allergy or something they must avoid?"
+          }
+        }
+      }
+    },
+    "C-030a": {
+      "comment": "Safety gate cover progress when several members are unasked: index, then total.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld of %2$lld"
+          }
+        }
+      }
+    },
+    "C-090": {
+      "comment": "Disclaimer footer on the safety question and the must-avoid list (S-02, S-33).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OffMyPlate isn't medical advice. Always check ingredients and labels."
+          }
+        }
+      }
+    },
+    "C-091": {
+      "comment": "Disclaimer footer on the plan and meal detail (S-10, S-11).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not medical advice. Check ingredients and labels, especially for allergies."
+          }
+        }
+      }
+    },
+    "C-092": {
+      "comment": "Full medical disclaimer note (S-37, Settings -> About).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OffMyPlate suggests meals based on what you tell it. It isn't medical advice and can't guarantee a dish is free of allergens: packaged ingredients can contain hidden allergens or traces. Always check ingredients and labels. For allergies or medical diets, follow advice from your doctor or dietitian."
+          }
+        }
+      }
+    },
+    "C-096": {
+      "comment": "Data couldn't load at launch.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I couldn't open your data. Restart the app; if it keeps happening, check your device has free space."
+          }
+        }
+      }
+    },
+    "member.label.adult": {
+      "comment": "Generated label of an adult member, AC-1.2. %lld is the number.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adult %lld"
+          }
+        }
+      }
+    },
+    "member.label.child": {
+      "comment": "Generated label of a child member, AC-1.2. %lld is the number.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Child %lld"
+          }
+        }
+      }
+    },
+    "shell.household.about": {
+      "comment": "Household section (C-110).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About"
+          }
+        }
+      }
+    },
+    "shell.household.disclaimer": {
+      "comment": "Row that opens the full medical disclaimer (S-37).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not medical advice"
+          }
+        }
+      }
+    },
+    "shell.loadFailed.title": {
+      "comment": "Title when the data store could not be opened at launch.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can't open your data"
+          }
+        }
+      }
+    },
+    "shell.placeholder.message": {
+      "comment": "Placeholder text on a tab whose screens are not built yet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This part of OffMyPlate is on its way."
+          }
+        }
+      }
+    },
+    "shell.tab.household": {
+      "comment": "Tab title: people, safety, settings (C-110).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Household"
+          }
+        }
+      }
+    },
+    "shell.tab.list": {
+      "comment": "Tab title: the shopping list.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "List"
+          }
+        }
+      }
+    },
+    "shell.tab.pantry": {
+      "comment": "Tab title: what's at home.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pantry"
+          }
+        }
+      }
+    },
+    "shell.tab.plan": {
+      "comment": "Tab title: the weekly plan.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan"
+          }
+        }
+      }
+    },
+    "shell.tab.plan.badge": {
+      "comment": "VoiceOver text of the Plan tab badge while safety blocks planning.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "needs your answer"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
