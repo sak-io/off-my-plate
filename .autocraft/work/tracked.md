@@ -35,3 +35,5 @@
 | T11 review-1 | Copy for ExplanationReason.lockedMealNoLongerSafe ("Changed: no longer safe for …") | T23 |
 | T16 review-1 | Safety text "Who?" hint must be shown editable and confirmed (unknown word in name position becomes a hint) | T22 |
 | T16 review-1 | Owner sign-off on Malayalam/Hindi restriction keywords (catalog.json) | owner G1 |
+| T12 review-1 | `replacingRecipe` (WeekPlanner+Editing.swift:24) is public and clears blockedBySafety without a clearance — make it internal or require a clearance; services validate | T18 / follow-up |
+| T12 review-1 | lint-safety PLANNER_HELPERS allow-list keyed by file+name only | follow-up |

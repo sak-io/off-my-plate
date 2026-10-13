@@ -32,6 +32,8 @@ Process note: task branches are pushed as `claude/ci-tNN` so CI runs before merg
 ## macOS CI unavailable (2026-10-13)
 GitHub refuses to start macOS jobs: "recent account payments have failed or your spending limit needs to be increased" (Billing & plans). Owner decision: until fixed, merge core (pure-Swift `Packages/Core`) tasks when Linux CI is green; hold all app/screen tasks (Packages/Apple, App/) until macOS CI works. T11 was merged on Linux-green only (its previous revision 3fe2e5a was green on macOS too).
 
+**Update:** Linux jobs are now refused too (same billing message), so no CI runs at all. New tasks paused; T12 and T18 developers finish their current work, nothing merges until CI runs again. T16 approved, waiting for CI.
+
 ## Usage budget (owner decision, 2026-10-13)
 At most 2 agents at a time; reviewers on Sonnet; short briefs; one review round for small non-safety tasks. Recorded in `.autocraft/custom/team-rules.md` and `.autocraft/config.yml`.
 
