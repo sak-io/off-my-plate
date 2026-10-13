@@ -67,6 +67,10 @@ private enum VFixture {
             rules: rules, createdAt: now, updatedAt: now)
     }
 
+    static func meal(_ id: PlannedMealID, recipe: RecipeID?, servings: [MealServing]) -> PlannedMeal {
+        PlannedMeal(id: id, date: monday, slot: .dinner, recipeId: recipe, servings: servings)
+    }
+
     static func meal(
         _ id: PlannedMealID, recipe: RecipeID?, day: Int = 0, adultEating: Bool = true, childEating: Bool = true
     ) -> PlannedMeal {
@@ -309,5 +313,70 @@ struct PlanValidatorTests {
             [VFixture.meal("meal-1", recipe: "salad", childEating: false)],
             rules: [VFixture.rule("peanuts", .household, [.peanut])], library: library)
         #expect(report.violations.map(\.kind) == [.excludedTag(.peanut, ingredient: "peanuts")])
+    }
+
+    // MARK: Eaters: household members missing from servings are still checked (fail closed)
+
+    @Test("an active member omitted from servings is still an eater")
+    func omittedMemberIsChecked() {
+        let meal = VFixture.meal("meal-1", recipe: "peanut-salad", servings: [MealServing(memberId: VFixture.adult, portion: 1.0)])
+        let report = VFixture.validate([meal], rules: [VFixture.rule("peanuts", .member(VFixture.child), [.peanut])])
+        #expect(
+            report.violations == [
+                Violation(mealId: "meal-1", memberId: VFixture.child, kind: .excludedTag(.peanut, ingredient: "peanuts"))
+            ])
+    }
+
+    @Test("a meal with empty servings checks every active member, in household order")
+    func emptyServingsChecksEveryone() {
+        let meal = VFixture.meal("meal-1", recipe: "peanut-salad", servings: [])
+        let report = VFixture.validate([meal], rules: [VFixture.rule("peanuts", .household, [.peanut])])
+        #expect(report.violations.map(\.memberId) == [VFixture.adult, VFixture.child])
+    }
+
+    @Test("a soft-deleted member missing from servings is ignored")
+    func softDeletedMissingMemberIgnored() {
+        let gone: MemberID = "m-gone"
+        var household = VFixture.household(rules: [VFixture.rule("peanuts", .member(gone), [.peanut])])
+        household.members.append(
+            Member(
+                id: gone, label: MemberLabel(role: .adult, number: 2), safetyStatus: .stated,
+                deletedAt: VFixture.now))
+        let plan = VFixture.plan([VFixture.meal("meal-1", recipe: "peanut-salad")])
+        let report = PlanValidator.validate(plan, household: household, library: VFixture.library)
+        #expect(report.passedForEveryone)
+    }
+
+    @Test("a missing member constrained only by a household rule violates")
+    func missingMemberHouseholdRuleOnly() {
+        let meal = VFixture.meal("meal-1", recipe: "dal-tadka", servings: [MealServing(memberId: VFixture.adult, portion: 1.0, notEating: true)])
+        let report = VFixture.validate([meal], rules: [VFixture.rule("dairy", .household, [.milk])])
+        #expect(
+            report.violations == [
+                Violation(mealId: "meal-1", memberId: VFixture.child, kind: .excludedTag(.milk, ingredient: "ghee"))
+            ])
+    }
+
+    @Test("an eating serving beats a duplicate notEating serving for the same member")
+    func eatingServingBeatsNotEating() {
+        let meal = VFixture.meal(
+            "meal-1", recipe: "peanut-salad",
+            servings: [
+                MealServing(memberId: VFixture.adult, portion: 1.0, notEating: true),
+                MealServing(memberId: VFixture.child, portion: 0.6, notEating: true),
+                MealServing(memberId: VFixture.child, portion: 0.6),
+            ])
+        let report = VFixture.validate([meal], rules: [VFixture.rule("peanuts", .household, [.peanut])])
+        #expect(report.violations.map(\.memberId) == [VFixture.child])
+    }
+
+    @Test("eaters are ordered by servings first, then remaining household members")
+    func eaterOrderServingsThenHousehold() {
+        let guest: MemberID = "m-guest"
+        let meal = VFixture.meal(
+            "meal-1", recipe: "peanut-salad",
+            servings: [MealServing(memberId: VFixture.child, portion: 0.6), MealServing(memberId: guest, portion: 1.0)])
+        let report = VFixture.validate([meal], rules: [VFixture.rule("peanuts", .household, [.peanut])])
+        #expect(report.violations.map(\.memberId) == [VFixture.child, guest, VFixture.adult])
     }
 }
