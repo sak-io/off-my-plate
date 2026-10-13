@@ -31,7 +31,7 @@ let package = Package(
         .testTarget(name: "OMPDomainTests", dependencies: ["OMPDomain"]),
         .testTarget(name: "OMPSafetyCheckTests", dependencies: ["OMPSafetyCheck", "OMPDomain", "OMPRecipes"]),
         .testTarget(name: "OMPRecipesTests", dependencies: ["OMPRecipes", "OMPDomain"]),
-        .testTarget(name: "OMPServicesTests", dependencies: ["OMPServices", "OMPDomain"]),
+        .testTarget(name: "OMPServicesTests", dependencies: ["OMPServices", "OMPDomain", "OMPSafetyCheck", "OMPRecipes"]),
         // The non-skippable safety suite (T12, plan section 8): CI runs it as its own step and
         // `scripts/lint-safety.sh` forbids disabling anything in it.
         .testTarget(name: "OMPSafetySuiteTests", dependencies: ["OMPDomain", "OMPSafetyCheck", "OMPRecipes"]),
