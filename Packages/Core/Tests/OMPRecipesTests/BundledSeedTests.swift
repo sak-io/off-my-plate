@@ -56,6 +56,19 @@ struct BundledSeedTests {
         #expect(catalog.restrictions(forKeyword: "Dairy").map(\.id) == ["milk"])
     }
 
+    @Test("T05: Hindi restriction keywords select the right chips")
+    func hindiKeywords() throws {
+        let catalog = try SeedLoader.loadBundled().catalog
+        let expected: [(String, [RestrictionID])] = [
+            ("anda", ["egg"]), ("ande", ["egg"]), ("machli", ["fish"]), ("machhi", ["fish"]), ("machhli", ["fish"]),
+            ("gehun", ["wheat-gluten"]), ("gehu", ["wheat-gluten"]), ("doodh", ["milk"]), ("dudh", ["milk"]),
+            ("moongphali", ["peanuts"]),
+        ]
+        for (keyword, ids) in expected {
+            #expect(catalog.restrictions(forKeyword: keyword).map(\.id) == ids, "\(keyword)")
+        }
+    }
+
     @Test("every keyword resolves to at least one restriction (an unknown word never means 'no rule')")
     func everyKeywordResolves() throws {
         let catalog = try SeedLoader.loadBundled().catalog
