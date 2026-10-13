@@ -37,3 +37,6 @@
 | T16 review-1 | Owner sign-off on Malayalam/Hindi restriction keywords (catalog.json) | owner G1 |
 | T12 review-1 | `replacingRecipe` (WeekPlanner+Editing.swift:24) is public and clears blockedBySafety without a clearance — make it internal or require a clearance; services validate | T18 / follow-up |
 | T12 review-1 | lint-safety PLANNER_HELPERS allow-list keyed by file+name only | follow-up |
+| T18 review-1 | App must call `recheckOpenPlans()` at launch before the first UI read; add a test that it repairs an interrupted household-save/plan-recheck | T19 / T21 |
+| T18 review-1 | `setLocked` computes an unused clearance — add a comment | follow-up |
+| T18 review-1 | ASSUMPTION for owner: lunchbox children = child or teen age band | owner |
