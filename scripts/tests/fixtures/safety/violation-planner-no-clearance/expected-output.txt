@@ -1,0 +1,2 @@
+Packages/Core/Sources/OMPDomain/Planner/WeekPlanner.swift:6: public planner function 'generateWeekUnchecked' has no SafetyClearance parameter (ADR 0007)
+lint-safety: FAILED with 1 violation(s)
