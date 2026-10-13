@@ -295,6 +295,7 @@ struct PlannerRegenerateTests {
         plan.meals[2].locked = true
         let meals = try Edit.regenerate(plan, keepingLocked: false)
         #expect(meals.allSatisfy { !$0.locked })
+        #expect(meals.allSatisfy { !$0.reasons.contains(.lockedMealNoLongerSafe) })
     }
 
     @Test("a locked meal that is no longer safe is replanned (safety over lock)")
@@ -308,6 +309,14 @@ struct PlannerRegenerateTests {
         #expect(meals[index].recipeId != "d-egg-curry")
         #expect(!meals[index].locked)
         #expect(!meals.contains { $0.recipeId == "d-egg-curry" })
+        // T11 review-1: the UI is told why a locked meal changed, first and only on that meal.
+        #expect(meals[index].reasons.first == .lockedMealNoLongerSafe)
+        #expect(meals[index].reasons.count <= 2)
+        for (offset, meal) in meals.enumerated() where offset != index {
+            #expect(!meal.reasons.contains(.lockedMealNoLongerSafe), "\(meal.id)")
+        }
+        // An unlocked meal that is replanned, and a still-safe locked meal, carry no such reason.
+        #expect(try Edit.regenerate(plan).allSatisfy { !$0.reasons.contains(.lockedMealNoLongerSafe) })
     }
 
     @Test("cooked meals and days before today are kept")

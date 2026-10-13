@@ -126,8 +126,8 @@ extension WeekPlanner {
     ///
     /// Kept unchanged: meals already cooked, meals on days before today (plan section 5 step 0),
     /// and, when `keepingLocked`, locked meals that are still safe under the clearance. A locked
-    /// meal that is no longer safe is replanned and unlocked (safety over lock; flagged in the T11
-    /// handoff). Every other meal is replanned with the same eaters, variety rule and scoring as
+    /// meal that is no longer safe is replanned, unlocked, and gets `.lockedMealNoLongerSafe` as
+    /// its first reason (safety over lock; T11 review-1). Every other meal is replanned with the same eaters, variety rule and scoring as
     /// `generateWeek`, counting kept meals for variety; replanned meals are unlocked.
     ///
     /// - Parameter seed: default: derived from the household, the plan id and its content hash,
@@ -194,6 +194,8 @@ extension WeekPlanner {
             var rng = slotGenerator(seed: seed, date: meal.date, slot: meal.slot)
             let target = Target(date: meal.date, slot: meal.slot, eaterIDs: eaters)
             let current = meal.recipeId
+            // Not kept although locked (and not cooked or past): its recipe is no longer safe.
+            let lockNoLongerSafe = keepingLocked && meal.locked
             let choice = select(
                 from: candidates, for: target, uses: uses, context: context,
                 adjustment: { $0.id == current ? regenerateRepeatPenalty : 0 }, rng: &rng)
@@ -204,6 +206,12 @@ extension WeekPlanner {
             updated.recipeId = choice?.recipeId
             updated.emptyReason = choice == nil ? .noSafeRecipe : nil
             updated.reasons = choice?.reasons ?? []
+            if lockNoLongerSafe {
+                // Surface the change to the UI first; keep at most one score reason (two in total).
+                var reasons: [ExplanationReason] = [.lockedMealNoLongerSafe]
+                reasons.append(contentsOf: updated.reasons.prefix(1))
+                updated.reasons = reasons
+            }
             if let choice {
                 uses[choice.recipeId, default: []].append(meal.date)
             }
