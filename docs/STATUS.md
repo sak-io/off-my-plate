@@ -1,6 +1,6 @@
 # Status
 
-**Phase:** Kickoff, step 3 (build) — T03 in review
+**Phase:** Kickoff, step 3 (build) — T13 and T17 in second review
 **Branch:** `claude/build-v1`
 
 ## Owner decisions at kickoff (2026-10-12)
@@ -17,13 +17,17 @@
 
 - T01 foundation merged; both CI jobs green on 0884abe (Linux Swift 6.2, macOS Xcode 26.3 / Swift 6.2.4). T01 lint follow-up merged.
 - T02 app walking skeleton merged (d75f9ec): CI green before merge, incl. app build and UI tests on iPhone and iPad simulators.
-- T03 domain contracts: CI green on `claude/ci-t03` (c177c6c); review in progress (first review attempt was cut off by a usage limit).
+- T03 domain contracts, T07 units, T08 safety gate, T04 seed loader merged (CI green on both platforms before merge).
+- T13 plan lifecycle and T17 learner: fixes done; second reviews were cut off by the usage limit and are being re-run.
 - Tracked review follow-ups: `.autocraft/work/tracked.md`.
 
 Process note: task branches are pushed as `claude/ci-tNN` so CI runs before merge (deviation from session-branch mode). The git proxy does not allow deleting remote branches; the owner can delete `claude/ci-*` branches on GitHub.
 
 ## Next
 - Build T01–T30 per `docs/architecture/tasks.md`. Verification is GitHub Actions CI (no local Swift toolchain: download.swift.org is blocked).
+
+## Usage budget (owner decision, 2026-10-13)
+At most 2 agents at a time; reviewers on Sonnet; short briefs; one review round for small non-safety tasks. Recorded in `.autocraft/custom/team-rules.md` and `.autocraft/config.yml`.
 
 ## Owner to-dos (non-blocking; defaults applied)
 - R4 restriction definitions and G1 recipe/allergen sign-off (before beta).
