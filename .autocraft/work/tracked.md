@@ -33,3 +33,5 @@
 | T20 review-1 | Delete all data is record-level; use `PRAGMA secure_delete` or destroy store files and reopen (AC-16.2) | T27 |
 | T20 review-1 | Verify -wal/-shm files get Complete protection on device | T29 (device check) |
 | T11 review-1 | Copy for ExplanationReason.lockedMealNoLongerSafe ("Changed: no longer safe for …") | T23 |
+| T16 review-1 | Safety text "Who?" hint must be shown editable and confirmed (unknown word in name position becomes a hint) | T22 |
+| T16 review-1 | Owner sign-off on Malayalam/Hindi restriction keywords (catalog.json) | owner G1 |
