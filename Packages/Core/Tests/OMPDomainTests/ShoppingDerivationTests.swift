@@ -246,4 +246,23 @@ struct ShoppingDerivationTests {
             try Self.paneerPlan(), pantry: [F.pantry("p1", "milk", 100, .millilitre, location: .fridge, confirmedDaysAgo: 7)])
         #expect(!lines.contains { $0.ingredientId == "milk" })
     }
+
+    // MARK: optional lines (T14 review)
+
+    @Test("optional recipe lines stay off the shopping list but are still scaled for Mark cooked")
+    func optionalLinesOnlyLeaveTheShoppingList() throws {
+        let recipe = F.recipe(
+            "garnished", servings: 4,
+            [F.line("rice", 200, .gram),
+             RecipeIngredientLine(ingredientId: "coriander", quantity: 8, unit: .gram, isOptional: true)])
+        let plan = try F.approved([PlanFixture.meal("meal-1", day: 0, recipe: "garnished")])
+        let lines = ShoppingDerivation.derive(
+            plan: plan, recipes: ["garnished": recipe], ingredients: F.ingredients, pantry: [], now: F.now,
+            timeZone: F.utc)
+        #expect(lines.map(\.ingredientId) == ["rice"])
+
+        let amounts = try MarkCooked.proposedAmounts(
+            mealId: "meal-1", in: plan, recipe: recipe, ingredients: F.ingredients)
+        #expect(Set(amounts.map(\.ingredientId)) == ["rice", "coriander"])
+    }
 }

@@ -40,3 +40,5 @@
 | T18 review-1 | App must call `recheckOpenPlans()` at launch before the first UI read; add a test that it repairs an interrupted household-save/plan-recheck | T19 / T21 |
 | T18 review-1 | `setLocked` computes an unused clearance — add a comment | follow-up |
 | T18 review-1 | ASSUMPTION for owner: lunchbox children = child or teen age band | owner |
+| T16 delta review | Prepend (Cf, e.g. U+0600) + space may form a non-whitespace-initial Character; extend TranscriptSanitiser and add a test | follow-up |
+| T16 delta review | `droppedWords` fixture now sanitises its input (partly circular); keep explicit `describe` assertions | follow-up |

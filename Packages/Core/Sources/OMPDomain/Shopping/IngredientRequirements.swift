@@ -32,11 +32,15 @@ public enum IngredientRequirements {
 
     /// The quantified lines of `recipe` scaled to `meal`: quantity × Σportion / recipe.servings
     /// (AC-6.4). Non-quantified lines ("pinch", "to taste") are left out: they are never on
-    /// the shopping list and never deducted. Optional lines are included (see handoff Q1).
+    /// the shopping list and never deducted. Optional lines are included unless `includeOptional` is
+    /// false (the shopping list leaves optional garnishes off; Mark cooked still proposes them).
     /// A recipe with fewer than 1 serving is treated as 1 serving (the seed validator forbids it).
-    public static func scaledLines(of recipe: Recipe, for meal: PlannedMeal) -> [(IngredientID, Quantity)] {
+    public static func scaledLines(
+        of recipe: Recipe, for meal: PlannedMeal, includeOptional: Bool = true
+    ) -> [(IngredientID, Quantity)] {
         let factor = portionSum(of: meal) / Double(max(1, recipe.servings))
         return recipe.ingredients.compactMap { line -> (IngredientID, Quantity)? in
+            guard includeOptional || !line.isOptional else { return nil }
             let quantity = Quantity(line.quantity, line.unit)
             guard quantity.isQuantified else { return nil }
             return (line.ingredientId, quantity.scaled(by: factor))
@@ -48,12 +52,13 @@ public enum IngredientRequirements {
     public static func totals(
         of meals: [PlannedMeal],
         recipes: [RecipeID: Recipe],
-        ingredients: [IngredientID: Ingredient]
+        ingredients: [IngredientID: Ingredient],
+        includeOptional: Bool = true
     ) -> [IngredientRequirement] {
         var totals: [IngredientID: QuantityTotal] = [:]
         for meal in meals {
             guard let recipeId = meal.recipeId, let recipe = recipes[recipeId] else { continue }
-            for (ingredientId, quantity) in scaledLines(of: recipe, for: meal) {
+            for (ingredientId, quantity) in scaledLines(of: recipe, for: meal, includeOptional: includeOptional) {
                 var total = totals[ingredientId] ?? QuantityTotal(profile: profile(ingredientId, in: ingredients))
                 total.add(quantity)
                 totals[ingredientId] = total
@@ -72,14 +77,17 @@ public enum IngredientRequirements {
     }
 
     /// AC-10.1: Σ over the shopping meals of qty × Σportion / recipe.servings, per ingredient.
-    /// Empty for a plan that is not effectively approved (AC-5.3).
+    /// Empty for a plan that is not effectively approved (AC-5.3). Optional recipe lines are
+    /// left off the list (T14 review); they still count for safety and for Mark cooked.
     public static func forShopping(
         plan: MealPlan,
         recipes: [RecipeID: Recipe],
         ingredients: [IngredientID: Ingredient],
         today: LocalDate
     ) -> [IngredientRequirement] {
-        totals(of: shoppingMeals(of: plan, today: today), recipes: recipes, ingredients: ingredients)
+        totals(
+            of: shoppingMeals(of: plan, today: today), recipes: recipes, ingredients: ingredients,
+            includeOptional: false)
     }
 }
 
