@@ -25,8 +25,8 @@ public struct AppShellView: View {
                     Task { await model.refresh() }
                 }
             }
-            .gateCover(isPresented: model.gateStatus.showsGateCover) {
-                SafetyGateCover(members: model.membersNeedingAnswer)
+            .gateCover(isPresented: model.gateStatus.showsGateCover && !model.onboardingActive) {
+                SafetyGateCover(members: model.membersNeedingAnswer, answering: gateAnswering)
             }
     }
 
@@ -34,9 +34,24 @@ public struct AppShellView: View {
     private var content: some View {
         if model.gateStatus == .loadFailed {
             LoadFailedView()
+        } else if model.onboardingActive, let services = model.safetyServices {
+            let appModel = model
+            OnboardingFlowView(
+                services: services, speech: model.speechCapture,
+                onFinished: { await appModel.finishOnboarding() })
         } else {
             tabs
         }
+    }
+
+    /// What the safety cover needs to take an answer (T22); `nil` when no services are wired.
+    private var gateAnswering: GateAnswering? {
+        guard let services = model.safetyServices else { return nil }
+        let appModel = model
+        return GateAnswering(
+            services: services, speech: model.speechCapture,
+            activeMemberCount: model.household?.activeMembers.count ?? 1,
+            onAnswered: { await appModel.refresh() })
     }
 
     private var tabs: some View {

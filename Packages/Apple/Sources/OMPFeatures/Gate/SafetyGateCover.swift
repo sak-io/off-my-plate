@@ -1,6 +1,17 @@
+import OMPCapture
 import OMPDomain
 import OMPUI
 import SwiftUI
+
+/// What the cover needs to let the user answer (task T22): the services, the speech adapter,
+/// and what to do once an answer is saved (the shell reloads the gate).
+struct GateAnswering {
+    let services: SafetyServices
+    let speech: (any SpeechCapture)?
+    /// Non-deleted members in the household (the last one cannot be removed).
+    let activeMemberCount: Int
+    let onAnswered: @MainActor () async -> Void
+}
 
 /// The root safety-gate cover (screens.md S-02 "Gate cover" variant; ADR 0007; AC-3.1, AC-2.6).
 ///
@@ -11,6 +22,8 @@ import SwiftUI
 /// the progress text and the disclaimer.
 struct SafetyGateCover: View {
     let members: [Member]
+    /// `nil` only in previews: the cover then shows the question without controls.
+    var answering: GateAnswering?
     @AccessibilityFocusState private var titleFocused: Bool
 
     var body: some View {
@@ -28,10 +41,15 @@ struct SafetyGateCover: View {
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier(AccessibilityID.gateTitle)
                         .accessibilityFocused($titleFocused)
-                    Text(Self.reason)
-                        .font(OMPFont.body)
-                        .fixedSize(horizontal: false, vertical: true)
-                    DisclaimerFooter(.safety)
+                    if let answering {
+                        GateAnswerHost(member: member, answering: answering)
+                            .id(member.id)
+                    } else {
+                        Text(Self.reason)
+                            .font(OMPFont.body)
+                            .fixedSize(horizontal: false, vertical: true)
+                        DisclaimerFooter(.safety)
+                    }
                 }
                 .frame(maxWidth: OMPMetrics.coverMaxWidth, alignment: .leading)
                 .padding(OMPSpacing.large)
@@ -66,5 +84,23 @@ struct SafetyGateCover: View {
             localized: "C-021",
             defaultValue: "I'll never put these in a plan, so I need to know before I suggest anything.",
             comment: "One-sentence reason on the safety question (S-02 and gate cover).")
+    }
+}
+
+/// Owns the answer model of the member the cover is asking about; `.id(member.id)` on the
+/// host makes the next unasked member start with a fresh model.
+@MainActor
+private struct GateAnswerHost: View {
+    @State private var model: SafetyAnswerModel
+
+    init(member: Member, answering: GateAnswering) {
+        _model = State(
+            initialValue: SafetyAnswerModel(
+                subject: .member(member, householdMemberCount: answering.activeMemberCount),
+                services: answering.services, speech: answering.speech, onFinished: answering.onAnswered))
+    }
+
+    var body: some View {
+        SafetyAnswerView(model: model)
     }
 }

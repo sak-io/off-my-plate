@@ -1,7 +1,9 @@
 import Foundation
+import OMPCapture
 import OMPData
 import OMPDomain
 import OMPFeatures
+import OMPRecipes
 import OMPServices
 
 /// The composition root (ADR 0004): the only place that chooses concrete implementations.
@@ -17,17 +19,43 @@ enum CompositionRoot {
         #if DEBUG
         if let seed = UITestSeed(arguments: arguments) {
             OMPLog.app.info("UI test seed \(seed.rawValue, privacy: .public): in-memory store")
-            return AppModel(repositories: seed.repositories(now: clock.now), clock: clock)
+            let repositories = seed.repositories(now: clock.now)
+            let model = AppModel(repositories: repositories, clock: clock)
+            // UI tests never touch the microphone or the speech service.
+            wireSafety(model, repositories: repositories, clock: clock, speech: FakeSpeechCapture(availability: .onDeviceUnsupported))
+            return model
         }
         #endif
 
         do {
             let store = try PersistenceStore(location: try StoreLocation.appDefault())
-            return AppModel(repositories: store.makeRepositories(), clock: clock)
+            let repositories = store.makeRepositories()
+            let model = AppModel(repositories: repositories, clock: clock)
+            wireSafety(model, repositories: repositories, clock: clock, speech: OnDeviceSpeechCapture(backend: SystemSpeechBackend()))
+            return model
         } catch {
             let kind = OMPLog.errorKind(error)
             OMPLog.app.fault("Store could not be opened: \(kind, privacy: .public)")
             return AppModel.storeUnavailable(clock: clock)
+        }
+    }
+
+    /// Builds the use-case services (T18) over the same repositories and gives them to the
+    /// model, with the bundled seed library and the safety keyword table (T16).
+    private static func wireSafety(
+        _ model: AppModel, repositories: Repositories, clock: any DomainClock, speech: any SpeechCapture
+    ) {
+        do {
+            let seed = try SeedLibrary.loadBundled()
+            let context = ServiceContext(
+                repositories: repositories, clock: clock, library: PlanningLibrary(seed: seed),
+                diagnostics: { _ in OMPLog.app.fault("The validator rejected planner output") })
+            model.safetyServices = SafetyServices(
+                context: context, parser: SafetyTextParser(keywords: seed.catalog.restrictionKeywords))
+            model.speechCapture = speech
+        } catch {
+            let kind = OMPLog.errorKind(error)
+            OMPLog.app.fault("Seed library could not be loaded: \(kind, privacy: .public)")
         }
     }
 }
