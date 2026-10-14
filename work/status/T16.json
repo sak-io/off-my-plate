@@ -1,6 +1,8 @@
 {
   "branch": "claude/ci-batch-1",
+  "commit": "e0fd382",
   "id": "T16",
-  "note": "in batch-1; waiting for macOS CI on batch",
-  "state": "in_review"
+  "note": "merged via batch-1, CI green (5 jobs)",
+  "state": "merged",
+  "updated_at": "2026-10-14T03:30:02Z"
 }
