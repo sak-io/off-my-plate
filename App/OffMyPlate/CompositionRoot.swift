@@ -20,7 +20,8 @@ enum CompositionRoot {
         if let seed = UITestSeed(arguments: arguments) {
             OMPLog.app.info("UI test seed \(seed.rawValue, privacy: .public): in-memory store")
             let repositories = seed.repositories(now: clock.now)
-            let model = AppModel(repositories: repositories, clock: clock)
+            let model = AppModel(
+                repositories: repositories, clock: clock, planBackend: makePlanBackend(repositories, clock: clock))
             // UI tests never touch the microphone or the speech service.
             wireSafety(model, repositories: repositories, clock: clock, speech: FakeSpeechCapture(availability: .onDeviceUnsupported))
             return model
@@ -30,7 +31,8 @@ enum CompositionRoot {
         do {
             let store = try PersistenceStore(location: try StoreLocation.appDefault())
             let repositories = store.makeRepositories()
-            let model = AppModel(repositories: repositories, clock: clock)
+            let model = AppModel(
+                repositories: repositories, clock: clock, planBackend: makePlanBackend(repositories, clock: clock))
             wireSafety(model, repositories: repositories, clock: clock, speech: OnDeviceSpeechCapture(backend: SystemSpeechBackend()))
             return model
         } catch {
@@ -56,6 +58,29 @@ enum CompositionRoot {
         } catch {
             let kind = OMPLog.errorKind(error)
             OMPLog.app.fault("Seed library could not be loaded: \(kind, privacy: .public)")
+        }
+    }
+
+    /// The planning services over the bundled recipe library, or nil when the library cannot be
+    /// loaded (the Plan tab then shows C-052 and nothing is planned).
+    private static func makePlanBackend(_ repositories: Repositories, clock: any DomainClock) -> (any PlanBackend)? {
+        do {
+            let library = PlanningLibrary(seed: try SeedLibrary.loadBundled())
+            let context = ServiceContext(
+                repositories: repositories, clock: clock, library: library,
+                diagnostics: { diagnostic in
+                    switch diagnostic {
+                    case .validatorRejectedPlannerOutput(let planId, let meals):
+                        let count = meals.count
+                        OMPLog.app.fault(
+                            "Validator rejected planner output: \(count, privacy: .public) meals; plan \(planId.rawValue, privacy: .private)")
+                    }
+                })
+            return LivePlanBackend(context: context)
+        } catch {
+            let kind = OMPLog.errorKind(error)
+            OMPLog.app.fault("Recipe library could not be loaded: \(kind, privacy: .public)")
+            return nil
         }
     }
 }

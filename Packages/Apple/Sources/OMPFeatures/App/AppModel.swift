@@ -14,8 +14,11 @@ import OMPServices
 public final class AppModel {
     /// The repositories, as wired by the composition root.
     public let repositories: Repositories
-    private let clock: any DomainClock
+    let clock: any DomainClock
     private let storeFailed: Bool
+    /// The planning and approval use cases the Plan tab calls (T23); nil when the recipe
+    /// library could not be loaded (the Plan tab then shows C-052).
+    public let planBackend: (any PlanBackend)?
 
     /// The household as last loaded, or nil when there is none yet.
     public private(set) var household: Household?
@@ -33,9 +36,11 @@ public final class AppModel {
     /// - Parameters:
     ///   - repositories: where data lives.
     ///   - clock: the clock the gate evaluates with (the 180-day re-check is time-based).
-    public init(repositories: Repositories, clock: any DomainClock) {
+    ///   - planBackend: the planning services for the Plan tab.
+    public init(repositories: Repositories, clock: any DomainClock, planBackend: (any PlanBackend)? = nil) {
         self.repositories = repositories
         self.clock = clock
+        self.planBackend = planBackend
         self.storeFailed = false
         self.gateStatus = .loading
     }
@@ -43,6 +48,7 @@ public final class AppModel {
     private init(failedStoreWith clock: any DomainClock) {
         self.repositories = .inMemory()
         self.clock = clock
+        self.planBackend = nil
         self.storeFailed = true
         self.gateStatus = .loadFailed
     }

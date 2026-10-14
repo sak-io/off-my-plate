@@ -57,7 +57,7 @@ public struct AppShellView: View {
     private var tabs: some View {
         TabView(selection: $selection) {
             Tab(AppTab.plan.title, systemImage: AppTab.plan.systemImage, value: AppTab.plan) {
-                PlanTabPlaceholder()
+                PlanTabView(model: model)
             }
             .badge(model.gateStatus.blocksPlanning ? Self.planBadge : nil)
 
