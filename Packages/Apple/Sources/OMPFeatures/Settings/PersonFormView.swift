@@ -83,6 +83,7 @@ struct PersonFormView: View {
             // The sheet covers the tab's own alert, so a failed Add is reported here.
             .failureAlert(viewModel)
         }
+        .background(Color.settingsBackground)
         .accessibilityIdentifier(AccessibilityID.personSheet)
         .navigationTitle(member == nil ? SettingsCopy.addPersonTitle : SettingsCopy.editPersonTitle)
         #if os(iOS)

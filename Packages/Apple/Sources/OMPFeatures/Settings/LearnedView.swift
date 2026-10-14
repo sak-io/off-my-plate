@@ -29,6 +29,10 @@ struct LearnedView: View {
             .navigationDestination(isPresented: $showingSafety) {
                 SafetyRulesView(viewModel: household)
             }
+            #if os(iOS)
+            // A pushed detail screen: the tab bar would float over the last rows.
+            .toolbarVisibility(.hidden, for: .tabBar)
+            #endif
             .task { await viewModel.load() }
             .alert(SettingsCopy.saveFailed, isPresented: $viewModel.saveFailed) {
                 Button(SettingsCopy.ok, role: .cancel) {}
@@ -111,10 +115,12 @@ struct LearnedView: View {
                 .accessibilityIdentifier(AccessibilityID.learnedSafetyLink)
             }
         }
+        .settingsListStyle()
     }
 
     @ViewBuilder
     private func row(_ fact: Fact, index: Int) -> some View {
+        VStack(alignment: .leading, spacing: OMPSpacing.small) {
         Button {
             openFact = fact.id
         } label: {
@@ -130,14 +136,15 @@ struct LearnedView: View {
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
-        .swipeActions(edge: .trailing) {
-            Button(SettingsCopy.forget, role: .destructive) { viewModel.requestForget(fact) }
-        }
         .accessibilityIdentifier(AccessibilityID.learnedRow(index))
         if viewModel.canQuickConfirm(fact) {
             Button(SettingsCopy.thatsRight) { Task { await viewModel.thatsRight(fact) } }
                 .buttonStyle(SafetyOutlinedButtonStyle())
                 .accessibilityIdentifier(AccessibilityID.learnedConfirm(index))
+        }
+        }
+        .swipeActions(edge: .trailing) {
+            Button(SettingsCopy.forget, role: .destructive) { viewModel.requestForget(fact) }
         }
     }
 }
