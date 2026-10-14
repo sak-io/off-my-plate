@@ -24,6 +24,10 @@
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>OffMyPlate listens only while you hold the mic open, to add things to your pantry.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>OffMyPlate turns what you say into pantry items. Speech stays on this device.</string>
 	<key>OMPAppGroupIdentifier</key>
 	<string>$(OMP_APP_GROUP_ID)</string>
 	<key>UIApplicationSceneManifest</key>
