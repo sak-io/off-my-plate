@@ -54,6 +54,10 @@ public struct AppShellView: View {
             onAnswered: { await appModel.refresh() })
     }
 
+    private func selectPlan() {
+        selection = .plan
+    }
+
     private var tabs: some View {
         TabView(selection: $selection) {
             Tab(AppTab.plan.title, systemImage: AppTab.plan.systemImage, value: AppTab.plan) {
@@ -62,7 +66,7 @@ public struct AppShellView: View {
             .badge(model.gateStatus.blocksPlanning ? Self.planBadge : nil)
 
             Tab(AppTab.list.title, systemImage: AppTab.list.systemImage, value: AppTab.list) {
-                TabPlaceholder(tab: .list)
+                ShoppingTabView(model: model, goToPlan: { selectPlan() })
             }
 
             Tab(AppTab.pantry.title, systemImage: AppTab.pantry.systemImage, value: AppTab.pantry) {
