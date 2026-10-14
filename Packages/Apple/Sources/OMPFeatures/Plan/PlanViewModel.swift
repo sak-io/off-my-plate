@@ -11,12 +11,15 @@ public enum PlanSheet: Hashable, Identifiable, Sendable {
     case swap(PlannedMealID)
     /// S-14: school lunches.
     case schoolLunches
+    /// S-15: the cooked sheet of an approved plan's meal (task T24).
+    case cooked(plan: MealPlanID, meal: PlannedMealID)
 
     public var id: String {
         switch self {
         case .approval: return "approval"
         case .swap(let meal): return "swap:\(meal.rawValue)"
         case .schoolLunches: return "schoolLunches"
+        case .cooked(let plan, let meal): return "cooked:\(plan.rawValue):\(meal.rawValue)"
         }
     }
 }
@@ -111,8 +114,8 @@ public final class PlanViewModel {
     public var bannerDismissed = false
     public var isConfirmingRegenerate = false
     public var isConfirmingDiscard = false
-    /// Called when the user taps Mark cooked on an approved meal (plan id, meal id). The cooked
-    /// sheet (S-15) is wired here in its own task; until then the tap has no effect.
+    /// Called after the cooked sheet (S-15) was requested for an approved meal (plan id, meal
+    /// id). Optional extra hook; the sheet itself is opened by `requestMarkCooked`.
     public var onMarkCooked: (@MainActor (MealPlanID, PlannedMealID) -> Void)?
 
     public init(backend: (any PlanBackend)?, app: AppModel, clock: any DomainClock) {
@@ -275,6 +278,8 @@ public final class PlanViewModel {
 
     public func requestMarkCooked(_ meal: PlannedMeal) {
         guard let target = cookableMeal(for: meal), let approved = approvedPlan else { return }
+        // Only an approved plan's meal gets here (`cookableMeal`); the service checks again.
+        sheet = .cooked(plan: approved.id, meal: target.id)
         onMarkCooked?(approved.id, target.id)
     }
 

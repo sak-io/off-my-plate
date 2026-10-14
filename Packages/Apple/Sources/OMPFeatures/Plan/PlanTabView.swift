@@ -40,6 +40,15 @@ public struct PlanTabView: View {
             case .approval: ApprovalSheet(viewModel: viewModel)
             case .swap: SwapSheet(viewModel: viewModel)
             case .schoolLunches: SchoolLunchesSheet(viewModel: viewModel)
+            case .cooked(let planID, let mealID):
+                CookedSheet(
+                    backend: model.pantryBackend, plan: planID, meal: mealID,
+                    onCancel: { viewModel.sheet = nil },
+                    onFinished: {
+                        viewModel.sheet = nil
+                        await viewModel.load()
+                        viewModel.toast = PantryCopy.cookedDone
+                    })
             }
         }
         .confirmationDialog(

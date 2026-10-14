@@ -270,6 +270,23 @@ struct PlanViewModelTests {
         #expect(approvedModel.cookableMeal(for: tomorrow) == nil)
     }
 
+    @Test("AC-9.6: Mark cooked on an approved meal opens the cooked sheet; on a draft or a future day it does not")
+    func markCookedOpensSheetForApprovedMealsOnly() async {
+        let draftBackend = FakePlanBackend(plans: [makePlan(id: "p1", recipes: ["r0", "r1"])])
+        let (draftModel, _) = await makeViewModel(draftBackend)
+        await draftModel.load()
+        draftModel.requestMarkCooked(draftModel.plan!.meals[0])
+        #expect(draftModel.sheet == nil)
+
+        let approvedBackend = FakePlanBackend(plans: [makePlan(id: "p1", status: .approved, recipes: ["r0", "r1"])])
+        let (approvedModel, _) = await makeViewModel(approvedBackend)
+        await approvedModel.load()
+        approvedModel.requestMarkCooked(approvedModel.plan!.meals[1])
+        #expect(approvedModel.sheet == nil)
+        approvedModel.requestMarkCooked(approvedModel.plan!.meals[0])
+        #expect(approvedModel.sheet == .cooked(plan: MealPlanID("p1"), meal: PlannedMealID("m0")))
+    }
+
     @Test("Mark cooked is not offered for an empty slot")
     func noMarkCookedWhenEmpty() async {
         let backend = FakePlanBackend(plans: [makePlan(id: "p1", status: .approved, recipes: [nil])])

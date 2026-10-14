@@ -23,7 +23,7 @@ enum CompositionRoot {
             let model = AppModel(
                 repositories: repositories, clock: clock, planBackend: makePlanBackend(repositories, clock: clock))
             // UI tests never touch the microphone or the speech service.
-            wireSafety(model, repositories: repositories, clock: clock, speech: FakeSpeechCapture(availability: .onDeviceUnsupported))
+            wireSafety(model, repositories: repositories, clock: clock, speech: UITestSpeech.fake(arguments: arguments))
             return model
         }
         #endif
@@ -55,6 +55,7 @@ enum CompositionRoot {
             model.safetyServices = SafetyServices(
                 context: context, parser: SafetyTextParser(keywords: seed.catalog.restrictionKeywords))
             model.speechCapture = speech
+            model.pantryBackend = LivePantryBackend(context: context)
         } catch {
             let kind = OMPLog.errorKind(error)
             OMPLog.app.fault("Seed library could not be loaded: \(kind, privacy: .public)")
@@ -95,6 +96,9 @@ enum UITestSeed: String {
     case answered
     /// Adult 1 answered; Child 1 and Child 2 unasked: the gate cover shows "1 of 2".
     case unasked
+    /// Like `answered`, plus a stocked pantry: salt, oil and curry leaves (in nearly every seed
+    /// recipe), rice, stale milk and the unrecognised "masala mix" (T24).
+    case pantry
 
     static let argument = "-OMPUITestSeed"
 
@@ -110,7 +114,7 @@ enum UITestSeed: String {
         switch self {
         case .empty:
             return empty
-        case .answered:
+        case .answered, .pantry:
             seeded = [Self.household(now: now, members: [
                 Self.member(.adult, 1, answeredAt: now), Self.member(.child, 1, answeredAt: now),
             ])]
@@ -121,9 +125,34 @@ enum UITestSeed: String {
             ])]
         }
         return Repositories(
-            household: InMemoryRepository<Household>(seeded), mealPlans: empty.mealPlans, pantry: empty.pantry,
+            household: InMemoryRepository<Household>(seeded), mealPlans: empty.mealPlans,
+            pantry: InMemoryRepository<PantryItem>(self == .pantry ? Self.pantryItems(now: now) : []),
             shopping: empty.shopping, cookLogs: empty.cookLogs, facts: empty.facts,
             learningEvents: empty.learningEvents, promptStates: empty.promptStates)
+    }
+
+    private static func pantryItem(
+        _ id: String, _ ingredient: String, _ quantity: Double, _ unit: MeasureUnit, _ location: StorageLocation,
+        confirmed: Date, expiresOn: LocalDate? = nil
+    ) -> PantryItem {
+        PantryItem(
+            id: PantryItemID(id), item: .ingredient(IngredientID(ingredient)), quantity: quantity, unit: unit,
+            location: location, expiresOn: expiresOn, lastConfirmedAt: confirmed, source: .manual)
+    }
+
+    private static func pantryItems(now: Date) -> [PantryItem] {
+        let tenDaysAgo = now.addingTimeInterval(-10 * 86_400)
+        return [
+            pantryItem("ui-salt", "salt", 100, .teaspoon, .shelf, confirmed: now),
+            pantryItem("ui-coconut-oil", "coconut-oil", 100, .tablespoon, .shelf, confirmed: now),
+            pantryItem("ui-curry-leaves", "curry-leaves", 500, .gram, .fridge, confirmed: now),
+            pantryItem("ui-rice", "rice", 2, .kilogram, .shelf, confirmed: now),
+            // Fridge items are stale after 7 days (AC-9.7).
+            pantryItem("ui-milk", "milk", 1, .litre, .fridge, confirmed: tenDaysAgo),
+            PantryItem(
+                id: PantryItemID("ui-masala"), item: .freeText("masala mix"), quantity: 1, unit: .piece,
+                location: .shelf, lastConfirmedAt: now, source: .manual),
+        ]
     }
 
     private static func household(now: Date, members: [Member]) -> Household {
@@ -137,6 +166,33 @@ enum UITestSeed: String {
             ageBand: role == .adult ? .adult : .child,
             safetyStatus: answeredAt == nil ? .unasked : .confirmedNone,
             safetyConfirmedAt: answeredAt)
+    }
+}
+#endif
+
+#if DEBUG
+/// The speech adapter UI tests run with: `-OMPUITestSpeech available|denied|unavailable`
+/// (Debug builds only). The default is on-device-unsupported, as before T24.
+enum UITestSpeech {
+    static let argument = "-OMPUITestSpeech"
+
+    @MainActor
+    static func fake(arguments: [String]) -> FakeSpeechCapture {
+        let value = arguments.firstIndex(of: argument).flatMap { index in
+            arguments.indices.contains(index + 1) ? arguments[index + 1] : nil
+        }
+        switch value {
+        case "available":
+            return FakeSpeechCapture(
+                availability: .available,
+                scriptedTranscripts: [
+                    SpeechTranscript(text: "I bought 2 kg rice and a dozen eggs", isFinal: true)
+                ])
+        case "denied":
+            return FakeSpeechCapture(availability: .permissionDenied)
+        default:
+            return FakeSpeechCapture(availability: .onDeviceUnsupported)
+        }
     }
 }
 #endif
