@@ -112,6 +112,9 @@ public struct PlanTabView: View {
                 }
             }
             .padding(OMPSpacing.medium)
+            // Extra room above the floating tab bar (iOS 26 glass): the audit measured the caption
+            // and button against its edge (batch 3: 'Text clipped' / contrast on the bar content).
+            .padding(.bottom, OMPSpacing.large)
             .frame(maxWidth: .infinity)
             .planBarBackground()
         }

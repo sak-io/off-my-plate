@@ -213,7 +213,8 @@ final class PlanUITests: XCTestCase {
         } catch {
             found.append("audit threw: \(error)")
         }
-        XCTAssertTrue(found.isEmpty, "Accessibility audit issues (\(found.count)):\n" + found.joined(separator: "\n"))
+        let tree = found.isEmpty ? "" : "\nElement tree:\n" + String(app.debugDescription.prefix(7000))
+        XCTAssertTrue(found.isEmpty, "Accessibility audit issues (\(found.count)):\n" + found.joined(separator: "\n") + tree)
     }
 
     @MainActor
