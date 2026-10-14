@@ -64,8 +64,16 @@ final class PlanUITests: XCTestCase {
     @MainActor
     private func openFirstMeal(_ app: XCUIApplication) {
         let first = elements(app, prefix: "plan.meal.").firstMatch
-        let shown = first.waitForExistence(timeout: 30)
-        XCTAssertTrue(shown, "The plan has no meal rows")
+        var shown = first.waitForExistence(timeout: 10)
+        // Rows below the fold are not in the accessibility tree: the status, banner and cards above
+        // the list can push the first meal off a compact screen, so scroll until it appears.
+        var swipes = 0
+        while !shown && swipes < 8 {
+            element(app, "plan.list").swipeUp()
+            swipes += 1
+            shown = first.waitForExistence(timeout: 2)
+        }
+        XCTAssertTrue(shown, "The plan has no meal rows (after \(swipes) scrolls)")
         first.tap()
         let detail = element(app, "meal.detail").waitForExistence(timeout: 5)
         XCTAssertTrue(detail, "The meal detail did not open")
