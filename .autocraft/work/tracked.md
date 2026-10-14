@@ -60,3 +60,4 @@
 | T23 review-1 | Deferred: C-061 safety summary + Change (with S-33 task); C-040 "Still correct?" card and an Answer-now path for 180-day re-check (T22 flow; button hidden until then); C-082 new-member card; ingredient quantities in S-11 (T24); iPad split view (T28) | T22 / T24 / T28 |
 | T23 review-1 | Discard is reachable only from the approval sheet, which cannot open while safety blocks; a pending revision can be neither discarded nor approved until the gate clears (safe direction) | note |
 | T23 review-1 | NIT: `swapMealID` not cleared when the swap sheet is swiped away | follow-up |
+| T23 | PlanUITests audit ignores element-less issues on iPad (system tab bar/sidebar chrome; any audit type) and Dynamic Type on the system "Plan" label — owner-approved 2026-10-14 (widened from the shell test); find the real cause and remove both exceptions | T28 |

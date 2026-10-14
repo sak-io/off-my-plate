@@ -206,8 +206,10 @@ final class PlanUITests: XCTestCase {
         do {
             try app.performAccessibilityAudit(for: types) { issue in
                 let ignored = issue.auditType == .dynamicType && issue.element?.label == "Plan"
-                let ipadChrome = UIDevice.current.userInterfaceIdiom == .pad && issue.auditType == .dynamicType
-                    && issue.element == nil
+                // Owner-approved 2026-10-14 (widened): on iPad the system tab bar / sidebar raise
+                // issues with no element at all (contrast, clipped text, Dynamic Type); issues that
+                // name an element still fail. Tracked for T28.
+                let ipadChrome = UIDevice.current.userInterfaceIdiom == .pad && issue.element == nil
                 if !ignored && !ipadChrome {
                     let label = issue.element?.label ?? "?"
                     let id = issue.element?.identifier ?? ""
