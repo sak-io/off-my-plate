@@ -69,15 +69,12 @@ struct WhoIsEatingView: View {
                 .font(OMPFont.body)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Stepper(value: $model.adults, in: 0...model.maxAdults) {
-                Text(verbatim: "\(SafetyCopy.adults): \(model.adults)").font(OMPFont.body)
-            }
-            .accessibilityIdentifier(AccessibilityID.whoAdults)
-
-            Stepper(value: $model.children, in: 0...model.maxChildren) {
-                Text(verbatim: "\(SafetyCopy.children): \(model.children)").font(OMPFont.body)
-            }
-            .accessibilityIdentifier(AccessibilityID.whoChildren)
+            CountRow(
+                title: SafetyCopy.adults, value: $model.adults, maximum: model.maxAdults,
+                identifier: AccessibilityID.whoAdults)
+            CountRow(
+                title: SafetyCopy.children, value: $model.children, maximum: model.maxChildren,
+                identifier: AccessibilityID.whoChildren)
 
             Text(footnote)
                 .font(OMPFont.disclaimer)
@@ -98,6 +95,45 @@ struct WhoIsEatingView: View {
         if model.total < 1 { return SafetyCopy.addOnePerson }
         if model.atMemberLimit { return SafetyCopy.maxPeople }
         return SafetyCopy.teensNote
+    }
+}
+
+/// A count with explicit minus and plus buttons (a system Stepper exposes unreliable inner
+/// buttons to UI tests). "+" disables at `maximum`, "-" at 0. The label sits above the buttons
+/// at accessibility sizes.
+private struct CountRow: View {
+    let title: String
+    @Binding var value: Int
+    let maximum: Int
+    let identifier: String
+
+    var body: some View {
+        AdaptiveStack(spacing: OMPSpacing.medium) {
+            Text(verbatim: "\(title): \(value)")
+                .font(OMPFont.body)
+                .accessibilityIdentifier(identifier)
+            Spacer(minLength: 0)
+            Button {
+                value = max(0, value - 1)
+            } label: {
+                Image(systemName: "minus.circle").font(OMPFont.sectionTitle)
+            }
+            .buttonStyle(.plain)
+            .disabled(value <= 0)
+            .ompMinimumHitTarget()
+            .accessibilityLabel("\(title) -")
+            .accessibilityIdentifier(identifier + ".minus")
+            Button {
+                value = min(maximum, value + 1)
+            } label: {
+                Image(systemName: "plus.circle").font(OMPFont.sectionTitle)
+            }
+            .buttonStyle(.plain)
+            .disabled(value >= maximum)
+            .ompMinimumHitTarget()
+            .accessibilityLabel("\(title) +")
+            .accessibilityIdentifier(identifier + ".plus")
+        }
     }
 }
 

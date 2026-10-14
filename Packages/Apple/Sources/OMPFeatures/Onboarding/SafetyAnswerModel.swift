@@ -157,6 +157,7 @@ final class SafetyAnswerModel {
 
     /// Parses the typed or spoken text into rows (on Return, or after the mic stops).
     func submitText() {
+        guard phase == .entry else { draftText = ""; return }
         let text = draftText.trimmingCharacters(in: .whitespacesAndNewlines)
         draftText = ""
         guard !text.isEmpty else { return }
@@ -212,6 +213,10 @@ final class SafetyAnswerModel {
     /// Continue: shows the per-person summary. Refused while any row is unresolved.
     func continueToSummary() {
         guard canContinue else { return }
+        // A live microphone must not add rows behind the summary the user is checking.
+        speech?.stop()
+        listeningTask?.cancel()
+        voice = .idle
         phase = .summary
     }
 
