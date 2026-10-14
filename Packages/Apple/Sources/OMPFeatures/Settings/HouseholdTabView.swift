@@ -37,6 +37,7 @@ public struct HouseholdTabView: View {
                 planSection
                 aboutSection
             }
+            .settingsListStyle()
             .accessibilityIdentifier(AccessibilityID.tabRoot(.household))
             .navigationTitle(AppTab.household.title)
             .navigationDestination(for: HouseholdRoute.self) { route in
@@ -266,5 +267,27 @@ struct SettingsIconRow: View {
         .frame(minHeight: OMPMetrics.minimumHitTarget)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
+    }
+}
+
+extension Color {
+    /// An opaque background the contrast audit can measure text against.
+    static var settingsBackground: Color {
+        #if canImport(UIKit)
+        Color(uiColor: .systemBackground)
+        #else
+        Color(nsColor: .windowBackgroundColor)
+        #endif
+    }
+}
+
+extension View {
+    /// A plain list on an explicit opaque background, rows on the same colour: with the default
+    /// translucent grouped styling the audit had no known colour to measure text against.
+    func settingsListStyle() -> some View {
+        listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .background(Color.settingsBackground)
+            .listRowBackground(Color.settingsBackground)
     }
 }

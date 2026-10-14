@@ -189,6 +189,7 @@ struct AddRuleSheet: View {
                 .padding(OMPSpacing.medium)
                 .frame(maxWidth: .infinity)
             }
+            .background(Color.settingsBackground)
             .navigationTitle(SettingsCopy.addRuleTitle)
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
