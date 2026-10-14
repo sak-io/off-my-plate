@@ -55,7 +55,7 @@ public final class CookedModel {
         self.mealID = meal
     }
 
-    public var canUpdate: Bool { phase == .ready && !isSaving }
+    public var canUpdate: Bool { phase == .ready && !isSaving && !didFinish }
 
     public func load() async {
         guard let backend else {

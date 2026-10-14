@@ -70,3 +70,5 @@
 | T26 | C-111 has no singular; "Added 1 item from Notes." is used for n = 1 | owner (copy) |
 | T26 | The Notes-import toast is not covered by an accessibility audit (it hides after 4 s, the audit takes longer) | none |
 | T27 review-1 | Delete all: wire `DataService` (inbox, processed imports, counters) into `LiveSettingsBackend` in the composition root; until then only repositories + store file are erased. `AppModel.storePurgeIncomplete` is set but not shown anywhere (decide whether to tell the user) | T26 |
+| T27 review-2 | MUST FIX next push: HouseholdService.cleanName strips ALL format characters, which removes ZWJ/ZWNJ (U+200D/U+200C) that Malayalam/Indic names and ZWJ emoji need; allow U+200C and U+200D, add tests (Malayalam chillu example, ZWJ emoji, cut at a grapheme cluster) | next batch |
+| T27 review-2 | No test for the busy-purge retry path in StoreErase; storePurgeIncomplete is not shown to the user (also T26/T28) | follow-up |

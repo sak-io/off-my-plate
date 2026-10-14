@@ -143,4 +143,20 @@ struct CookedModelTests {
         await model.load()
         #expect(model.phase == .failed(PantryCopy.saveFailed))
     }
+
+    @Test("Using more than the pantry holds is passed on as edited (the service stops at zero); a second update is refused")
+    func usedMoreThanHave() async {
+        let backend = FakePantryBackend()
+        backend.proposal = rajmaProposal()
+        let model = makeModel(backend)
+        await model.load()
+        model.setAmount("onion", text: "5")
+        #expect(model.lines[2].amount == 5)
+        #expect(model.lines[2].willBeZero)
+        await model.update()
+        #expect(backend.cookedAmounts.first?.first { $0.ingredientId == "onion" }?.quantity == Quantity(5, .piece))
+        #expect(!model.canUpdate)
+        await model.update()
+        #expect(backend.cookedAmounts.count == 1)
+    }
 }

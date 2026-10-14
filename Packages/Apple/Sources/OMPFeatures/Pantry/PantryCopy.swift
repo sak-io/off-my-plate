@@ -53,6 +53,10 @@ enum PantryCopy {
         String(localized: "pantry.search", defaultValue: "Search", comment: "Pantry search field prompt.")
     }
 
+    static var clearSearch: String {
+        String(localized: "pantry.search.clear", defaultValue: "Clear search", comment: "VoiceOver label of the clear button in the pantry search field.")
+    }
+
     static var emptyTitle: String {
         String(localized: "C-122", defaultValue: "Your pantry is empty", comment: "Empty pantry title.")
     }
