@@ -271,30 +271,11 @@ final class SettingsUITests: XCTestCase {
     // MARK: Accessibility audits
 
     /// Runs the accessibility audit in two passes covering every audit type (one pass over a
-    /// long screen timed out on iPad) and reports EVERY issue in one run. No exceptions.
+    /// long screen timed out on iPad) and reports EVERY issue in one run. Exceptions live only in AccessibilityAudit.swift.
     @MainActor
     private func auditAll(_ app: XCUIApplication) {
         settle()
-        var found: [String] = []
-        let visual: XCUIAccessibilityAuditType = [.contrast, .textClipped, .dynamicType]
-        let rest = XCUIAccessibilityAuditType.all.subtracting(visual)
-        for types in [visual, rest] {
-            do {
-                try app.performAccessibilityAudit(for: types) { issue in
-                    let label = issue.element?.label ?? "?"
-                    let id = issue.element?.identifier ?? ""
-                    let type = issue.element?.elementType.rawValue ?? 0
-                    let frame = issue.element?.frame ?? .zero
-                    let detail = String((issue.element?.debugDescription ?? "").prefix(300))
-                    found.append(
-                        "\(issue.auditType) | \(issue.compactDescription) | label '\(label)' id '\(id)' type \(type) frame \(frame) | \(detail)")
-                    return true
-                }
-            } catch {
-                found.append("audit threw: \(error)")
-            }
-        }
-        XCTAssertTrue(found.isEmpty, "Accessibility audit issues (\(found.count)):\n" + found.joined(separator: "\n"))
+        ompAuditAll(app)
     }
 
     @MainActor

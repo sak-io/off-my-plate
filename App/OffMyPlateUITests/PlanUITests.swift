@@ -197,42 +197,7 @@ final class PlanUITests: XCTestCase {
     /// owner-approved Dynamic Type exceptions on the system tab bar (tracked for T28).
     @MainActor
     private func auditAll(_ app: XCUIApplication) {
-        var found: [String] = []
-        // Two passes covering every audit type: one pass over this long list timed out on iPad
-        // ("Audit failed to complete in time"), so the work is split, not reduced.
-        let visual: XCUIAccessibilityAuditType = [.contrast, .textClipped, .dynamicType]
-        let rest = XCUIAccessibilityAuditType.all.subtracting(visual)
-        for types in [visual, rest] {
-        do {
-            try app.performAccessibilityAudit(for: types) { issue in
-                let ignored = issue.auditType == .dynamicType && issue.element?.label == "Plan"
-                // Owner-approved 2026-10-14 (widened): on iPad the system tab bar / sidebar raise
-                // issues with no element at all (contrast, clipped text, Dynamic Type); issues that
-                // name an element still fail. Tracked for T28.
-                let ipadChrome = UIDevice.current.userInterfaceIdiom == .pad && issue.element == nil
-                if !ignored && !ipadChrome {
-                    let label = issue.element?.label ?? "?"
-                    let id = issue.element?.identifier ?? ""
-                    let type = issue.element?.elementType.rawValue ?? 0
-                    let frame = issue.element?.frame ?? .zero
-                    let detail = String((issue.element?.debugDescription ?? "").prefix(300))
-                    found.append(
-                        "\(issue.auditType) | \(issue.compactDescription) | label '\(label)' id '\(id)' type \(type) frame \(frame) | \(detail)")
-                }
-                return true
-            }
-        } catch {
-            found.append("audit threw: \(error)")
-        }
-        }
-        // Only the bottom of the screen (y >= 560): the full tree is dominated by list rows.
-        let bottom = app.debugDescription.split(separator: "\n").filter { line in
-            guard let r = line.range(of: "{{") else { return false }
-            let nums = line[r.upperBound...].prefix(while: { $0 != "}" }).split(separator: ",")
-            return Double(nums.last?.trimmingCharacters(in: .whitespaces) ?? "") ?? 0 >= 560
-        }.joined(separator: "\n")
-        let tree = found.isEmpty ? "" : "\nBottom of screen (y >= 560):\n" + String(bottom.prefix(6000))
-        XCTAssertTrue(found.isEmpty, "Accessibility audit issues (\(found.count)):\n" + found.joined(separator: "\n") + tree)
+        ompAuditAll(app, ignoreDynamicTypeOnPlanLabel: true)
     }
 
     @MainActor

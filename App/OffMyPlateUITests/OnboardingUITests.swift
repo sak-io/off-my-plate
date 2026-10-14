@@ -193,22 +193,7 @@ final class OnboardingUITests: XCTestCase {
     /// Reports EVERY audit issue in one run, like AppShellUITests.
     @MainActor
     private func auditAll(_ app: XCUIApplication) {
-        var found: [String] = []
-        do {
-            try app.performAccessibilityAudit { issue in
-                let label = issue.element?.label ?? "?"
-                let id = issue.element?.identifier ?? ""
-                let kind = issue.element?.elementType.rawValue ?? 0
-                let frame = issue.element?.frame ?? .zero
-                let debug = String((issue.element?.debugDescription ?? "").prefix(300))
-                found.append(
-                    "\(issue.auditType) | \(issue.compactDescription) | label '\(label)' id '\(id)' type \(kind) frame \(frame) \(debug)")
-                return true
-            }
-        } catch {
-            found.append("audit threw: \(error)")
-        }
-        XCTAssertTrue(found.isEmpty, "Accessibility audit issues (\(found.count)):\n" + found.joined(separator: "\n"))
+        ompAuditAll(app)
     }
 
     @MainActor
