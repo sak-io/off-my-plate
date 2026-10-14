@@ -32,7 +32,7 @@ public struct InlineCard<Actions: View>: View {
                 HStack(alignment: .firstTextBaseline, spacing: OMPSpacing.small) {
                     if let systemImage {
                         Image(systemName: systemImage)
-                            .foregroundStyle(systemImage == OMPSymbol.warning ? OMPColor.warning : .secondary)
+                            .foregroundStyle(systemImage == OMPSymbol.warning ? OMPColor.warning : Color.primary)
                             .accessibilityHidden(true)
                     }
                     Text(title)

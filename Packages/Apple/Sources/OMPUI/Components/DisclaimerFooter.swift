@@ -63,7 +63,7 @@ public struct DisclaimerFooter: View {
                 .fixedSize(horizontal: false, vertical: true)
         } icon: {
             Image(systemName: OMPSymbol.info)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.primary)
                 .accessibilityHidden(true)
         }
         .accessibilityElement(children: .combine)
