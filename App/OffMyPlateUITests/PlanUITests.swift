@@ -44,6 +44,10 @@ final class PlanUITests: XCTestCase {
         let approve = element(app, "plan.approve")
         let drafted = approve.waitForExistence(timeout: 30)
         XCTAssertTrue(drafted, "No draft plan with an Approve week button appeared")
+        // Let the insertion animations finish: the audit measured text mid-transition.
+        let settle = XCTestExpectation(description: "settle")
+        settle.isInverted = true
+        _ = XCTWaiter().wait(for: [settle], timeout: 2)
         return app
     }
 
@@ -194,8 +198,13 @@ final class PlanUITests: XCTestCase {
     @MainActor
     private func auditAll(_ app: XCUIApplication) {
         var found: [String] = []
+        // Two passes covering every audit type: one pass over this long list timed out on iPad
+        // ("Audit failed to complete in time"), so the work is split, not reduced.
+        let visual: XCUIAccessibilityAuditType = [.contrast, .textClipped, .dynamicType]
+        let rest = XCUIAccessibilityAuditType.all.subtracting(visual)
+        for types in [visual, rest] {
         do {
-            try app.performAccessibilityAudit { issue in
+            try app.performAccessibilityAudit(for: types) { issue in
                 let ignored = issue.auditType == .dynamicType && issue.element?.label == "Plan"
                 let ipadChrome = UIDevice.current.userInterfaceIdiom == .pad && issue.auditType == .dynamicType
                     && issue.element == nil
@@ -212,6 +221,7 @@ final class PlanUITests: XCTestCase {
             }
         } catch {
             found.append("audit threw: \(error)")
+        }
         }
         let tree = found.isEmpty ? "" : "\nElement tree:\n" + String(app.debugDescription.prefix(7000))
         XCTAssertTrue(found.isEmpty, "Accessibility audit issues (\(found.count)):\n" + found.joined(separator: "\n") + tree)
