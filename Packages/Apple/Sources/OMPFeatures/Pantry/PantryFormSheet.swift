@@ -8,6 +8,7 @@ struct PantryFormSheet: View {
     let viewModel: PantryViewModel
     @State private var form: PantryFormModel
     @FocusState private var nameFocused: Bool
+    @Environment(\.dismiss) private var dismiss
 
     init(viewModel: PantryViewModel, backend: any PantryBackend, item: PantryItem?, prefill: PantryFormPrefill?) {
         self.viewModel = viewModel
@@ -41,25 +42,13 @@ struct PantryFormSheet: View {
                             .font(OMPFont.disclaimer)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    Button(PantryCopy.save) {
-                        Task {
-                            if await form.save() {
-                                await viewModel.sheetChangedPantry()
-                                viewModel.sheet = nil
-                            }
-                        }
-                    }
+                    Button(PantryCopy.save) { finish { await form.save() } }
                     .buttonStyle(.ompPrimary)
                     .disabled(!form.canSave)
                     .accessibilityIdentifier(AccessibilityID.pantryFormSave)
                     if form.isEditing {
                         Button(role: .destructive) {
-                            Task {
-                                if await form.delete() {
-                                    await viewModel.sheetChangedPantry()
-                                    viewModel.sheet = nil
-                                }
-                            }
+                            finish { await form.delete() }
                         } label: {
                             Text(PantryCopy.deleteItem)
                         }
@@ -85,6 +74,18 @@ struct PantryFormSheet: View {
             }
         }
         .presentationDetents([.large])
+    }
+
+    /// Runs a save or delete; on success reloads the list and closes the sheet explicitly, both
+    /// through the item binding and `dismiss`, so it closes in every presentation style (iPad).
+    private func finish(_ action: @escaping () async -> Bool) {
+        nameFocused = false
+        Task {
+            guard await action() else { return }
+            await viewModel.sheetChangedPantry()
+            viewModel.sheet = nil
+            dismiss()
+        }
     }
 
     // MARK: Fields

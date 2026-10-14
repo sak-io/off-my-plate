@@ -103,10 +103,13 @@ final class PantryUITests: XCTestCase {
         let ready = expectation(for: enabled, evaluatedWith: save)
         let result = XCTWaiter().wait(for: [ready], timeout: 5)
         XCTAssertEqual(result, .completed, "Save stays off with a name and an amount")
+        let saveHittable = save.isHittable
+        XCTAssertTrue(saveHittable, "Save is not hittable (keyboard in the way?)")
         save.tap()
 
         let closed = element(app, "pantryForm.sheet").waitForNonExistence(timeout: 10)
-        XCTAssertTrue(closed, "The form stays open after saving")
+        let formError = element(app, "pantryForm.error").exists
+        XCTAssertTrue(closed, "The form stays open after saving (error card shown: \(formError))")
         let row = elements(app, prefix: "pantry.row.").firstMatch
         let rowShown = row.waitForExistence(timeout: 10)
         XCTAssertTrue(rowShown, "The saved item is not in the list")
