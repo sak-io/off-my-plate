@@ -57,6 +57,10 @@ let package = Package(
             ]
         ),
         .testTarget(
+            name: "OMPCaptureTests",
+            dependencies: ["OMPCapture"]
+        ),
+        .testTarget(
             name: "OMPUITests",
             dependencies: ["OMPUI"]
         ),
