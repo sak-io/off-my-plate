@@ -47,3 +47,7 @@
 | T19 | ASSUMPTION for owner: learner `RecipeTraits.keyIngredients` = first two non-optional lines of a recipe (no seed field marks the characteristic ingredients) | owner / content |
 | T19 | Import dedupe never edits plan-derived shopping lines (they are recomputed); an imported item whose ingredient is on the plan becomes its own "from Notes" row | owner (UX) |
 | T19 | `ImportService` merges before recording the import id: a stop in between merges the file twice on the next drain (visible duplicate preferred to lost items) | follow-up (needs a transactional store) |
+| T22 review | Voice race: continueToSummary does not stop listening and submitText has no phase guard; late transcript can add rows during summary and "Yes, save this" silently does nothing. Stop voice, guard on .entry, add test | follow-up |
+| T22 review | safetyServices nil shows tabs with no household / cover with no controls | follow-up |
+| T22 review | Back from S-02 discards entered rows; S-04 failed plan offers only Try again | follow-up |
+| T22 review | NITs: Info.plist mic text says "hold the mic open" but mic is a toggle; hard-coded spacing 2; Adults label Text(verbatim:) skips localisation | follow-up |
