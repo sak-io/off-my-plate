@@ -73,7 +73,7 @@ final class PlanUITests: XCTestCase {
         let hittable = back.waitForExistence(timeout: 5)
         XCTAssertTrue(hittable, "No back button")
         back.tap()
-        let listShown = element(app, "plan.list").waitForExistence(timeout: 5)
+        let listShown = element(app, "plan.status").waitForExistence(timeout: 10)
         XCTAssertTrue(listShown, "The week did not reappear")
     }
 

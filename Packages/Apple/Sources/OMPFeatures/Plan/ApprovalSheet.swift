@@ -114,7 +114,7 @@ struct ApprovalSheet: View {
                     .accessibilityIdentifier(AccessibilityID.approvalFailed)
                 Button(PlanCopy.ok) { Task { await viewModel.acknowledgeValidatorFailure() } }
                     .buttonStyle(.bordered)
-                    .ompMinimumHitTarget()
+                    .tint(Color.primary)                    .ompMinimumHitTarget()
                     .accessibilityIdentifier(AccessibilityID.approvalFailedOK)
             }
         } else {
@@ -146,14 +146,14 @@ struct ApprovalSheet: View {
                         .foregroundStyle(Color.primary)
                 }
                 .buttonStyle(.bordered)
-                .ompMinimumHitTarget()
+                .tint(Color.primary)                .ompMinimumHitTarget()
                     .disabled(viewModel.isBusy)
                     .accessibilityIdentifier(AccessibilityID.approvalDiscard)
             }
         }
         .padding(OMPSpacing.medium)
         .frame(maxWidth: .infinity)
-        .background(.bar)
+        .planBarBackground()
     }
 
     private var discardBinding: Binding<Bool> {

@@ -40,7 +40,7 @@ struct SwapSheet: View {
                 Section {
                     Button(PlanCopy.pickForMe) { Task { await viewModel.pickForMe() } }
                         .buttonStyle(.bordered)
-                        .ompMinimumHitTarget()
+                        .tint(Color.primary)                        .ompMinimumHitTarget()
                         .disabled(viewModel.isBusy)
                         .accessibilityIdentifier(AccessibilityID.swapPickForMe)
                 }
