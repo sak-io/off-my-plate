@@ -99,15 +99,15 @@ struct MealDetailView: View {
         InlineCard(title: PlanCopy.lunchboxPrompt) {
             Button(PlanCopy.yes) { Task { await viewModel.answerLunchbox(.yes) } }
                 .buttonStyle(.bordered)
-                .ompMinimumHitTarget()
+                .tint(Color.primary)                .ompMinimumHitTarget()
                 .accessibilityIdentifier(AccessibilityID.lunchboxYes)
             Button(PlanCopy.no) { Task { await viewModel.answerLunchbox(.no) } }
                 .buttonStyle(.bordered)
-                .ompMinimumHitTarget()
+                .tint(Color.primary)                .ompMinimumHitTarget()
                 .accessibilityIdentifier(AccessibilityID.lunchboxNo)
             Button(PlanCopy.notNow) { Task { await viewModel.answerLunchbox(.notNow) } }
                 .buttonStyle(.bordered)
-                .ompMinimumHitTarget()
+                .tint(Color.primary)                .ompMinimumHitTarget()
                 .accessibilityIdentifier(AccessibilityID.lunchboxNotNow)
         }
         .accessibilityIdentifier(AccessibilityID.lunchboxCard)
@@ -182,7 +182,7 @@ struct MealDetailView: View {
             AdaptiveStack {
                 Button(PlanCopy.swap) { Task { await viewModel.openSwap(meal.id) } }
                     .buttonStyle(.bordered)
-                    .ompMinimumHitTarget()
+                    .tint(Color.primary)                    .ompMinimumHitTarget()
                     .disabled(viewModel.isBlocked || viewModel.isBusy)
                     .accessibilityIdentifier(AccessibilityID.mealSwap)
                 cookedControl(meal)
@@ -210,7 +210,7 @@ struct MealDetailView: View {
         } else if let target = viewModel.cookableMeal(for: meal) {
             Button(PlanCopy.markCooked) { viewModel.requestMarkCooked(meal) }
                 .buttonStyle(.bordered)
-                .ompMinimumHitTarget()
+                .tint(Color.primary)                .ompMinimumHitTarget()
                 .accessibilityLabel(PlanCopy.markMealCooked(viewModel.title(ofRecipe: target.recipeId)))
                 .accessibilityIdentifier(AccessibilityID.mealMarkCooked)
         }

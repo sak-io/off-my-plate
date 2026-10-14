@@ -24,15 +24,6 @@ public struct PlanTabView: View {
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier(AccessibilityID.tabRoot(.plan))
                 .navigationTitle(PlanCopy.title)
-                .toolbar {
-                    if viewModel.plan != nil {
-                        ToolbarItem(placement: .primaryAction) {
-                            Button(PlanCopy.regenerate) { viewModel.isConfirmingRegenerate = true }
-                                .disabled(viewModel.isBlocked || viewModel.isBusy)
-                                .accessibilityIdentifier(AccessibilityID.planRegenerate)
-                        }
-                    }
-                }
                 .navigationDestination(for: PlannedMealID.self) { id in
                     MealDetailView(viewModel: viewModel, mealID: id)
                 }
@@ -117,8 +108,32 @@ public struct PlanTabView: View {
             }
             .padding(OMPSpacing.medium)
             .frame(maxWidth: .infinity)
-            .background(.bar)
+            .planBarBackground()
         }
+    }
+}
+
+extension View {
+    /// An opaque bottom-bar background: a translucent `.bar` lets rows scroll underneath it and
+    /// fails the contrast audit.
+    func planBarBackground() -> some View {
+        background {
+            VStack(spacing: 0) {
+                Divider()
+                Color.planBarFill
+            }
+            .ignoresSafeArea(edges: .bottom)
+        }
+    }
+}
+
+extension Color {
+    fileprivate static var planBarFill: Color {
+        #if canImport(UIKit)
+        Color(uiColor: .systemBackground)
+        #else
+        Color(nsColor: .windowBackgroundColor)
+        #endif
     }
 }
 
@@ -244,7 +259,7 @@ struct PlanBlockedCard: View {
             if viewModel.canAnswerNow {
                 Button(PlanCopy.answerNow) { Task { await viewModel.answerNow() } }
                     .buttonStyle(.bordered)
-                    .ompMinimumHitTarget()
+                    .tint(Color.primary)                    .ompMinimumHitTarget()
                     .accessibilityIdentifier(AccessibilityID.planBlockedAnswer)
             }
         }
@@ -261,7 +276,7 @@ struct PlanErrorCard: View {
         InlineCard(title: message, systemImage: OMPSymbol.warning) {
             Button(PlanCopy.tryAgain) { Task { await viewModel.retry() } }
                 .buttonStyle(.bordered)
-                .ompMinimumHitTarget()
+                .tint(Color.primary)                .ompMinimumHitTarget()
                 .accessibilityIdentifier(AccessibilityID.planErrorRetry)
         }
         .accessibilityIdentifier(AccessibilityID.planError)
@@ -319,6 +334,12 @@ struct PlanWeekList: View {
                     .font(OMPFont.reason)
                     .foregroundStyle(Color.primary.opacity(0.75))
             }
+            Button(PlanCopy.regenerate) { viewModel.isConfirmingRegenerate = true }
+                .buttonStyle(.bordered)
+                .tint(Color.primary)
+                .ompMinimumHitTarget()
+                .disabled(viewModel.isBlocked || viewModel.isBusy)
+                .accessibilityIdentifier(AccessibilityID.planRegenerate)
             if viewModel.isRegenerating {
                 ProgressView(PlanCopy.loading)
                     .accessibilityIdentifier(AccessibilityID.planLoading)
@@ -333,7 +354,7 @@ struct PlanWeekList: View {
                 InlineCard(title: PlanCopy.safetyChanged, systemImage: OMPSymbol.warning) {
                     Button(PlanCopy.updatePlan) { Task { await viewModel.updatePlan() } }
                         .buttonStyle(.bordered)
-                        .ompMinimumHitTarget()
+                        .tint(Color.primary)                        .ompMinimumHitTarget()
                         .disabled(viewModel.isBlocked || viewModel.isBusy)
                         .accessibilityIdentifier(AccessibilityID.planUpdate)
                 }
@@ -343,12 +364,13 @@ struct PlanWeekList: View {
                 InlineCard(title: PlanCopy.firstPlanBanner) {
                     Button(PlanCopy.dismiss) { viewModel.bannerDismissed = true }
                         .buttonStyle(.bordered)
-                        .ompMinimumHitTarget()
+                        .tint(Color.primary)                        .ompMinimumHitTarget()
                         .accessibilityIdentifier(AccessibilityID.planBannerDismiss)
                 }
                 .accessibilityIdentifier(AccessibilityID.planBanner)
             }
         }
+        .padding(.horizontal, OMPSpacing.medium)
         .padding(.vertical, OMPSpacing.small)
     }
 
@@ -413,7 +435,7 @@ struct PlanMealRow: View {
             if meal.isEmpty {
                 Button(PlanCopy.emptySlotWhyButton) { viewModel.toggleWhy(meal.id) }
                     .buttonStyle(.bordered)
-                    .ompMinimumHitTarget()
+                    .tint(Color.primary)                    .ompMinimumHitTarget()
                     .accessibilityIdentifier(AccessibilityID.planWhy(id))
                 if viewModel.expandedWhy.contains(meal.id) {
                     Text(PlanCopy.emptySlotWhy)
@@ -476,7 +498,7 @@ struct PlanMealRow: View {
         } else if let target = viewModel.cookableMeal(for: meal) {
             Button(PlanCopy.markCooked) { viewModel.requestMarkCooked(meal) }
                 .buttonStyle(.bordered)
-                .ompMinimumHitTarget()
+                .tint(Color.primary)                .ompMinimumHitTarget()
                 .accessibilityLabel(PlanCopy.markMealCooked(viewModel.title(ofRecipe: target.recipeId)))
                 .accessibilityIdentifier(AccessibilityID.planMarkCooked(id))
         }
