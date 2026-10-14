@@ -163,9 +163,31 @@ final class PlanUITests: XCTestCase {
     /// Labels of the visible meal rows other than `mealID`, in order.
     @MainActor
     private func otherMealLabels(_ app: XCUIApplication, except mealID: String) -> [String] {
-        elements(app, prefix: "plan.meal.").allElementsBoundByIndex
+        // Always compare the same window of the list: scroll to the top first, so a different scroll
+        // position before and after can never look like a changed plan.
+        let list = element(app, "plan.list")
+        for _ in 0..<12 { list.swipeDown() }
+        return elements(app, prefix: "plan.meal.").allElementsBoundByIndex
             .filter { $0.identifier != "plan.meal.\(mealID)" }
             .map(\.label)
+    }
+
+    /// Rows and header controls outside the visible area are not in the accessibility tree: scroll the
+    /// plan list (down, then back up) until `identifier` exists.
+    @MainActor
+    @discardableResult
+    private func reveal(_ app: XCUIApplication, _ identifier: String) -> XCUIElement {
+        let target = element(app, identifier)
+        if target.waitForExistence(timeout: 3) { return target }
+        let list = element(app, "plan.list")
+        for _ in 0..<8 where !target.exists {
+            list.swipeUp()
+        }
+        for _ in 0..<12 where !target.exists {
+            list.swipeDown()
+        }
+        _ = target.waitForExistence(timeout: 3)
+        return target
     }
 
     @MainActor
@@ -182,22 +204,22 @@ final class PlanUITests: XCTestCase {
         let lockedShown = locked.waitForExistence(timeout: 10)
         XCTAssertTrue(lockedShown, "The meal does not show as locked")
         let mealID = String(locked.identifier.dropFirst("plan.lock.".count))
-        let before = element(app, "plan.meal.\(mealID)").label
+        let before = reveal(app, "plan.meal.\(mealID)").label
         let othersBefore = otherMealLabels(app, except: mealID)
 
-        element(app, "plan.regenerate").tap()
+        reveal(app, "plan.regenerate").tap()
         let replace = app.buttons["Replace"]
         let confirmShown = replace.waitForExistence(timeout: 5)
         XCTAssertTrue(confirmShown, "No regenerate confirmation")
         replace.tap()
 
         let enabled = NSPredicate(format: "isEnabled == true")
-        let idle = expectation(for: enabled, evaluatedWith: element(app, "plan.regenerate"))
+        let idle = expectation(for: enabled, evaluatedWith: reveal(app, "plan.regenerate"))
         let result = XCTWaiter().wait(for: [idle], timeout: 30)
         XCTAssertEqual(result, .completed, "Regenerate did not finish")
-        let stillLocked = element(app, "plan.lock.\(mealID)").waitForExistence(timeout: 5)
+        let stillLocked = reveal(app, "plan.lock.\(mealID)").exists
         XCTAssertTrue(stillLocked, "The locked meal lost its lock")
-        let after = element(app, "plan.meal.\(mealID)").label
+        let after = reveal(app, "plan.meal.\(mealID)").label
         XCTAssertEqual(before, after, "Regenerate replaced a locked meal")
         let othersAfter = otherMealLabels(app, except: mealID)
         XCTAssertNotEqual(othersBefore, othersAfter, "Regenerate changed no unlocked meal (no-op?)")
