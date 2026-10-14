@@ -8,10 +8,11 @@ struct TabPlaceholder: View {
 
     var body: some View {
         NavigationStack {
-            ContentUnavailableView(
-                tab.title,
-                systemImage: tab.systemImage,
-                description: Text(Self.comingSoon))
+            ContentUnavailableView {
+                Label(tab.title, systemImage: tab.systemImage)
+            } description: {
+                Text(Self.comingSoon).foregroundStyle(Color.primary.opacity(0.75))
+            }
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier(AccessibilityID.tabRoot(tab))
                 .navigationTitle(tab.title)
@@ -29,10 +30,11 @@ struct TabPlaceholder: View {
 struct PlanTabPlaceholder: View {
     var body: some View {
         NavigationStack {
-            ContentUnavailableView(
-                AppTab.plan.title,
-                systemImage: AppTab.plan.systemImage,
-                description: Text(TabPlaceholder.comingSoon))
+            ContentUnavailableView {
+                Label(AppTab.plan.title, systemImage: AppTab.plan.systemImage)
+            } description: {
+                Text(TabPlaceholder.comingSoon).foregroundStyle(Color.primary.opacity(0.75))
+            }
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier(AccessibilityID.tabRoot(.plan))
                 .safeAreaInset(edge: .bottom) {
