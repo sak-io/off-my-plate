@@ -11,7 +11,7 @@ public struct HouseholdTabView: View {
     private let model: AppModel
     @State private var viewModel: HouseholdViewModel
     @State private var showingAddPerson = false
-    @State private var showingRules = false
+    @State private var path: [HouseholdRoute] = []
 
     public init(model: AppModel) {
         self.model = model
@@ -19,14 +19,14 @@ public struct HouseholdTabView: View {
     }
 
     public var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             List {
                 if case .reconfirmationDue = model.gateStatus {
                     Section {
                         ReconfirmCardView(
                             summary: viewModel.safetySummary,
                             onYes: { Task { _ = await viewModel.reconfirm() } },
-                            onChange: { showingRules = true }
+                            onChange: { path.append(.rules) }
                         )
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets())
@@ -39,8 +39,16 @@ public struct HouseholdTabView: View {
             }
             .accessibilityIdentifier(AccessibilityID.tabRoot(.household))
             .navigationTitle(AppTab.household.title)
-            .navigationDestination(isPresented: $showingRules) {
-                SafetyRulesView(viewModel: viewModel)
+            .navigationDestination(for: HouseholdRoute.self) { route in
+                switch route {
+                case .person(let id):
+                    if let member = viewModel.members.first(where: { $0.id == id }) {
+                        PersonFormView(viewModel: viewModel, member: member, onFinished: {})
+                    }
+                case .rules: SafetyRulesView(viewModel: viewModel)
+                case .learned: LearnedView(app: model)
+                case .about: AboutView()
+                }
             }
             .alert(SettingsCopy.deleteConfirmTitle, isPresented: $viewModel.isConfirmingDeleteAll) {
                 Button(SettingsCopy.deleteEverything, role: .destructive) { Task { await viewModel.deleteAll() } }
@@ -68,9 +76,10 @@ public struct HouseholdTabView: View {
         Section {
             SettingsSectionHeader(title: SettingsCopy.people)
             ForEach(Array(viewModel.members.enumerated()), id: \.element.id) { index, member in
-                NavigationLink {
-                    PersonFormView(viewModel: viewModel, member: member, onFinished: {})
+                Button {
+                    path.append(.person(member.id))
                 } label: {
+                    SettingsRowLabel {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(member.displayName).font(OMPFont.mealName)
                         HStack(alignment: .firstTextBaseline, spacing: OMPSpacing.small) {
@@ -85,18 +94,18 @@ public struct HouseholdTabView: View {
                         }
                     }
                     .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityElement(children: .combine)
+                    }
                 }
+                .buttonStyle(.plain)
+                .accessibilityElement(children: .combine)
                 .accessibilityIdentifier(AccessibilityID.householdPerson + String(index))
             }
             Button {
                 showingAddPerson = true
             } label: {
-                Label(SettingsCopy.addPerson, systemImage: "plus")
-                    .font(OMPFont.body)
-                    .foregroundStyle(Color.primary)
-                    .ompMinimumHitTarget()
+                SettingsIconRow(systemImage: "plus", title: SettingsCopy.addPerson)
             }
+            .buttonStyle(.plain)
             .disabled(!viewModel.isAvailable)
             .accessibilityIdentifier(AccessibilityID.householdAddPerson)
         }
@@ -105,10 +114,13 @@ public struct HouseholdTabView: View {
     private var safetySection: some View {
         Section {
             SettingsSectionHeader(title: SettingsCopy.safety)
-            NavigationLink(SettingsCopy.allergiesRow) {
-                SafetyRulesView(viewModel: viewModel)
+            Button {
+                path.append(.rules)
+            } label: {
+                SettingsRowLabel { Text(SettingsCopy.allergiesRow).font(OMPFont.body) }
             }
-            .font(OMPFont.body)
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
             .accessibilityIdentifier(AccessibilityID.householdAllergies)
         }
     }
@@ -116,10 +128,13 @@ public struct HouseholdTabView: View {
     private var planSection: some View {
         Section {
             SettingsSectionHeader(title: SettingsCopy.yourPlan)
-            NavigationLink(SettingsCopy.learnedRow) {
-                LearnedView(app: model)
+            Button {
+                path.append(.learned)
+            } label: {
+                SettingsRowLabel { Text(SettingsCopy.learnedRow).font(OMPFont.body) }
             }
-            .font(OMPFont.body)
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
             .accessibilityIdentifier(AccessibilityID.householdLearned)
         }
     }
@@ -127,21 +142,20 @@ public struct HouseholdTabView: View {
     private var aboutSection: some View {
         Section {
             SettingsSectionHeader(title: SettingsCopy.about)
-            NavigationLink(SettingsCopy.aboutRow) {
-                AboutView()
+            Button {
+                path.append(.about)
+            } label: {
+                SettingsRowLabel { Text(SettingsCopy.aboutRow).font(OMPFont.body) }
             }
-            .font(OMPFont.body)
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
             .accessibilityIdentifier(AccessibilityID.householdAbout)
             Button {
                 viewModel.isConfirmingDeleteAll = true
             } label: {
-                Label {
-                    Text(SettingsCopy.deleteAllRow).font(OMPFont.body).foregroundStyle(Color.primary)
-                } icon: {
-                    Image(systemName: "trash").foregroundStyle(Color.red).accessibilityHidden(true)
-                }
-                .ompMinimumHitTarget()
+                SettingsIconRow(systemImage: "trash", title: SettingsCopy.deleteAllRow)
             }
+            .buttonStyle(.plain)
             .disabled(!viewModel.isAvailable)
             .accessibilityIdentifier(AccessibilityID.householdDeleteAll)
         }
@@ -202,5 +216,55 @@ extension View {
         ) {
             Button(SettingsCopy.ok, role: .cancel) {}
         }
+    }
+}
+
+/// Where the Household tab can go.
+enum HouseholdRoute: Hashable {
+    case person(MemberID)
+    case rules
+    case learned
+    case about
+}
+
+/// A tappable list row: content, then a chevron in the primary colour. The system disclosure
+/// indicator is drawn in a secondary colour that failed the contrast audit.
+struct SettingsRowLabel<Content: View>: View {
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        HStack(alignment: .center, spacing: OMPSpacing.small) {
+            content
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Image(systemName: "chevron.right")
+                .foregroundStyle(Color.primary)
+                .accessibilityHidden(true)
+        }
+        .padding(.vertical, OMPSpacing.small)
+        .frame(minHeight: OMPMetrics.minimumHitTarget)
+        .contentShape(Rectangle())
+    }
+}
+
+/// An icon and a wrapping title in the primary colour (Add person, Delete all data).
+struct SettingsIconRow: View {
+    let systemImage: String
+    let title: String
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: OMPSpacing.small) {
+            Image(systemName: systemImage)
+                .foregroundStyle(Color.primary)
+                .accessibilityHidden(true)
+            Text(title)
+                .font(OMPFont.body)
+                .foregroundStyle(Color.primary)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.vertical, OMPSpacing.small)
+        .frame(minHeight: OMPMetrics.minimumHitTarget)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
     }
 }

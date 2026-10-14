@@ -180,6 +180,10 @@ struct AddRuleSheet: View {
                     case .entry: entry
                     case .summary: summary
                     }
+                    // In the content, not the toolbar: a navigation-bar text button cannot scale.
+                    Button(SettingsCopy.cancel) { dismiss() }
+                        .buttonStyle(SafetyOutlinedButtonStyle())
+                        .accessibilityIdentifier(AccessibilityID.addRuleCancel)
                 }
                 .frame(maxWidth: OMPMetrics.coverMaxWidth, alignment: .leading)
                 .padding(OMPSpacing.medium)
@@ -189,12 +193,6 @@ struct AddRuleSheet: View {
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(SettingsCopy.cancel) { dismiss() }
-                        .accessibilityIdentifier(AccessibilityID.addRuleCancel)
-                }
-            }
         }
         .failureAlert(viewModel)
         .accessibilityIdentifier(AccessibilityID.addRuleSheet)
@@ -229,7 +227,8 @@ struct AddRuleSheet: View {
             .font(OMPFont.reason)
             .accessibilityAddTraits(.isHeader)
         AdaptiveStack(spacing: OMPSpacing.small) {
-            TextField(SettingsCopy.typeToAdd, text: $model.draftText)
+            TextField(SettingsCopy.typeToAdd, text: $model.draftText, axis: .vertical)
+                .lineLimit(1...4)
                 .font(OMPFont.body)
                 .textFieldStyle(.roundedBorder)
                 .submitLabel(.done)

@@ -61,6 +61,12 @@ struct PersonFormView: View {
                 .buttonStyle(.ompPrimary)
                 .accessibilityIdentifier(AccessibilityID.personSave)
 
+                if member == nil {
+                    Button(SettingsCopy.cancel) { onFinished() }
+                        .buttonStyle(SafetyOutlinedButtonStyle())
+                        .accessibilityIdentifier(AccessibilityID.personCancel)
+                }
+
                 if let member, viewModel.canRemove(member) {
                     Button {
                         isConfirmingRemove = true
@@ -82,14 +88,6 @@ struct PersonFormView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
-        .toolbar {
-            if member == nil {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(SettingsCopy.cancel) { onFinished() }
-                        .accessibilityIdentifier(AccessibilityID.personCancel)
-                }
-            }
-        }
         .alert(
             SettingsCopy.confirmRemove(member?.displayName ?? ""), isPresented: $isConfirmingRemove
         ) {
