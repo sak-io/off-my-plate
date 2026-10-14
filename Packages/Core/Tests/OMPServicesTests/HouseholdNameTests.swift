@@ -47,4 +47,43 @@ struct HouseholdNameTests {
         #expect(error == .invalidInput("no such member"))
         #expect(try await env.household() == before)
     }
+
+    @Test("Control, newline and bidi characters are stripped")
+    func stripsControlCharacters() async throws {
+        let env = ServicesEnv()
+        let household = try await env.onboardWithoutRules()
+        let id = try #require(household.members.first?.id)
+        let named = try await env.households.setName("A\nsha\u{202E}\u{200B}\t", for: id)
+        #expect(named.member(id)?.name == "Asha")
+    }
+
+    @Test("Text that is empty after cleaning clears the name")
+    func emptyAfterCleaning() async throws {
+        let env = ServicesEnv()
+        let household = try await env.onboardWithoutRules()
+        let id = try #require(household.members.first?.id)
+        _ = try await env.households.setName("Asha", for: id)
+        let cleared = try await env.households.setName("\u{202E}\n\u{200B}", for: id)
+        #expect(cleared.member(id)?.name == nil)
+    }
+
+    @Test("Cutting to the limit leaves no trailing space")
+    func trimsAfterCut() async throws {
+        let env = ServicesEnv()
+        let household = try await env.onboardWithoutRules()
+        let id = try #require(household.members.first?.id)
+        let text = String(repeating: "a", count: HouseholdService.maxNameLength - 1) + " bbb"
+        let named = try await env.households.setName(text, for: id)
+        #expect(named.member(id)?.name == String(repeating: "a", count: HouseholdService.maxNameLength - 1))
+    }
+
+    @Test("A removed member cannot be renamed")
+    func removedMember() async throws {
+        let env = ServicesEnv()
+        let household = try await env.onboardWithoutRules()
+        let id = try #require(household.members.last?.id)
+        _ = try await env.households.removeMember(id)
+        let error = await serviceError { _ = try await env.households.setName("X", for: id) }
+        #expect(error == .invalidInput("no such member"))
+    }
 }

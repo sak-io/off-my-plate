@@ -61,3 +61,4 @@
 | T23 review-1 | Discard is reachable only from the approval sheet, which cannot open while safety blocks; a pending revision can be neither discarded nor approved until the gate clears (safe direction) | note |
 | T23 review-1 | NIT: `swapMealID` not cleared when the swap sheet is swiped away | follow-up |
 | T23 | PlanUITests audit ignores element-less issues on iPad (system tab bar/sidebar chrome; any audit type) and Dynamic Type on the system "Plan" label — owner-approved 2026-10-14 (widened from the shell test); find the real cause and remove both exceptions | T28 |
+| T27 review-1 | Delete all: wire `DataService` (inbox, processed imports, counters) into `LiveSettingsBackend` in the composition root; until then only repositories + store file are erased. `AppModel.storePurgeIncomplete` is set but not shown anywhere (decide whether to tell the user) | T26 |

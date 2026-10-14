@@ -130,12 +130,29 @@ public final class HouseholdService: Sendable {
             guard let index = household.members.firstIndex(where: { $0.id == memberID && !$0.isDeleted }) else {
                 throw ServiceError.invalidInput("no such member")
             }
-            let trimmed = name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            household.members[index].name = trimmed.isEmpty ? nil : String(trimmed.prefix(Self.maxNameLength))
+            let cleaned = Self.cleanName(name)
+            household.members[index].name = cleaned.isEmpty ? nil : cleaned
             household.updatedAt = context.clock.now
             try await context.repositories.household.replace(with: household)
             return household
         }
+    }
+
+    /// Drops control, format (bidi overrides, zero-width) and line/paragraph separator
+    /// characters, trims, cuts to `maxNameLength` and trims again.
+    static func cleanName(_ name: String?) -> String {
+        guard let name else { return "" }
+        var scalars = String.UnicodeScalarView()
+        for scalar in name.unicodeScalars {
+            switch scalar.properties.generalCategory {
+            case .control, .format, .lineSeparator, .paragraphSeparator, .surrogate, .privateUse, .unassigned:
+                continue
+            default:
+                scalars.append(scalar)
+            }
+        }
+        let trimmed = String(scalars).trimmingCharacters(in: .whitespacesAndNewlines)
+        return String(trimmed.prefix(maxNameLength)).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     /// Changes a member's age band (AC-3.4). Crossing between child and grown bands resets the

@@ -17,7 +17,8 @@ struct SettingsEnv {
 
     static func make(
         members: [Member], rules: [Rule] = [], facts: [Fact] = [], events: [LearningEvent] = [],
-        householdRepository: (any HouseholdRepository)? = nil
+        householdRepository: (any HouseholdRepository)? = nil,
+        eraseStore: (@Sendable () async throws -> Void)? = nil
     ) async -> SettingsEnv {
         let empty = Repositories.inMemory()
         var stored = household(members)
@@ -31,7 +32,7 @@ struct SettingsEnv {
         let context = ServiceContext(
             repositories: repositories, clock: clock,
             library: PlanningLibrary(recipes: [], ingredients: [], restrictions: testRestrictions, contentVersion: "test"))
-        let backend = LiveSettingsBackend(context: context, parser: SafetyTextParser(keywords: testKeywords))
+        let backend = LiveSettingsBackend(context: context, parser: SafetyTextParser(keywords: testKeywords), eraseStore: eraseStore)
         let app = AppModel(repositories: repositories, clock: clock)
         app.settingsBackend = backend
         await app.refresh()

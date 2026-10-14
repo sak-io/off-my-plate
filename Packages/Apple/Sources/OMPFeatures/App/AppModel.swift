@@ -88,9 +88,14 @@ public final class AppModel {
             "Gate status \(statusName, privacy: .public); members blocking \(blockedCount, privacy: .public)")
     }
 
+    /// True when the last "Delete all data" removed every record but could not rewrite the
+    /// store file (T27); the records are gone either way.
+    public private(set) var storePurgeIncomplete = false
+
     /// "Delete all data" finished (T27, AC-16.2): the stores are empty, so forget the household
     /// and restart onboarding at S-01.
-    public func dataWasDeleted() async {
+    public func dataWasDeleted(purgeIncomplete: Bool = false) async {
+        storePurgeIncomplete = purgeIncomplete
         household = nil
         gateStatus = .noHousehold
         onboardingActive = true

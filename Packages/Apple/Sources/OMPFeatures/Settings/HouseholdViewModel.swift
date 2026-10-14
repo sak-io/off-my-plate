@@ -111,7 +111,12 @@ final class HouseholdViewModel {
         return await perform(reload: false) {
             let member = try await backend.addMember(role: Self.role(for: ageBand), ageBand: ageBand)
             if !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                try await backend.setName(name, for: member.id)
+                // The name is optional: the person exists now, so a failed name must not report
+                // the whole Add as failed (the safety question for them is next either way).
+                do { try await backend.setName(name, for: member.id) } catch {
+                    let kind = OMPLog.errorKind(error)
+                    OMPLog.app.error("Naming the new person failed: \(kind, privacy: .public)")
+                }
             }
         }
     }
@@ -228,6 +233,12 @@ final class HouseholdViewModel {
         defer { isBusy = false }
         do {
             try await backend.deleteAllData()
+        } catch is StorePurgeError {
+            // Every record is gone: restart onboarding, and keep the incomplete purge visible
+            // to the app (log and flag) instead of leaving the user on empty tabs.
+            OMPLog.app.error("Delete all data: the store file could not be rewritten")
+            await app.dataWasDeleted(purgeIncomplete: true)
+            return
         } catch {
             let kind = OMPLog.errorKind(error)
             OMPLog.app.error("Delete all data failed: \(kind, privacy: .public)")

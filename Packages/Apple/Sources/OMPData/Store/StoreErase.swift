@@ -25,19 +25,42 @@ enum StoreCompaction {
     }
 
     /// `PRAGMA secure_delete`, `VACUUM`, then `wal_checkpoint(TRUNCATE)` on a second connection.
-    /// A busy store (another connection mid-write) throws; the records are already deleted and
-    /// the caller may simply try again.
-    static func purge(storeAt url: URL) throws {
+    /// A blocked checkpoint is not an error code: SQLite reports it in the result row (`busy`),
+    /// so that row is read and the checkpoint retried a few times before throwing. A busy store
+    /// throws; the records are already deleted and the caller may try again.
+    static func purge(storeAt url: URL, attempts: Int = 5) throws {
         #if canImport(SQLite3)
         var handle: OpaquePointer?
         let opened = sqlite3_open_v2(url.path, &handle, SQLITE_OPEN_READWRITE, nil)
         defer { sqlite3_close(handle) }
         guard opened == SQLITE_OK else { throw Failure(code: opened) }
         sqlite3_busy_timeout(handle, 5_000)
-        for statement in ["PRAGMA secure_delete = ON;", "VACUUM;", "PRAGMA wal_checkpoint(TRUNCATE);"] {
+        for statement in ["PRAGMA secure_delete = ON;", "VACUUM;"] {
             let result = sqlite3_exec(handle, statement, nil, nil, nil)
             guard result == SQLITE_OK else { throw Failure(code: result) }
         }
+        for attempt in 0..<max(1, attempts) {
+            if try checkpointTruncated(handle) { return }
+            if attempt < attempts - 1 { Thread.sleep(forTimeInterval: 0.2) }
+        }
+        throw Failure(code: SQLITE_BUSY)
         #endif
     }
+
+    #if canImport(SQLite3)
+    /// Runs `wal_checkpoint(TRUNCATE)` and returns whether it was not blocked (`busy == 0`).
+    private static func checkpointTruncated(_ handle: OpaquePointer?) throws -> Bool {
+        var statement: OpaquePointer?
+        let prepared = sqlite3_prepare_v2(handle, "PRAGMA wal_checkpoint(TRUNCATE);", -1, &statement, nil)
+        defer { sqlite3_finalize(statement) }
+        guard prepared == SQLITE_OK else { throw Failure(code: prepared) }
+        let stepped = sqlite3_step(statement)
+        guard stepped == SQLITE_ROW else {
+            // A database without a write-ahead log returns no row at all.
+            if stepped == SQLITE_DONE { return true }
+            throw Failure(code: stepped)
+        }
+        return sqlite3_column_int(statement, 0) == 0
+    }
+    #endif
 }

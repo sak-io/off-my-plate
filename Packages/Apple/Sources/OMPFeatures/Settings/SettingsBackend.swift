@@ -48,9 +48,18 @@ public protocol SettingsBackend: Sendable {
     func recipeTitle(_ id: RecipeID) -> String?
     func ingredientName(_ id: IngredientID) -> String?
 
-    /// "Delete all data" (AC-16.2): every record, the processed-import ids, the counters, the
-    /// inbox and the store's on-disk traces.
+    /// "Delete all data" (AC-16.2): every record in the repositories (and, when a `DataService`
+    /// is wired, the processed-import ids, counters and inbox), then the store-level erase.
+    ///
+    /// - Throws: `StorePurgeError` when the records are gone but the on-disk rewrite failed
+    ///   (the app still restarts onboarding); any other error means nothing was confirmed deleted.
     func deleteAllData() async throws
+}
+
+/// All records were deleted, but rewriting the store file (so deleted rows leave no trace on
+/// disk) failed, even after a retry.
+public struct StorePurgeError: Error, Sendable {
+    public init() {}
 }
 
 /// The services as the Household tab uses them.
@@ -167,6 +176,12 @@ public final class LiveSettingsBackend: SettingsBackend {
         } else {
             try await context.repositories.deleteAll()
         }
-        try await eraseStore?()
+        guard let eraseStore else { return }
+        do {
+            try await eraseStore()
+        } catch {
+            // The records are already gone; one more try before reporting.
+            do { try await eraseStore() } catch { throw StorePurgeError() }
+        }
     }
 }

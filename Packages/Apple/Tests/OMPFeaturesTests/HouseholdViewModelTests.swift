@@ -257,6 +257,41 @@ struct HouseholdViewModelTests {
         #expect(env.app.onboardingActive)
     }
 
+    @Test("If the store file cannot be rewritten the records are still gone and onboarding restarts")
+    func purgeFailureStillRestartsOnboarding() async throws {
+        struct Boom: Error {}
+        let (first, _) = twoAdults()
+        let env = await SettingsEnv.make(members: [first], eraseStore: { throw Boom() })
+        await env.people.deleteAll()
+        #expect(try await env.repositories.household.fetch() == nil)
+        #expect(env.app.onboardingActive)
+        #expect(env.app.storePurgeIncomplete)
+        #expect(!env.people.deleteFailed)
+    }
+
+    @Test("A successful erase leaves the purge flag clear")
+    func purgeSuccess() async {
+        let (first, _) = twoAdults()
+        let env = await SettingsEnv.make(members: [first], eraseStore: {})
+        await env.people.deleteAll()
+        #expect(env.app.onboardingActive)
+        #expect(!env.app.storePurgeIncomplete)
+    }
+
+    @Test("Removing a person's last rule makes them 'nothing to avoid' and keeps the gate clear")
+    func removeLastRule() async throws {
+        let (first, _) = twoAdults()
+        let env = await SettingsEnv.make(members: [first], rules: [testRule("peanuts", for: .member(first.id))])
+        let row = try #require(env.people.ruleRows.first)
+        let removed = await env.people.removeRule(row)
+        #expect(removed)
+        let updated = try #require(env.app.household?.member(first.id))
+        #expect(updated.safetyStatus == .confirmedNone)
+        #expect(env.people.statusText(of: updated) == SettingsCopy.statusNothing)
+        #expect(env.app.gateStatus == .clear)
+        #expect(env.people.ruleRows.isEmpty)
+    }
+
     @Test("A failed delete says so, keeps the app on the tabs and does not restart onboarding")
     func deleteFailure() async {
         let (first, _) = twoAdults()
