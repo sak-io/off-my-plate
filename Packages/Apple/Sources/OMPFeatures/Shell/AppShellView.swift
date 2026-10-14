@@ -66,7 +66,7 @@ public struct AppShellView: View {
             }
 
             Tab(AppTab.pantry.title, systemImage: AppTab.pantry.systemImage, value: AppTab.pantry) {
-                TabPlaceholder(tab: .pantry)
+                PantryTabView(model: model)
             }
 
             Tab(AppTab.household.title, systemImage: AppTab.household.systemImage, value: AppTab.household) {

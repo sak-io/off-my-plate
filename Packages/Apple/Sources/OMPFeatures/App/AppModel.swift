@@ -29,6 +29,8 @@ public final class AppModel {
     public var safetyServices: SafetyServices?
     /// On-device voice for the safety question (T30); `nil` hides nothing, the mic explains.
     public var speechCapture: (any SpeechCapture)?
+    /// The pantry use cases the Pantry tab and the cooked sheet call (T24); set by the composition root.
+    public var pantryBackend: (any PantryBackend)?
     /// True from the first launch without a household until the first plan is made (T22).
     /// While it is set the shell shows onboarding, not the tabs or the gate cover.
     public private(set) var onboardingActive = false
