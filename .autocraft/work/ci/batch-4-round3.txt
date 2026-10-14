@@ -1,0 +1,3 @@
+IPHONE: PantryUITests.testManualAddShowsTheItemInThePantry (PantryUITests.swift:107): XCTAssertTrue failed - Save is not hittable (keyboard in the way?)
+IPHONE: SettingsUITests.testForgetRemovesAFact (SettingsUITests.swift:165): XCTAssertEqual failed: (\"3\") is not equal to (\"2\") - The forgotten fact is still listed
+IPAD: PantryUITests.testManualAddShowsTheItemInThePantry (PantryUITests.swift:107): XCTAssertTrue failed - Save is not hittable (keyboard in the way?)
