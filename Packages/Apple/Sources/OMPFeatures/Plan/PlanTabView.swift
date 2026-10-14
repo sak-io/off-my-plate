@@ -20,14 +20,19 @@ public struct PlanTabView: View {
 
     public var body: some View {
         NavigationStack(path: $path) {
-            content
+            // The bar sits BELOW the list in a stack, not over it as a safe-area inset: rows that
+            // scroll under an inset stay in the accessibility tree and the audit measures their
+            // contrast against the bar (Dinner, Kerala rasam ... contrast failures, batch 3).
+            VStack(spacing: 0) {
+                content
+                bottomBar
+            }
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier(AccessibilityID.tabRoot(.plan))
                 .navigationTitle(PlanCopy.title)
                 .navigationDestination(for: PlannedMealID.self) { id in
                     MealDetailView(viewModel: viewModel, mealID: id)
                 }
-                .safeAreaInset(edge: .bottom, spacing: 0) { bottomBar }
         }
         .task(id: model.gateStatus) { await viewModel.load() }
         .sheet(item: sheetBinding) { sheet in
