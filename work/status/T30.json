@@ -1,10 +1,9 @@
 {
   "branch": "feat/t30",
-  "claimed_at": "2026-10-14T03:30:15Z",
-  "heartbeat_at": "2026-10-14T03:30:15Z",
+  "commit": "6689fe1",
   "id": "T30",
-  "lease_hours": 6,
+  "note": "merged via batch-3, CI green (5 jobs)",
   "owner": "claude-lead-dev2",
-  "state": "claimed",
-  "updated_at": "2026-10-14T03:30:15Z"
+  "state": "merged",
+  "updated_at": "2026-10-14T12:10:55Z"
 }
