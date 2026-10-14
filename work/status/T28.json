@@ -1,4 +1,10 @@
 {
+  "branch": "feat/t28",
+  "claimed_at": "2026-10-14T20:30:01Z",
+  "heartbeat_at": "2026-10-14T20:30:01Z",
   "id": "T28",
-  "state": "not_started"
+  "lease_hours": 6,
+  "owner": "claude-lead",
+  "state": "claimed",
+  "updated_at": "2026-10-14T20:30:01Z"
 }
