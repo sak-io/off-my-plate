@@ -165,6 +165,12 @@ def literal(expr):
     return parts
 
 
+def kind(spec):
+    """'int' for %d/%lld/%i/%u, 'object' for %@, else the conversion letter."""
+    c = spec[-1]
+    return "int" if c in "dDiuU" else "object" if c == "@" else c
+
+
 def catalog_value(parts):
     """The catalog string for a defaultValue: interpolations become format specifiers."""
     out, count = [], 0
@@ -248,6 +254,8 @@ def main():
             specs = len(SPEC.findall(have.replace("%%", "")))
             if specs != n:
                 problems.append(f"{where}: '{key}' has {n} interpolation(s) but the catalog value has {specs} specifier(s)")
+            elif [kind(x) for x in SPEC.findall(have.replace("%%", ""))] != [kind(x) for x in SPEC.findall(value.replace("%%", ""))]:
+                problems.append(f"{where}: '{key}' specifier types differ: catalog '{have}' vs code '{value}'")
             elif have != value:
                 notes.append(f"note: '{key}' catalog text differs from the code's defaultValue (catalog wins)")
 
