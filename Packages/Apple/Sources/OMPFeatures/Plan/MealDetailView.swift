@@ -62,7 +62,7 @@ struct MealDetailView: View {
         VStack(alignment: .leading, spacing: OMPSpacing.small) {
             Text(PlanCopy.diffHeader(day: viewModel.dayTitle(meal.date), meal: PlanCopy.slotName(meal.slot)))
                 .font(OMPFont.reason)
-                .foregroundStyle(Color.primary.opacity(0.75))
+                .foregroundStyle(Color.primary)
             Text(meal.isEmpty ? PlanCopy.emptySlot : viewModel.title(of: meal))
                 .font(OMPFont.sectionTitle.bold())
                 .fixedSize(horizontal: false, vertical: true)
@@ -70,7 +70,7 @@ struct MealDetailView: View {
             if let line = detailLine(meal) {
                 Text(line)
                     .font(OMPFont.reason)
-                    .foregroundStyle(Color.primary.opacity(0.75))
+                    .foregroundStyle(Color.primary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if viewModel.isMealBlocked(meal) {
@@ -140,7 +140,7 @@ struct MealDetailView: View {
                     Text(viewModel.memberName(serving.memberId)).font(OMPFont.body)
                     Text(serving.notEating ? PlanCopy.notEating : PlanCopy.portions(Self.portionText(serving.portion)))
                         .font(OMPFont.body)
-                        .foregroundStyle(Color.primary.opacity(0.75))
+                        .foregroundStyle(Color.primary)
                 }
                 .accessibilityElement(children: .combine)
             }
@@ -190,13 +190,13 @@ struct MealDetailView: View {
             if viewModel.isBlocked {
                 Text(PlanCopy.blockedHint(viewModel.blockingName))
                     .font(OMPFont.disclaimer)
-                    .foregroundStyle(Color.primary.opacity(0.75))
+                    .foregroundStyle(Color.primary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if viewModel.isFirstDraft {
                 Text(PlanCopy.draftCaption)
                     .font(OMPFont.disclaimer)
-                    .foregroundStyle(Color.primary.opacity(0.75))
+                    .foregroundStyle(Color.primary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier(AccessibilityID.mealDraftCaption)
             }
