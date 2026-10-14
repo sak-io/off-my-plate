@@ -31,7 +31,7 @@ func ompAuditAll(_ app: XCUIApplication, ignoreDynamicTypeOnPlanLabel: Bool = fa
                     let frame = issue.element?.frame ?? .zero
                     let detail = String((issue.element?.debugDescription ?? "").prefix(300))
                     found.append(
-                        "\(issue.auditType) | \(issue.compactDescription) | label '\(label)' id '\(id)' type \(type) frame \(frame) | \(detail)")
+                        "\(issue.auditType) | \(issue.compactDescription) | label '\(label)' id '\(id)' type \(type) frame \(frame) | detail: \(issue.detailedDescription) | \(detail)")
                 }
                 return true
             }

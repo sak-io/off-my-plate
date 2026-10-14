@@ -1,0 +1,21 @@
+##### IPHONE
+PantryUITests.testPantryListPassesAccessibilityAudit issues 3
+    XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label '?' id '' type 0 frame (0.0, 0.0, 0.0, 0.0) | 
+    XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label '?' id '' type 0 frame (0.0, 0.0, 0.0, 0.0) | 
+    XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label '?' id '' type 0 frame (0.0, 0.0, 0.0, 0.0) | 
+SettingsUITests.testHouseholdPassesAccessibilityAudit issues 2
+    XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label '?' id '' type 0 frame (0.0, 0.0, 0.0, 0.0) | 
+    XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label '?' id '' type 0 frame (0.0, 0.0, 0.0, 0.0) | 
+SettingsUITests.testWhatIveLearnedPassesAccessibilityAudit issues 3
+    XCUIAccessibilityAuditType(rawValue: 65536) | Dynamic Type font sizes are partially unsupported | label 'That's right' id 'learned.thatsRight.2' type 9 frame (16.0, 695.3333333333334, 361.0, 74.0) | Attributes: Button, 0x10a958770, {{16.0, 695.3}, {361.0, 74.0}}, identifier: 'learned.thatsRight.2', 
+    XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'That's right' id 'learned.thatsRight.2' type 9 frame (16.0, 695.3333333333334, 361.0, 74.0) | Attributes: Button, 0x10aa5cf90, {{16.0, 695.3}, {361.0, 74.0}}, identifier: 'learned.thatsRight.2', label: 'That's right'
+    XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'Starting guesses' id '' type 48 frame (16.0, 804.3333333333334, 361.0, 52.0) | Attributes: StaticText, 0x10a8550a0, {{16.0, 804.3}, {361.0, 52.0}}, label: 'Starting guesses'
+##### IPAD
+PlanUITests.testDraftPlanPassesAccessibilityAudit issues 9
+    XCUIAccessibilityAuditType(rawValue: 65536) | Dynamic Type font sizes are partially unsupported | label 'A starting point. Swap anything and I'll learn.' id '' type 48 frame (52.0, 328.5, 355.0, 20.5) | Attributes: StaticText, 0x1034b7590, {{52.0, 328.5}, {355.0, 20.5}}, label: 'A starting point. Sw
+    XCUIAccessibilityAuditType(rawValue: 65536) | Dynamic Type font sizes are partially unsupported | label 'Draft · not in use yet' id '' type 48 frame (64.0, 206.0, 160.0, 20.5) | Attributes: StaticText, 0x1035ef690, {{64.0, 206.0}, {160.0, 20.5}}, label: 'Draft · not in use yet'
+    XCUIAccessibilityAuditType(rawValue: 65536) | Dynamic Type font sizes are partially unsupported | label 'Regenerate' id 'plan.regenerate' type 9 frame (36.0, 260.5, 112.0, 44.0) | Attributes: Button, 0x1085242c0, {{36.0, 260.5}, {112.0, 44.0}}, identifier: 'plan.regenerate', label: 'Regenerate'
+SettingsUITests.testAllergiesScreenAndAddSheetPassAccessibilityAudit issues 1
+    XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'Cancel' id 'rules.add.cancel' type 9 frame (136.0, 772.0, 84.5, 44.0) | Attributes: Button, 0x1036edee0, {{136.0, 772.0}, {84.5, 44.0}}, identifier: 'rules.add.cancel', label: 'Cancel'
+SettingsUITests.testHouseholdPassesAccessibilityAudit issues 1
+    XCUIAccessibilityAuditType(rawValue: 65536) | Dynamic Type font sizes are partially unsupported | label 'Delete all data' id '' type 48 frame (40.0, 935.0, 740.0, 44.0) | Attributes: StaticText, 0x1036fa220, {{40.0, 935.0}, {740.0, 44.0}}, label: 'Delete all data'
