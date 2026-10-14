@@ -56,6 +56,7 @@ enum CompositionRoot {
                 context: context, parser: SafetyTextParser(keywords: seed.catalog.restrictionKeywords))
             model.speechCapture = speech
             model.pantryBackend = LivePantryBackend(context: context)
+            model.shoppingBackend = LiveShoppingBackend(context: context)
         } catch {
             let kind = OMPLog.errorKind(error)
             OMPLog.app.fault("Seed library could not be loaded: \(kind, privacy: .public)")
