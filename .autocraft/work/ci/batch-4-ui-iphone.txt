@@ -1,0 +1,76 @@
+Test Case '-[OffMyPlateUITests.AppShellUITests testDisclaimerIsReachableFromHousehold]' passed (58.998 seconds).
+Test Case '-[OffMyPlateUITests.AppShellUITests testGateCoverPassesAccessibilityAudit]' passed (13.814 seconds).
+Test Case '-[OffMyPlateUITests.AppShellUITests testGateCoverShowsWhenAMemberIsUnaskedAndCannotBeSwipedAway]' passed (10.614 seconds).
+Test Case '-[OffMyPlateUITests.AppShellUITests testLaunchShowsPlanTabAndSwitchesBetweenAllTabs]' passed (29.260 seconds).
+Test Case '-[OffMyPlateUITests.AppShellUITests testShellPassesAccessibilityAudit]' passed (10.791 seconds).
+\t Executed 5 tests, with 0 failures (0 unexpected) in 123.476 (123.483) seconds
+Test Case '-[OffMyPlateUITests.ImportUITests testDroppedInboxFileIsMergedAndAnnounced]' passed (7.326 seconds).
+Test Case '-[OffMyPlateUITests.ImportUITests testNoInboxFixtureShowsNoToast]' passed (9.142 seconds).
+\t Executed 2 tests, with 0 failures (0 unexpected) in 16.468 (16.470) seconds
+Test Case '-[OffMyPlateUITests.OnboardingUITests testAddedByMistakeRemovesTheMember]' passed (13.333 seconds).
+Test Case '-[OffMyPlateUITests.OnboardingUITests testAddedMemberVariantAsksOneMemberAtATime]' passed (18.630 seconds).
+Test Case '-[OffMyPlateUITests.OnboardingUITests testChipsLeadToCandidateReviewThenExplicitConfirm]' passed (24.651 seconds).
+Test Case '-[OffMyPlateUITests.OnboardingUITests testCuisinesPassAccessibilityAudit]' passed (20.000 seconds).
+Test Case '-[OffMyPlateUITests.OnboardingUITests testNoNobodyLeadsToCuisinesThenPlan]' passed (14.799 seconds).
+Test Case '-[OffMyPlateUITests.OnboardingUITests testSafetyQuestionHasNoSkipCloseOrSwipeAway]' passed (12.063 seconds).
+Test Case '-[OffMyPlateUITests.OnboardingUITests testSafetyQuestionPassesAccessibilityAudit]' passed (25.423 seconds).
+Test Case '-[OffMyPlateUITests.OnboardingUITests testUnmappedItemForcesPickOrRemove]' passed (37.295 seconds).
+Test Case '-[OffMyPlateUITests.OnboardingUITests testWhoIsEatingBoundsAndContinue]' passed (18.179 seconds).
+Test Case '-[OffMyPlateUITests.OnboardingUITests testWhoIsEatingPassesAccessibilityAudit]' passed (8.521 seconds).
+\t Executed 10 tests, with 0 failures (0 unexpected) in 192.895 (192.903) seconds
+Test Case '-[OffMyPlateUITests.PantryUITests testCookedSheetEditsTheDeductionAndUpdatesThePantry]' passed (35.159 seconds).
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/PantryUITests.swift:314: error: -[OffMyPlateUITests.PantryUITests testEmptyPantryPassesAccessibilityAudit] : XCTAssertTrue failed - Accessibility audit issues (1):
+XCUIAccessibilityAuditType(rawValue: 131072) | Text clipped | label 'Search' id '' type 45 frame (16.0, 166.0, 361.0, 38.0) | Attributes: SearchField, 0x102a75f00, {{16.0, 166.0}, {361.0, 38.0}}, label: 'Search', placeholderValue: 'Search'
+Test Case '-[OffMyPlateUITests.PantryUITests testEmptyPantryPassesAccessibilityAudit]' failed (19.810 seconds).
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/PantryUITests.swift:89: error: -[OffMyPlateUITests.PantryUITests testManualAddShowsTheItemInThePantry] : XCTAssertFalse failed - Save is on before a name and an amount are present
+Test Case '-[OffMyPlateUITests.PantryUITests testManualAddShowsTheItemInThePantry]' failed (13.754 seconds).
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/PantryUITests.swift:314: error: -[OffMyPlateUITests.PantryUITests testPantryListPassesAccessibilityAudit] : XCTAssertTrue failed - Accessibility audit issues (6):
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label '?' id '' type 0 frame (0.0, 0.0, 0.0, 0.0) | 
+XCUIAccessibilityAuditType(rawValue: 131072) | Text clipped | label 'Search' id '' type 45 frame (16.0, 166.0, 361.0, 44.0) | Attributes: SearchField, 0x1029753a0, {{16.0, 166.0}, {361.0, 44.0}}, label: 'Search', placeholderValue: 'Search'
+XCUIAccessibilityAuditType(rawValue: 4) | Hit area is too small | label 'Not checked in a while' id 'pantry.stale.ui-milk' type 1 frame (34.0, 440.6666564941406, 192.3333282470703, 18.0) | Attributes: Other, 0x1028c0480, {{34.0, 440.7}, {192.3, 18.0}}, identifier: 'pantry.stale.ui-milk', label: 'Not checked in a while'
+Test Case '-[OffMyPlateUITests.PantryUITests testPantryListPassesAccessibilityAudit]' failed (32.423 seconds).
+Test Case '-[OffMyPlateUITests.PantryUITests testStaleAndUnrecognisedItemsAreFlaggedAndStillHaveItClearsStale]' passed (19.175 seconds).
+Test Case '-[OffMyPlateUITests.PantryUITests testVoiceDeniedExplainsAndOffersTypingInstead]' passed (20.776 seconds).
+Test Case '-[OffMyPlateUITests.PantryUITests testVoiceShowsTheConfirmCardAndSavesOnlyAfterConfirming]' passed (42.873 seconds).
+Test Case '-[OffMyPlateUITests.PantryUITests testVoiceUnavailableExplainsWithoutSettingsButton]' passed (27.709 seconds).
+\t Executed 8 tests, with 3 failures (0 unexpected) in 211.679 (211.688) seconds
+Test Case '-[OffMyPlateUITests.PlanUITests testApproveWholeWeekEnablesMarkCooked]' passed (23.720 seconds).
+Test Case '-[OffMyPlateUITests.PlanUITests testDraftPlanPassesAccessibilityAudit]' passed (16.413 seconds).
+Test Case '-[OffMyPlateUITests.PlanUITests testEditingAnApprovedPlanShowsPendingChangesAndDiffSheet]' passed (46.490 seconds).
+Test Case '-[OffMyPlateUITests.PlanUITests testRegenerateKeepsLockedMeals]' passed (32.994 seconds).
+\t Executed 4 tests, with 0 failures (0 unexpected) in 119.618 (119.625) seconds
+Test Case '-[OffMyPlateUITests.SettingsUITests testAboutPassesAccessibilityAudit]' passed (24.320 seconds).
+Test Case '-[OffMyPlateUITests.SettingsUITests testAddAndRemoveAnAvoidedFood]' passed (38.773 seconds).
+Test Case '-[OffMyPlateUITests.SettingsUITests testAddingAPersonOpensTheSafetyQuestion]' passed (27.403 seconds).
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/SettingsUITests.swift:297: error: -[OffMyPlateUITests.SettingsUITests testAllergiesScreenAndAddSheetPassAccessibilityAudit] : XCTAssertTrue failed - Accessibility audit issues (2):
+XCUIAccessibilityAuditType(rawValue: 65536) | Dynamic Type font sizes are partially unsupported | label 'Cancel' id 'rules.add.cancel' type 9 frame (20.0, 79.0, 76.66666666666667, 36.0) | Attributes: Button, 0x1029945c0, {{20.0, 79.0}, {76.7, 36.0}}, identifier: 'rules.add.cancel', label: 'Cancel'
+XCUIAccessibilityAuditType(rawValue: 131072) | Text clipped | label '' id 'rules.add.text' type 49 frame (16.0, 502.3333333333333, 244.66666666666663, 33.99999999999994) | Attributes: TextField, 0x10723fab0, {{16.0, 502.3}, {244.7, 34.0}}, identifier: 'rules.add.text', placeholderValue: 'e.g. no beef, one of us can't have nuts', value: e.g. no beef, one ...
+Test Case '-[OffMyPlateUITests.SettingsUITests testAllergiesScreenAndAddSheetPassAccessibilityAudit]' failed (37.625 seconds).
+Test Case '-[OffMyPlateUITests.SettingsUITests testDeleteAllDataRestartsOnboarding]' passed (28.749 seconds).
+Test Case '-[OffMyPlateUITests.SettingsUITests testEditingAFactKeepsItSoft]' passed (33.783 seconds).
+Test Case '-[OffMyPlateUITests.SettingsUITests testForgetRemovesAFact]' passed (28.019 seconds).
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/SettingsUITests.swift:297: error: -[OffMyPlateUITests.SettingsUITests testHouseholdPassesAccessibilityAudit] : XCTAssertTrue failed - Accessibility audit issues (2):
+Test Case '-[OffMyPlateUITests.SettingsUITests testHouseholdPassesAccessibilityAudit]' failed (40.946 seconds).
+Test Case '-[OffMyPlateUITests.SettingsUITests testReflectBackDontAskAgain]' passed (12.823 seconds).
+Test Case '-[OffMyPlateUITests.SettingsUITests testReflectBackNotReally]' passed (10.446 seconds).
+Test Case '-[OffMyPlateUITests.SettingsUITests testReflectBackYes]' passed (19.105 seconds).
+Test Case '-[OffMyPlateUITests.SettingsUITests testStillCorrectCardReconfirms]' passed (11.596 seconds).
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/SettingsUITests.swift:297: error: -[OffMyPlateUITests.SettingsUITests testWhatIveLearnedPassesAccessibilityAudit] : XCTAssertTrue failed - Accessibility audit issues (4):
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'That's right' id 'learned.thatsRight.2' type 9 frame (16.0, 635.3333333333334, 361.0, 74.0) | Attributes: Button, 0x102997a60, {{16.0, 635.3}, {361.0, 74.0}}, identifier: 'learned.thatsRight.2', label: 'That's right'
+XCUIAccessibilityAuditType(rawValue: 65536) | Dynamic Type font sizes are partially unsupported | label 'That's right' id 'learned.thatsRight.2' type 9 frame (16.0, 635.3333333333334, 361.0, 74.0) | Attributes: Button, 0x10724b450, {{16.0, 635.3}, {361.0, 74.0}}, identifier: 'learned.thatsRight.2', label: 'That's right'
+Test Case '-[OffMyPlateUITests.SettingsUITests testWhatIveLearnedPassesAccessibilityAudit]' failed (50.805 seconds).
+\t Executed 13 tests, with 3 failures (0 unexpected) in 364.393 (364.402) seconds
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/ShoppingUITests.swift:238: error: -[OffMyPlateUITests.ShoppingUITests testApprovedListPassesAccessibilityAudit] : XCTAssertTrue failed - Accessibility audit issues (1):
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast nearly passed | label 'Bought everything' id 'shopping.bought' type 9 frame (16.0, 684.6666666666666, 361.0, 44.33333333333337) | Attributes: Button, 0x1028980a0, {{16.0, 684.7}, {361.0, 44.3}}, identifier: 'shopping.bought', label: 'Bought everything', Disabled
+Test Case '-[OffMyPlateUITests.ShoppingUITests testApprovedListPassesAccessibilityAudit]' failed (24.315 seconds).
+Test Case '-[OffMyPlateUITests.ShoppingUITests testApprovedPlanShowsAisleSections]' passed (19.053 seconds).
+Test Case '-[OffMyPlateUITests.ShoppingUITests testBoughtEverythingRemovesCheckedItems]' passed (23.673 seconds).
+Test Case '-[OffMyPlateUITests.ShoppingUITests testNoApprovedPlanOffersGoToPlan]' passed (14.543 seconds).
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/ShoppingUITests.swift:238: error: -[OffMyPlateUITests.ShoppingUITests testNoPlanListPassesAccessibilityAudit] : XCTAssertTrue failed - Accessibility audit issues (1):
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast nearly passed | label 'Bought everything' id 'shopping.bought' type 9 frame (16.0, 684.6666666666666, 361.0, 44.33333333333337) | Attributes: Button, 0x10298eaa0, {{16.0, 684.7}, {361.0, 44.3}}, identifier: 'shopping.bought', label: 'Bought everything', Disabled
+Test Case '-[OffMyPlateUITests.ShoppingUITests testNoPlanListPassesAccessibilityAudit]' failed (21.709 seconds).
+Test Case '-[OffMyPlateUITests.ShoppingUITests testPendingPlanChangesShowBanner]' passed (27.273 seconds).
+Test Case '-[OffMyPlateUITests.ShoppingUITests testShareOffersTheListAsText]' passed (22.885 seconds).
+\t Executed 7 tests, with 2 failures (0 unexpected) in 153.451 (153.455) seconds
+\t Executed 49 tests, with 8 failures (0 unexpected) in 1181.981 (1182.042) seconds
+\t Executed 49 tests, with 8 failures (0 unexpected) in 1181.981 (1182.046) seconds

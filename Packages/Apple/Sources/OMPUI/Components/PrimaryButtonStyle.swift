@@ -14,7 +14,7 @@ public struct OMPPrimaryButtonStyle: ButtonStyle {
         configuration.label
             .font(.body.weight(.semibold))
             .multilineTextAlignment(.center)
-            .foregroundStyle(isEnabled ? OMPColor.onAccent : Color.secondary)
+            .foregroundStyle(isEnabled ? OMPColor.onAccent : Color.primary.opacity(0.75))
             .padding(.horizontal, OMPSpacing.medium)
             .padding(.vertical, OMPSpacing.small + 4)
             .frame(maxWidth: .infinity, minHeight: OMPMetrics.minimumHitTarget)

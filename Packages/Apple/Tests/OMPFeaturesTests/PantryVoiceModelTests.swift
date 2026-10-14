@@ -32,6 +32,7 @@ private func settle(_ model: PantryVoiceModel) async {
     }
 }
 
+@MainActor
 private func speech(
     _ availability: SpeechAvailability = .available, after: SpeechAvailability = .available
 ) -> FakeSpeechCapture {
