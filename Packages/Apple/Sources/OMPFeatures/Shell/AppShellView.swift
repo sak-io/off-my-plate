@@ -18,13 +18,21 @@ public struct AppShellView: View {
     public var body: some View {
         content
             .tint(OMPColor.accent)
-            .task { await model.refresh() }
+            .task {
+                await model.refresh()
+                await model.drainInbox()
+            }
             .onChange(of: scenePhase) { _, phase in
                 // The 180-day re-check depends on today's date, so re-evaluate on every return.
                 if phase == .active {
-                    Task { await model.refresh() }
+                    Task {
+                        await model.refresh()
+                        // Notes imports waiting in the Share Extension's inbox (T26).
+                        await model.drainInbox()
+                    }
                 }
             }
+            .ompToast(Binding(get: { model.importToast }, set: { model.importToast = $0 }))
             .gateCover(isPresented: model.gateStatus.showsGateCover && !model.onboardingActive) {
                 SafetyGateCover(members: model.membersNeedingAnswer, answering: gateAnswering)
             }

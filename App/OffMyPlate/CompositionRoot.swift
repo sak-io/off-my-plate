@@ -24,6 +24,12 @@ enum CompositionRoot {
                 repositories: repositories, clock: clock, planBackend: makePlanBackend(repositories, clock: clock))
             // UI tests never touch the microphone or the speech service.
             wireSafety(model, repositories: repositories, clock: clock, speech: UITestSpeech.fake(arguments: arguments))
+            // Notes import (T26): UI tests drop a fixture into a temporary inbox, never the App Group.
+            if let inbox = UITestInbox(arguments: arguments) {
+                wireImports(
+                    model, repositories: repositories, clock: clock, inbox: inbox.makeStorage(now: clock.now),
+                    processed: InMemoryProcessedImportStore())
+            }
             return model
         }
         #endif
@@ -34,6 +40,9 @@ enum CompositionRoot {
             let model = AppModel(
                 repositories: repositories, clock: clock, planBackend: makePlanBackend(repositories, clock: clock))
             wireSafety(model, repositories: repositories, clock: clock, speech: OnDeviceSpeechCapture(backend: SystemSpeechBackend()))
+            wireImports(
+                model, repositories: repositories, clock: clock, inbox: appGroupInbox(),
+                processed: store.makeProcessedImportStore())
             return model
         } catch {
             let kind = OMPLog.errorKind(error)
@@ -63,6 +72,36 @@ enum CompositionRoot {
         }
     }
 
+    /// The Share Extension's inbox folder in the App Group (ADR 0011), or nil when the group is
+    /// not available (an unsigned build): the app then simply has nothing to import.
+    private static func appGroupInbox() -> (any InboxStorage)? {
+        let groupID = Bundle.main.object(forInfoDictionaryKey: "OMPAppGroupIdentifier") as? String ?? ""
+        guard !groupID.isEmpty,
+            let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: groupID)
+        else {
+            OMPLog.app.info("App Group not available: Notes import is off")
+            return nil
+        }
+        return DirectoryInboxStorage(root: container.appendingPathComponent(InboxFiles.directoryName, isDirectory: true))
+    }
+
+    /// Gives the model an `ImportService` over the inbox (T26); the model drains it at launch and
+    /// whenever the scene becomes active. Imports add list/pantry rows and staple events only.
+    private static func wireImports(
+        _ model: AppModel, repositories: Repositories, clock: any DomainClock, inbox: (any InboxStorage)?,
+        processed: any ProcessedImportStore
+    ) {
+        guard let inbox else { return }
+        do {
+            let context = ServiceContext(
+                repositories: repositories, clock: clock, library: PlanningLibrary(seed: try SeedLoader.loadBundled()))
+            model.importService = ImportService(context: context, inbox: inbox, processedImports: processed)
+        } catch {
+            let kind = OMPLog.errorKind(error)
+            OMPLog.app.fault("Seed library could not be loaded for imports: \(kind, privacy: .public)")
+        }
+    }
+
     /// The planning services over the bundled recipe library, or nil when the library cannot be
     /// loaded (the Plan tab then shows C-052 and nothing is planned).
     private static func makePlanBackend(_ repositories: Repositories, clock: any DomainClock) -> (any PlanBackend)? {
@@ -88,6 +127,40 @@ enum CompositionRoot {
 }
 
 #if DEBUG
+/// Inbox fixtures for the UI tests: `-OMPUITestInbox <name>` (Debug builds only). The files go to
+/// a fresh temporary folder, so the tests never depend on the App Group (CI simulators run
+/// unsigned) or on real data.
+enum UITestInbox: String {
+    /// Two free-text items for the shopping list: the toast reads "Added 2 items from Notes."
+    case twoItems
+
+    static let argument = "-OMPUITestInbox"
+
+    init?(arguments: [String]) {
+        guard let index = arguments.firstIndex(of: Self.argument), arguments.indices.contains(index + 1)
+        else { return nil }
+        self.init(rawValue: arguments[index + 1])
+    }
+
+    func makeStorage(now: Date) -> any InboxStorage {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("omp-uitest-inbox-\(UUID().uuidString)", isDirectory: true)
+        switch self {
+        case .twoItems:
+            do {
+                try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+                let item = try InboxImport(
+                    createdAt: now, destination: .shoppingList,
+                    items: [InboxImport.Item(name: "Curry leaves"), InboxImport.Item(name: "Jaggery")])
+                try item.encoded().write(to: root.appendingPathComponent(item.fileName))
+            } catch {
+                OMPLog.app.fault("UI test inbox fixture could not be written")
+            }
+        }
+        return DirectoryInboxStorage(root: root)
+    }
+}
+
 /// Households the UI tests start with: `-OMPUITestSeed <name>` (Debug builds only, never in
 /// Release). Every seed uses a fresh in-memory store, so tests never touch real data.
 enum UITestSeed: String {

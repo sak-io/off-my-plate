@@ -33,6 +33,11 @@ public final class AppModel {
     public var pantryBackend: (any PantryBackend)?
     /// The shopping list use cases the List tab calls (T25); set by the composition root.
     public var shoppingBackend: (any ShoppingBackend)?
+    /// Merges the Share Extension's inbox into the list and pantry (T26); nil when no inbox is
+    /// wired (for example an unsigned build without the App Group).
+    public var importService: ImportService?
+    /// The Notes-import toast (C-111) while it is showing; the shell binds it to `ompToast`.
+    public var importToast: String?
     /// True from the first launch without a household until the first plan is made (T22).
     /// While it is set the shell shows onboarding, not the tabs or the gate cover.
     public private(set) var onboardingActive = false
@@ -95,5 +100,45 @@ public final class AppModel {
     public func finishOnboarding() async {
         onboardingActive = false
         await refresh()
+    }
+}
+
+
+// MARK: Notes import (T26)
+
+extension AppModel {
+    /// Merges pending Share Extension files (ADR 0011, AC-11.3). Call on launch and whenever the
+    /// scene becomes active. Shows C-111 when items were added; a failure is logged and the
+    /// files stay in the inbox for the next call. Imports only add rows and staple events: they
+    /// never touch rules, members or safety status (AC-11.5).
+    public func drainInbox() async {
+        guard let importService else { return }
+        do {
+            let summary = try await importService.drainInbox()
+            if summary.itemsTotal > 0 {
+                importToast = Self.importToastText(count: summary.itemsTotal)
+            }
+            if !summary.quarantined.isEmpty || !summary.stuck.isEmpty {
+                let quarantined = summary.quarantined.count
+                let stuck = summary.stuck.count
+                OMPLog.app.error(
+                    "Inbox: \(quarantined, privacy: .public) unreadable, \(stuck, privacy: .public) left for later")
+            }
+        } catch {
+            let kind = OMPLog.errorKind(error)
+            OMPLog.app.error("Inbox drain failed: \(kind, privacy: .public)")
+        }
+    }
+
+    /// C-111 "Added {n} items from Notes." (one item: "Added 1 item from Notes.").
+    static func importToastText(count: Int) -> String {
+        if count == 1 {
+            return String(
+                localized: "C-111.one", defaultValue: "Added 1 item from Notes.",
+                comment: "Toast after one inbox item was merged.")
+        }
+        return String(
+            localized: "C-111", defaultValue: "Added \(count) items from Notes.",
+            comment: "Toast after inbox items were merged.")
     }
 }

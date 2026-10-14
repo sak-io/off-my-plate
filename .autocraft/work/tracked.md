@@ -4,8 +4,8 @@
 |---|---|---|
 | T01 review-2 | NIT E: `Data(contentsOf:)`/`String(contentsOf:)`/`InputStream(url:)` can reach the network; cover with a SAST rule | security-auditor |
 | T01 follow-up | NIT T1/T2: rare `.current` forms; documented fail-safe false positives | none |
-| T02 review-1 | Test the share extension's text detection | T26 |
-| T02 review-1 | App Group entitlement likely off in CI simulators (`CODE_SIGNING_ALLOWED=NO`) | T26 |
+| T02 review-1 | Test the share extension's text detection | T26 - DONE (`ShareTextDetectionTests` in OMPShareTests) |
+| T02 review-1 | App Group entitlement likely off in CI simulators (`CODE_SIGNING_ALLOWED=NO`) | T26 - DONE (tests use temp dirs; UI test uses `-OMPUITestInbox`) |
 | T02 review-1 | Switch CI to checksum-verified XcodeGen 2.46.0 download | follow-up |
 | T02 review-1 | Lint against `CFBundleURLTypes` / associated domains under `App/` | follow-up |
 | T02 review-1 | App icon needed before TestFlight | T29 |
@@ -43,14 +43,14 @@
 | T16 delta review | Prepend (Cf, e.g. U+0600) + space may form a non-whitespace-initial Character; extend TranscriptSanitiser and add a test | follow-up |
 | T16 delta review | `droppedWords` fixture now sanitises its input (partly circular); keep explicit `describe` assertions | follow-up |
 | T21 | Shell audit test ignores Dynamic Type on the system "Plan" label and, on iPad, element-less Dynamic Type issues from the system tab bar (App/OffMyPlateUITests/AppShellUITests.swift, owner-approved 2026-10-14); find the real cause and remove | T28 |
-| T19 | Apple layer: implement `ProcessedImportStore` and `CounterStore` over `ProcessedImportRecord`/`CounterRecord`, an `InboxStorage` over the App Group folder (`DirectoryInboxStorage`), and wire `ImportService`, `LearningService`, `DataService` in the composition root; call `DataService.prune()` and `ImportService.drainInbox()` at launch / scene active | T20 follow-up / T21 / T26 |
+| T19 | Apple layer: implement `ProcessedImportStore` and `CounterStore` over `ProcessedImportRecord`/`CounterRecord`, an `InboxStorage` over the App Group folder (`DirectoryInboxStorage`), and wire `ImportService`, `LearningService`, `DataService` in the composition root; call `DataService.prune()` and `ImportService.drainInbox()` at launch / scene active | T26 - DONE for ImportService (inbox, processed-import store, drain at launch/active); `LearningService`/`DataService` wiring and `prune()` still open (T20 follow-up / T21) |
 | T19 | ASSUMPTION for owner: learner `RecipeTraits.keyIngredients` = first two non-optional lines of a recipe (no seed field marks the characteristic ingredients) | owner / content |
 | T19 | Import dedupe never edits plan-derived shopping lines (they are recomputed); an imported item whose ingredient is on the plan becomes its own "from Notes" row | owner (UX) |
 | T19 | `ImportService` merges before recording the import id: a stop in between merges the file twice on the next drain (visible duplicate preferred to lost items) | follow-up (needs a transactional store) |
 | T19 review-1 | `markCooked` is not idempotent after an interruption (deductions + log saved before the cooked ref): repeat deducts twice | follow-up (transactional store) |
 | T19 review-1 | Add a test: Mark cooked refuses a `blockedBySafety` meal (rule change after approval -> recheck -> markCooked) | follow-up |
 | T19 review-1 | `confirmVoice .add` does not validate ingredient ids against the library and creates duplicate rows for an ingredient already in the pantry | follow-up |
-| T19 review-1 | Confirm in T26 that the Share Extension recreates the Inbox folder (`createDirectory`) after "Delete all data" removed it | T26 |
+| T19 review-1 | Confirm in T26 that the Share Extension recreates the Inbox folder (`createDirectory`) after "Delete all data" removed it | T26 - DONE (`DirectoryShareInboxWriter`, test `recreatesFolder`) |
 | T19 review-1 | `markCooked` accepts caller-edited amounts unchecked (safe: deduct clamps at zero) | none |
 | T23 review-1 | **OWNER-VISIBLE DEVIATION:** AC-6.2/6.3 (adjust portions, set a member to "Not eating") are not delivered; portions are read-only in S-11. Cause: Core has no servings-edit service. Proposed Core task: `PlanService.setServings(meal:member:portion:notEating:in:)` through the services + validator; editing an approved plan creates a draft revision (AC-5.4); then steppers in S-11 | owner / new Core task |
 | T23 review-1 | Mark cooked button is a no-op until S-15 (`onMarkCooked` nil); consider disabling or a hint if shipped before then | T24 |
@@ -64,3 +64,8 @@
 | T25 review | "Need it" shown selected by default on every unchecked row (misleading, VoiceOver); UI tests lack Check-you-have and Bought-everything pantry assertions; share header uses Core English text with ISO dates | follow-up |
 | T25 review | QUESTION for owner: C-149 "Clear checked items" currently unchecks (deletes nothing); should it delete? Also no Localizable.xcstrings entries for Shopping strings (defaultValue works) | owner / T28 |
 | T26 review | App/project.yml comment above OffMyPlateShare still lists only OMPDomain, OMPRecipes, OMPUI: add OMPShare; ADR 0011 needs an architect ack for the new OMPShare target | follow-up |
+| T26 | ADR 0011 deviation: the extension also links the new `OMPShare` package product (its model, view and inbox writer; depends only on OMPDomain + OMPUI), so the extension logic is unit-testable; `OMPRecipes` is not linked because the app resolves ingredients on drain | architect (ack) |
+| T26 | Quarantined (unreadable) inbox files are only logged; ADR 0011 wants them surfaced to the user, but copy.md has no string for it | owner (UX copy) |
+| T26 | The import `ServiceContext` has its own lock, separate from the plan backend's and safety services' contexts (existing pattern); imports and plan re-derivation of the shopping list are not mutually serialised | follow-up (share one context in the composition root) |
+| T26 | C-111 has no singular; "Added 1 item from Notes." is used for n = 1 | owner (copy) |
+| T26 | The Notes-import toast is not covered by an accessibility audit (it hides after 4 s, the audit takes longer) | none |

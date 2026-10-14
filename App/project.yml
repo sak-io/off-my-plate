@@ -80,6 +80,9 @@ targets:
           - OMPRecipes
       - package: Apple
         product: OMPUI
+      # The extension's logic and screen (T26). Depends only on OMPDomain and OMPUI.
+      - package: Apple
+        product: OMPShare
 
   OffMyPlateUITests:
     type: bundle.ui-testing
