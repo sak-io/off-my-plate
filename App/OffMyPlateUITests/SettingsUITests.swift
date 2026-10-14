@@ -137,6 +137,9 @@ final class SettingsUITests: XCTestCase {
     @MainActor
     func testForgetRemovesAFact() throws {
         let app = launch(seed: "learned")
+        // The Plan tab stores the proposed fourth fact on launch; wait for it so the count
+        // taken below does not change under the test.
+        waitFor(app, "reflect.card", timeout: 20)
         openLearned(app)
         let before = elements(app, prefix: "learned.row.").count
         XCTAssertGreaterThanOrEqual(before, 3, "The learned list is missing seeded facts")
