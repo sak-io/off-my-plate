@@ -176,7 +176,7 @@ struct PantryList: View {
         List {
             Section {
                 PantrySearchField(text: $viewModel.searchText)
-                    .listRowBackground(Color.clear)
+                    .listRowBackground(Color.pantryRowFill)
             }
             if let message = viewModel.errorMessage {
                 Section {
@@ -302,7 +302,12 @@ struct PantrySearchField: View {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(Color.primary)
                 .accessibilityHidden(true)
-            TextField(PantryCopy.search, text: $text)
+            // The prompt is drawn in the primary colour: the default placeholder grey failed the
+            // contrast audit.
+            TextField(
+                PantryCopy.search, text: $text,
+                prompt: Text(PantryCopy.search).foregroundStyle(Color.primary.opacity(0.75))
+            )
                 .font(OMPFont.body)
                 .autocorrectionDisabled()
                 .accessibilityLabel(PantryCopy.search)
@@ -322,6 +327,16 @@ struct PantrySearchField: View {
         }
         .padding(.horizontal, OMPSpacing.medium)
         .frame(minHeight: OMPMetrics.minimumHitTarget)
-        .ompCardBackground()
+    }
+}
+
+extension Color {
+    /// An opaque row fill, so the audit always has a solid background to measure against.
+    fileprivate static var pantryRowFill: Color {
+        #if canImport(UIKit)
+        Color(uiColor: .secondarySystemGroupedBackground)
+        #else
+        Color(nsColor: .controlBackgroundColor)
+        #endif
     }
 }
