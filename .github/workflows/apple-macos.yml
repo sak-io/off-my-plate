@@ -109,15 +109,14 @@ jobs:
           retention-days: 1
           compression-level: 0
 
-  ui-test:
-    name: UI tests ${{ matrix.device }} shard ${{ matrix.shard }} (macOS 15, Xcode 26)
+  ui-test-iphone:
+    name: UI tests iPhone shard ${{ matrix.shard }} (macOS 15, Xcode 26)
     needs: ui-build
     runs-on: macos-15
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
-        device: [iPhone, iPad]
         shard: [1, 2, 3]
     steps:
       - name: Check out
@@ -139,11 +138,7 @@ jobs:
       - name: Pick simulator (newest iOS 18+ runtime; no hardcoded OS versions)
         run: |
           xcrun simctl list runtimes
-          if [[ "${{ matrix.device }}" == "iPad" ]]; then
-            echo "SIM_UDID=$(scripts/select-simulator.sh ipad "iPad (A16)")" >> "$GITHUB_ENV"
-          else
-            echo "SIM_UDID=$(scripts/select-simulator.sh iphone "iPhone 16")" >> "$GITHUB_ENV"
-          fi
+          echo "SIM_UDID=$(scripts/select-simulator.sh iphone "iPhone 16")" >> "$GITHUB_ENV"
 
       - name: Run this shard's UI tests (fails if no test ran)
         run: |
@@ -154,7 +149,60 @@ jobs:
           while IFS= read -r cls; do only+=("-only-testing:OffMyPlateUITests/$cls"); done \
             < <(scripts/ui-shard-classes.sh "${{ matrix.shard }}")
           echo "xctestrun: $xctestrun"; printf 'shard classes: %s\n' "${only[*]}"
-          bundle="$RUNNER_TEMP/ui-${{ matrix.device }}-${{ matrix.shard }}.xcresult"
+          bundle="$RUNNER_TEMP/ui-iPhone-${{ matrix.shard }}.xcresult"
+          xcodebuild test-without-building \
+            -xctestrun "$xctestrun" \
+            -destination "id=$SIM_UDID" \
+            -resultBundlePath "$bundle" \
+            -parallel-testing-enabled NO \
+            "${only[@]}"
+          scripts/assert-xcresult-tests-ran.sh "$bundle"
+
+  ui-test-ipad:
+    name: UI tests iPad shard ${{ matrix.shard }} (macOS 15, Xcode 26)
+    needs: ui-build
+    # iPad is the slower, rarely-different half: GitHub runs ~5 macOS jobs at once, so running both
+    # devices on every push queued shards for 10+ minutes. iPad runs on main, on a manual dispatch, or
+    # when the head commit message contains "[ipad]" (put it on the push you intend to merge).
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[ipad]')
+    runs-on: macos-15
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
+        with:
+          persist-credentials: false
+
+      - name: Select Xcode
+        uses: ./.github/actions/apple-setup
+        with:
+          generate-project: "false"
+
+      - name: Download the build
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ui-products
+          path: ${{ runner.temp }}/artifact
+
+      - name: Pick simulator (newest iOS 18+ runtime; no hardcoded OS versions)
+        run: |
+          xcrun simctl list runtimes
+          echo "SIM_UDID=$(scripts/select-simulator.sh ipad "iPad (A16)")" >> "$GITHUB_ENV"
+
+      - name: Run this shard's UI tests (fails if no test ran)
+        run: |
+          mkdir -p "$RUNNER_TEMP/dd"
+          tar -C "$RUNNER_TEMP/dd" -xzf "$RUNNER_TEMP/artifact/ui-products.tgz"
+          xctestrun="$(ls "$RUNNER_TEMP"/dd/Products/*.xctestrun | head -n 1)"
+          only=()
+          while IFS= read -r cls; do only+=("-only-testing:OffMyPlateUITests/$cls"); done \
+            < <(scripts/ui-shard-classes.sh "${{ matrix.shard }}")
+          echo "xctestrun: $xctestrun"; printf 'shard classes: %s\n' "${only[*]}"
+          bundle="$RUNNER_TEMP/ui-iPad-${{ matrix.shard }}.xcresult"
           xcodebuild test-without-building \
             -xctestrun "$xctestrun" \
             -destination "id=$SIM_UDID" \

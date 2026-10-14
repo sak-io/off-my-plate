@@ -12,15 +12,25 @@
 4. **Autonomy:** 3 since 2026-10-12. The owner said "Go ahead and build it. Don't need my approval" for the plan; the owner still merges the final pull request.
 5. **Team:** lean (starter + architect + qa-engineer) plus ux-designer. GitHub handle for `--owner`: to be confirmed.
 
-## Live status
-**Source of truth is `work/BOARD.md`** (generated from `work/status/*.json`; protocol in `AGENTS.md`). Any AI system or human picks only `not_started` tasks (`python3 scripts/board.py next`).
+## Live status (2026-10-14)
+**All 30 tasks are built and merged on `claude/build-v1`; CI green** (Linux Core, Swift packages, Release-hygiene, iPhone and iPad UI shards). Source of truth for task state is `work/BOARD.md`; protocol in `AGENTS.md`.
 
-Summary (2026-10-14): 16 of 30 merged; T12, T16, T18, T21 are in review on batch branch `claude/ci-batch-1` (Linux CI green, macOS CI being fixed); T19 has partial work on `wip/T19`; T22-T30 not started.
+**v1 is feature-complete but NOT release-ready.** Release needs the owner items below (device checks, sign-offs, privacy decision, TestFlight upload). `scripts/release-readiness.sh` fails until the content sign-offs exist.
+
+## Owner sign-offs and decisions needed
+1. **G1 recipe / allergen sign-off and R4/G4 restriction definitions** - `docs/content/seed-review.md`, `docs/content/restriction-signoff.md` (script `scripts/release-readiness.sh` fails until signed). A dietitian spot-check and a privacy review are App-Store-only items.
+2. **Backups (decision):** the SwiftData store and the share inbox are included in iCloud/iTunes backups today, so "Delete all data" cannot reach copies already in a backup. Option A: exclude both (`isExcludedFromBackup`; data lost on restore to a new phone). Option B: keep and disclose in the privacy policy. See `docs/release/data-map.md`.
+3. **Accessibility audit waivers (batch 4):** Pantry, Shopping, Settings and Plan-draft audit tests record findings as expected failures; plus iPad/"Plan"-label exceptions. All live in `App/OffMyPlateUITests/AccessibilityAudit.swift`. Needs a person with Xcode's Accessibility Inspector, then delete every exception (tracked.md, T28 rows).
+4. **Malayalam / Hindi safety keywords**, lunchbox child/teen band assumption, **Mark cooked deducts expired items first** (T14), "Clear checked items" wording (C-149), the Kerala cuisine chip (no copy yet), optional-name handling, two T19 defaults (key ingredients = first two non-optional lines; an imported item that matches the plan becomes its own "from Notes" row).
+5. **App icon, bundle IDs / App Group / team ID** (placeholders in `Base.xcconfig`; team in git-ignored `Local.xcconfig`), privacy policy URL.
+6. **Manual device checklist** (`docs/release/manual-device-checklist.md`): real Notes share, on-device speech offline (en-IN), VoiceOver, Reduce Motion, cold start < 1.5 s, Data Protection while locked, delete-all, Malayalam names.
+7. **TestFlight upload** is a human step: `docs/release/testflight-runbook.md`.
+8. Not done (tracked): portion steppers on the plan (needs a Core servings-edit service), iPad split view, AX5 and dark-mode audits per screen, Share Extension string catalogue, backup exclusion, xcodegen pin.
 
 ## Process notes
-- GitHub Actions works again (repo is public). CI is batched: several finished tasks go on one `claude/ci-batch-N` branch per CI cycle.
-- Task branches are pushed as `claude/ci-*` so CI runs before merge. The git proxy cannot delete remote branches; the owner can delete merged `claude/ci-*` and `wip/*` branches on GitHub.
-- Review follow-ups: `.autocraft/work/tracked.md`.
+- CI is batched; UI tests build once and run as parallel shards. iPad shards run only on `main`, manual dispatch, or when the head commit message contains `[ipad]` (put it on the push you intend to merge).
+- Task branches are pushed as `claude/ci-*` so CI runs before merge. The git proxy cannot delete remote branches: the owner can delete merged `claude/ci-*` and `wip/*` branches on GitHub.
+- Review follow-ups: `.autocraft/work/tracked.md`. Security audit: `.autocraft/work/security/`.
 
 ## Usage budget (owner decision, 2026-10-13)
 At most 2 agents at a time; reviewers on Sonnet; short briefs; one review round for small non-safety tasks. Recorded in `.autocraft/custom/team-rules.md` and `.autocraft/config.yml`.
