@@ -206,6 +206,7 @@ struct ImportServiceTests {
         #expect(rice.count == 1)
         #expect(rice.first?.quantity == ImportService.maxMergedAmount)
         #expect(rice.first?.quantity?.isFinite == true)
+        #expect(summary.amountsSkipped == 1)
     }
 
     @Test("a drain handles at most maxFilesPerDrain files and the next drain continues (audit L2)")

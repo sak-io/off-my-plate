@@ -178,13 +178,11 @@ public struct DirectoryInboxStorage: InboxStorage {
         if manager.fileExists(atPath: root.path) { try manager.removeItem(at: root) }
     }
 
-    /// Data Protection for the folders the app creates: complete-until-first-user-authentication,
-    /// not complete, because the Share Extension may write (and the app drain in the background)
-    /// while the device is locked after first unlock; `complete` would make that write fail. Files
-    /// are still encrypted at rest until the first unlock after boot. Other platforms ignore it.
+    /// Data Protection Complete for the folders the app creates (ADR 0011): the app drains the
+    /// inbox in the foreground, so an unlocked device is always the case. Other platforms ignore it.
     static var directoryAttributes: [FileAttributeKey: Any]? {
         #if os(iOS)
-        [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication]
+        [.protectionKey: FileProtectionType.complete]
         #else
         nil
         #endif

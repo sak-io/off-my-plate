@@ -1,0 +1,4 @@
+App/OffMyPlate/Split1.swift:2: UserConfirmation may be created only
+App/OffMyPlate/Split2.swift:2: UserConfirmation may be created only
+App/OffMyPlate/Split3.swift:2: UserConfirmation must not be aliased
+App/OffMyPlate/Split4.swift:2: UserConfirmation may be created only

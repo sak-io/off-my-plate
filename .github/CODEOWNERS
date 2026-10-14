@@ -8,3 +8,7 @@
 /Packages/Apple/Sources/OMPFeatures/Plan/ApprovalSheet.swift @sak-io
 /Packages/Core/Sources/OMPSafetyCheck/ @sak-io
 /Packages/Core/Sources/OMPDomain/Safety/ @sak-io
+/Packages/Core/Sources/OMPDomain/Plan/PlanLifecycle.swift @sak-io
+/scripts/lint-*.sh @sak-io
+/.github/workflows/ @sak-io
+/.github/actions/ @sak-io

@@ -19,9 +19,9 @@ public enum ShareInbox {
     }
 }
 
-/// Writes `<root>/<importId>.json` atomically with Data Protection CompleteUntilFirstUserAuthentication (not Complete: the extension may write
-/// while the device is locked after first unlock; the app's `DirectoryInboxStorage` uses the same class). The folder is
-/// (re)created on every write (T19 review: "Delete all data" removes it).
+/// Writes `<root>/<importId>.json` atomically with Data Protection Complete (ADR 0011). Complete is
+/// fine here: a share sheet only runs on an unlocked device, and the app reads in the foreground.
+/// The folder is (re)created on every write (T19 review: "Delete all data" removes it).
 public struct DirectoryShareInboxWriter: ShareInboxWriting {
     public let root: URL
 
@@ -35,8 +35,8 @@ public struct DirectoryShareInboxWriter: ShareInboxWriting {
         var attributes: [FileAttributeKey: Any] = [:]
         var options: Data.WritingOptions = [.atomic]
         #if os(iOS)
-        attributes[.protectionKey] = FileProtectionType.completeUntilFirstUserAuthentication
-        options.insert(.completeFileProtectionUntilFirstUserAuthentication)
+        attributes[.protectionKey] = FileProtectionType.complete
+        options.insert(.completeFileProtection)
         #endif
         try manager.createDirectory(at: root, withIntermediateDirectories: true, attributes: attributes)
         try data.write(to: root.appendingPathComponent(item.fileName, isDirectory: false), options: options)
