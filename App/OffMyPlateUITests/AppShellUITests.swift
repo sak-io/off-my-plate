@@ -105,17 +105,36 @@ final class AppShellUITests: XCTestCase {
         XCTAssertTrue(stillShown, "The gate cover was dismissed by a swipe")
     }
 
+    /// Runs the accessibility audit and reports EVERY issue in one run (the plain call stops at
+    /// the first, which costs one CI cycle per issue). Fails if any issue is not ignored.
+    /// The only ignore in use is the owner-approved Dynamic Type exception for the system
+    /// "Plan" label (tracked for T28).
+    @MainActor
+    private func auditAll(_ app: XCUIApplication, ignoreDynamicTypeOnPlanLabel: Bool = false) {
+        var found: [String] = []
+        do {
+            try app.performAccessibilityAudit { issue in
+                let ignored = ignoreDynamicTypeOnPlanLabel && issue.auditType == .dynamicType
+                    && issue.element?.label == "Plan"
+                if !ignored {
+                    let label = issue.element?.label ?? "?"
+                    let id = issue.element?.identifier ?? ""
+                    found.append("\(issue.auditType) | \(issue.compactDescription) | label '\(label)' id '\(id)'")
+                }
+                return true
+            }
+        } catch {
+            found.append("audit threw: \(error)")
+        }
+        XCTAssertTrue(found.isEmpty, "Accessibility audit issues (\(found.count)):\n" + found.joined(separator: "\n"))
+    }
+
     @MainActor
     func testShellPassesAccessibilityAudit() throws {
         let app = launch(seed: "answered")
         let planShown = element(app, "tab.plan.root").waitForExistence(timeout: 15)
         XCTAssertTrue(planShown)
-        // Narrow, documented exception (tracked for T28): CI flags Dynamic Type on the system
-        // "Plan" title/tab label, which are system chrome. Every other audit type, and
-        // Dynamic Type on all other elements, still fails the test.
-        try app.performAccessibilityAudit { issue in
-            issue.auditType == .dynamicType && issue.element?.label == "Plan"
-        }
+        auditAll(app, ignoreDynamicTypeOnPlanLabel: true)
     }
 
     @MainActor
@@ -123,6 +142,6 @@ final class AppShellUITests: XCTestCase {
         let app = launch(seed: "unasked")
         let titleShown = element(app, "gate.cover.title").waitForExistence(timeout: 15)
         XCTAssertTrue(titleShown)
-        try app.performAccessibilityAudit()
+        auditAll(app)
     }
 }
