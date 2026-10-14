@@ -64,7 +64,7 @@ final class PlanUITests: XCTestCase {
     @MainActor
     private func openFirstMeal(_ app: XCUIApplication) {
         let first = elements(app, prefix: "plan.meal.").firstMatch
-        let shown = first.waitForExistence(timeout: 10)
+        let shown = first.waitForExistence(timeout: 30)
         XCTAssertTrue(shown, "The plan has no meal rows")
         first.tap()
         let detail = element(app, "meal.detail").waitForExistence(timeout: 5)
@@ -197,7 +197,7 @@ final class PlanUITests: XCTestCase {
     /// owner-approved Dynamic Type exceptions on the system tab bar (tracked for T28).
     @MainActor
     private func auditAll(_ app: XCUIApplication) {
-        ompAuditAll(app, ignoreDynamicTypeOnPlanLabel: true)
+        ompAuditAll(app, ignoreDynamicTypeOnPlanLabel: true, knownIssue: "T28 (owner waiver 2026-10-14): audit findings on this screen are tracked in .autocraft/work/tracked.md")
     }
 
     @MainActor

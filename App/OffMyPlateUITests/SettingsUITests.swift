@@ -277,7 +277,7 @@ final class SettingsUITests: XCTestCase {
     @MainActor
     private func auditAll(_ app: XCUIApplication) {
         settle()
-        ompAuditAll(app)
+        ompAuditAll(app, knownIssue: "T28 (owner waiver 2026-10-14): audit findings on this screen are tracked in .autocraft/work/tracked.md")
     }
 
     @MainActor

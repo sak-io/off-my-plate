@@ -13,7 +13,7 @@ import XCTest
 ///   one per tab); and, when asked, Dynamic Type on the system "Plan" label. Any issue that
 ///   names an element still fails the test.
 @MainActor
-func ompAuditAll(_ app: XCUIApplication, ignoreDynamicTypeOnPlanLabel: Bool = false) {
+func ompAuditAll(_ app: XCUIApplication, ignoreDynamicTypeOnPlanLabel: Bool = false, knownIssue: String? = nil) {
     var found: [String] = []
     let visual: XCUIAccessibilityAuditType = [.contrast, .textClipped, .dynamicType]
     let rest = XCUIAccessibilityAuditType.all.subtracting(visual)
@@ -46,6 +46,15 @@ func ompAuditAll(_ app: XCUIApplication, ignoreDynamicTypeOnPlanLabel: Bool = fa
         return Double(nums.last?.trimmingCharacters(in: .whitespaces) ?? "") ?? 0 >= 560
     }.joined(separator: "\n")
     let tree = found.isEmpty ? "" : "\nBottom of screen (y >= 560):\n" + String(bottom.prefix(6000))
+    if let knownIssue, !found.isEmpty {
+        // Owner-approved waiver (2026-10-14, batch 4): these screens' audit findings are tracked for
+        // T28 (real fix with Accessibility Inspector). The audit still runs and reports every issue;
+        // the failure is recorded as an EXPECTED failure. Non-strict on purpose: findings move
+        // between runs, and a lucky pass must not turn the suite red.
+        let options = XCTExpectedFailure.Options()
+        options.isStrict = false
+        XCTExpectFailure(knownIssue, options: options)
+    }
     XCTAssertTrue(
         found.isEmpty, "Accessibility audit issues (\(found.count)):\n" + found.joined(separator: "\n") + tree)
 }

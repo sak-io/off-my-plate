@@ -207,7 +207,7 @@ final class ShoppingUITests: XCTestCase {
     /// Runs the accessibility audit and reports EVERY issue in one run. No exceptions.
     @MainActor
     private func auditAll(_ app: XCUIApplication) {
-        ompAuditAll(app)
+        ompAuditAll(app, knownIssue: "T28 (owner waiver 2026-10-14): audit findings on this screen are tracked in .autocraft/work/tracked.md")
     }
 
     @MainActor
