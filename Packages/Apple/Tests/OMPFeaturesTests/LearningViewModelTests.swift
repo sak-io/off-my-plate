@@ -246,4 +246,25 @@ struct LearningViewModelTests {
         #expect(after.rules == before.rules)
         #expect(after.members == before.members)
     }
+
+    @Test("A forgotten fact stays gone after the learner runs again (no re-proposal)")
+    func forgottenStaysForgotten() async throws {
+        let stated = softFact(.cuisineAffinity("southIndian"), .stated)
+        let env = await SettingsEnv.make(members: [adult], facts: [stated], events: quickWeekdayEvents())
+        // The learner proposes the weekday fact from the events; the user forgets both facts.
+        _ = try await env.backend.nextReflectBack()
+        await env.learning.load()
+        #expect(env.learning.facts.count == 2)
+        for fact in env.learning.facts { await env.learning.forget(fact) }
+        #expect(env.learning.isEmpty)
+
+        // Run the learner again, as a reload and a new reflect-back request do.
+        let card = try await env.backend.nextReflectBack()
+        #expect(card == nil)
+        await env.learning.load()
+        #expect(env.learning.isEmpty)
+        let stored = try await env.repositories.facts.fetchAll()
+        #expect(stored.allSatisfy { $0.status == .forgotten })
+        #expect(stored.count == 2)
+    }
 }

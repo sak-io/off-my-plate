@@ -141,8 +141,13 @@ final class SettingsUITests: XCTestCase {
         // taken below does not change under the test.
         waitFor(app, "reflect.card", timeout: 20)
         openLearned(app)
-        let before = elements(app, prefix: "learned.row.").count
-        XCTAssertGreaterThanOrEqual(before, 3, "The learned list is missing seeded facts")
+        // Rows below the fold are not in the accessibility tree, so counting rows is unreliable:
+        // check that the forgotten fact's own text is gone instead.
+        let first = element(app, "learned.row.0")
+        let firstShown = first.waitForExistence(timeout: 10)
+        XCTAssertTrue(firstShown, "The learned list is missing seeded facts")
+        let forgottenText = first.label
+        XCTAssertFalse(forgottenText.isEmpty)
 
         tap(app, "learned.row.0")
         waitFor(app, "fact.sheet")
@@ -153,16 +158,10 @@ final class SettingsUITests: XCTestCase {
         confirm.tap()
 
         waitFor(app, "learned.root")
-        var after = elements(app, prefix: "learned.row.").count
-        var polls = 0
-        while after != before - 1 && polls < 20 {
-            let pause = XCTestExpectation(description: "poll")
-            pause.isInverted = true
-            _ = XCTWaiter().wait(for: [pause], timeout: 0.5)
-            after = elements(app, prefix: "learned.row.").count
-            polls += 1
-        }
-        XCTAssertEqual(after, before - 1, "The forgotten fact is still listed")
+        let stillThere = app.descendants(matching: .any).matching(
+            NSPredicate(format: "identifier BEGINSWITH 'learned.row.' AND label == %@", forgottenText)).firstMatch
+        let gone = stillThere.waitForNonExistence(timeout: 10)
+        XCTAssertTrue(gone, "The forgotten fact is still listed: \(forgottenText)")
     }
 
     @MainActor
