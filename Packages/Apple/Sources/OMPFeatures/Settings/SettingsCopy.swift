@@ -161,8 +161,8 @@ enum SettingsCopy {
     }
     nonisolated static var typeToAdd: String {
         String(
-            localized: "C-023a", defaultValue: "e.g. no beef, one of us can't have nuts",
-            comment: "Add sheet text field placeholder.")
+            localized: "settings.addRule.placeholder", defaultValue: "e.g. no beef",
+            comment: "Add sheet text field placeholder (short so it never clips).")
     }
     nonisolated static var orTellMe: String {
         String(localized: "C-023", defaultValue: "or tell me what to avoid", comment: "Add sheet divider.")

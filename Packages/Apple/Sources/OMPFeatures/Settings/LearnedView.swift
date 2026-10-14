@@ -8,6 +8,8 @@ import SwiftUI
 struct LearnedView: View {
     @State private var viewModel: LearningViewModel
     @State private var household: HouseholdViewModel
+    @State private var openFact: FactID?
+    @State private var showingSafety = false
 
     init(app: AppModel) {
         _viewModel = State(initialValue: LearningViewModel(app: app))
@@ -21,6 +23,12 @@ struct LearnedView: View {
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
+            .navigationDestination(item: $openFact) { id in
+                if let fact = viewModel.fact(id) { FactSheetView(viewModel: viewModel, fact: fact) }
+            }
+            .navigationDestination(isPresented: $showingSafety) {
+                SafetyRulesView(viewModel: household)
+            }
             .task { await viewModel.load() }
             .alert(SettingsCopy.saveFailed, isPresented: $viewModel.saveFailed) {
                 Button(SettingsCopy.ok, role: .cancel) {}
@@ -85,18 +93,21 @@ struct LearnedView: View {
                 }
             }
             Section {
-                NavigationLink {
-                    SafetyRulesView(viewModel: household)
+                Button {
+                    showingSafety = true
                 } label: {
-                    Label {
-                        Text(SettingsCopy.safetyPointer)
-                            .font(OMPFont.disclaimer)
-                            .foregroundStyle(Color.primary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    } icon: {
-                        Image(systemName: OMPSymbol.info).foregroundStyle(Color.primary).accessibilityHidden(true)
+                    SettingsRowLabel {
+                        Label {
+                            Text(SettingsCopy.safetyPointer)
+                                .font(OMPFont.disclaimer)
+                                .foregroundStyle(Color.primary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        } icon: {
+                            Image(systemName: OMPSymbol.info).foregroundStyle(Color.primary).accessibilityHidden(true)
+                        }
                     }
                 }
+                .buttonStyle(.plain)
                 .accessibilityIdentifier(AccessibilityID.learnedSafetyLink)
             }
         }
@@ -104,27 +115,28 @@ struct LearnedView: View {
 
     @ViewBuilder
     private func row(_ fact: Fact, index: Int) -> some View {
-        NavigationLink {
-            FactSheetView(viewModel: viewModel, fact: fact)
+        Button {
+            openFact = fact.id
         } label: {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(viewModel.sentence(fact)).font(OMPFont.mealName)
-                if let word = viewModel.confidenceWord(fact) {
-                    Text(word).font(OMPFont.reason).foregroundStyle(Color.primary)
+            SettingsRowLabel {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(viewModel.sentence(fact)).font(OMPFont.mealName)
+                    if let word = viewModel.confidenceWord(fact) {
+                        Text(word).font(OMPFont.reason).foregroundStyle(Color.primary)
+                    }
                 }
+                .fixedSize(horizontal: false, vertical: true)
             }
-            .fixedSize(horizontal: false, vertical: true)
-            .accessibilityElement(children: .combine)
         }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
         .swipeActions(edge: .trailing) {
             Button(SettingsCopy.forget, role: .destructive) { viewModel.requestForget(fact) }
         }
         .accessibilityIdentifier(AccessibilityID.learnedRow(index))
         if viewModel.canQuickConfirm(fact) {
             Button(SettingsCopy.thatsRight) { Task { await viewModel.thatsRight(fact) } }
-                .buttonStyle(.bordered)
-                .tint(Color.primary)
-                .ompMinimumHitTarget()
+                .buttonStyle(SafetyOutlinedButtonStyle())
                 .accessibilityIdentifier(AccessibilityID.learnedConfirm(index))
         }
     }

@@ -138,12 +138,17 @@ public final class HouseholdService: Sendable {
         }
     }
 
-    /// Drops control, format (bidi overrides, zero-width) and line/paragraph separator
-    /// characters, trims, cuts to `maxNameLength` and trims again.
+    /// Drops control, format (bidi overrides, zero-width space...) and line/paragraph separator
+    /// characters (but not ZWNJ/ZWJ), trims, cuts to `maxNameLength` and trims again.
     static func cleanName(_ name: String?) -> String {
         guard let name else { return "" }
         var scalars = String.UnicodeScalarView()
         for scalar in name.unicodeScalars {
+            // ZWNJ and ZWJ shape Malayalam and other Indic names and join emoji: keep them.
+            if scalar.value == 0x200C || scalar.value == 0x200D {
+                scalars.append(scalar)
+                continue
+            }
             switch scalar.properties.generalCategory {
             case .control, .format, .lineSeparator, .paragraphSeparator, .surrogate, .privateUse, .unassigned:
                 continue

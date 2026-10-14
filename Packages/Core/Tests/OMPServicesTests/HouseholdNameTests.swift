@@ -86,4 +86,38 @@ struct HouseholdNameTests {
         let error = await serviceError { _ = try await env.households.setName("X", for: id) }
         #expect(error == .invalidInput("no such member"))
     }
+
+    @Test("ZWNJ and ZWJ survive: a Malayalam name with a chillu and a ZWJ emoji")
+    func keepsJoiners() async throws {
+        let env = ServicesEnv()
+        let household = try await env.onboardWithoutRules()
+        let id = try #require(household.members.first?.id)
+        let malayalam = "\u{0D05}\u{0D2E}\u{0D32}\u{0D4D}\u{200D}\u{0D2F}\u{0D3E}\u{200C}\u{0D33}\u{0D02}"
+        let named = try await env.households.setName(malayalam, for: id)
+        #expect(named.member(id)?.name == malayalam)
+        let family = "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}"
+        let emoji = try await env.households.setName(family, for: id)
+        #expect(emoji.member(id)?.name == family)
+    }
+
+    @Test("Other format characters are still stripped next to joiners")
+    func stripsOthersNextToJoiners() async throws {
+        let env = ServicesEnv()
+        let household = try await env.onboardWithoutRules()
+        let id = try #require(household.members.first?.id)
+        let named = try await env.households.setName("A\u{200D}\u{202E}B\u{200B}", for: id)
+        #expect(named.member(id)?.name == "A\u{200D}B")
+    }
+
+    @Test("The length cut never lands inside a grapheme cluster")
+    func cutKeepsClusters() async throws {
+        let env = ServicesEnv()
+        let household = try await env.onboardWithoutRules()
+        let id = try #require(household.members.first?.id)
+        let family = "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}"
+        let text = String(repeating: "a", count: HouseholdService.maxNameLength - 1) + family + "zzz"
+        let named = try await env.households.setName(text, for: id)
+        let stored = try #require(named.member(id)?.name)
+        #expect(stored == String(repeating: "a", count: HouseholdService.maxNameLength - 1) + family)
+    }
 }
