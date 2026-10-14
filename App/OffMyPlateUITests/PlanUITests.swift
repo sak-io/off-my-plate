@@ -202,7 +202,11 @@ final class PlanUITests: XCTestCase {
                 if !ignored && !ipadChrome {
                     let label = issue.element?.label ?? "?"
                     let id = issue.element?.identifier ?? ""
-                    found.append("\(issue.auditType) | \(issue.compactDescription) | label '\(label)' id '\(id)'")
+                    let type = issue.element?.elementType.rawValue ?? 0
+                    let frame = issue.element?.frame ?? .zero
+                    let detail = String((issue.element?.debugDescription ?? "").prefix(300))
+                    found.append(
+                        "\(issue.auditType) | \(issue.compactDescription) | label '\(label)' id '\(id)' type \(type) frame \(frame) | \(detail)")
                 }
                 return true
             }

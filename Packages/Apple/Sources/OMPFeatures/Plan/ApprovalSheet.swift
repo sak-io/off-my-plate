@@ -22,7 +22,7 @@ struct ApprovalSheet: View {
                             .accessibilityAddTraits(.isHeader)
                         Text(subtitle)
                             .font(OMPFont.body)
-                            .foregroundStyle(Color.primary.opacity(0.75))
+                            .foregroundStyle(Color.primary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .listRowBackground(Color.clear)
@@ -36,7 +36,7 @@ struct ApprovalSheet: View {
                     } header: {
                         Text(PlanCopy.diffHeader(day: viewModel.dayTitle(change.date), meal: PlanCopy.slotName(change.slot)))
                             .font(OMPFont.reason.bold())
-                            .foregroundStyle(Color.primary.opacity(0.75))
+                            .foregroundStyle(Color.primary)
                             .accessibilityAddTraits(.isHeader)
                     }
                     .accessibilityIdentifier(AccessibilityID.approvalChange(index))

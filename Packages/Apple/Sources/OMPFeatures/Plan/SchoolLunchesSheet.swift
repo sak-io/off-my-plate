@@ -51,7 +51,7 @@ struct SchoolLunchesSheet: View {
                 } footer: {
                     if !canSave {
                         Text(PlanCopy.pickAtLeastOne)
-                            .foregroundStyle(Color.primary.opacity(0.75))
+                            .foregroundStyle(Color.primary)
                     }
                 }
             }

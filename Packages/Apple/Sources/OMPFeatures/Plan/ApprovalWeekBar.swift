@@ -23,7 +23,7 @@ struct ApprovalWeekBar: View {
         .accessibilityIdentifier(AccessibilityID.planApprove)
         Text(viewModel.isBlocked ? PlanCopy.blockedHint(viewModel.blockingName) : PlanCopy.approveCaption)
             .font(OMPFont.disclaimer)
-            .foregroundStyle(Color.primary.opacity(0.75))
+            .foregroundStyle(Color.primary)
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
     }

@@ -86,7 +86,7 @@ struct SwapSheet: View {
                         if let reason = option.reason {
                             Text(reason)
                                 .font(OMPFont.reason)
-                                .foregroundStyle(Color.primary.opacity(0.75))
+                                .foregroundStyle(Color.primary)
                         }
                     }
                     .fixedSize(horizontal: false, vertical: true)

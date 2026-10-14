@@ -153,7 +153,7 @@ struct ReviewChangesBar: View {
         if viewModel.isBlocked {
             Text(PlanCopy.blockedHint(viewModel.blockingName))
                 .font(OMPFont.disclaimer)
-                .foregroundStyle(Color.primary.opacity(0.75))
+                .foregroundStyle(Color.primary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -298,15 +298,16 @@ struct PlanWeekList: View {
             }
             ForEach(viewModel.days) { day in
                 Section {
+                    Text(viewModel.dayTitle(day.date))
+                        .font(.headline)
+                        .foregroundStyle(Color.primary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityAddTraits(.isHeader)
+                        .accessibilityIdentifier(AccessibilityID.planDay(day.id))
                     ForEach(day.meals) { meal in
                         PlanMealRow(viewModel: viewModel, meal: meal) { path.append(meal.id) }
                     }
-                } header: {
-                    Text(viewModel.dayTitle(day.date))
-                        .font(OMPFont.reason.bold())
-                        .foregroundStyle(Color.primary.opacity(0.75))
-                        .accessibilityAddTraits(.isHeader)
-                        .accessibilityIdentifier(AccessibilityID.planDay(day.id))
                 }
             }
             Section {
@@ -322,17 +323,25 @@ struct PlanWeekList: View {
         VStack(alignment: .leading, spacing: OMPSpacing.small) {
             if let status = viewModel.status {
                 let text = viewModel.statusText(status)
-                StatusLabel(
-                    text, systemImage: Self.symbol(for: status),
-                    accessibilityText: PlanCopy.statusAccessibility(text), isHeader: true
-                )
-                .font(OMPFont.body.bold())
+                HStack(alignment: .firstTextBaseline, spacing: OMPSpacing.small) {
+                    Image(systemName: Self.symbol(for: status))
+                        .foregroundStyle(OMPColor.accent)
+                        .accessibilityHidden(true)
+                    Text(text)
+                        .font(.headline)
+                        .foregroundStyle(Color.primary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(PlanCopy.statusAccessibility(text))
+                .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier(AccessibilityID.planStatus)
             }
             if let range = viewModel.rangeText {
                 Text(range)
                     .font(OMPFont.reason)
-                    .foregroundStyle(Color.primary.opacity(0.75))
+                    .foregroundStyle(Color.primary)
             }
             Button(PlanCopy.regenerate) { viewModel.isConfirmingRegenerate = true }
                 .buttonStyle(.bordered)
@@ -398,7 +407,7 @@ struct PlanMealRow: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(PlanCopy.slotName(meal.slot))
                             .font(OMPFont.reason)
-                            .foregroundStyle(Color.primary.opacity(0.75))
+                            .foregroundStyle(Color.primary)
                         if meal.isEmpty {
                             Text(PlanCopy.emptySlot).font(OMPFont.mealName)
                         } else {
@@ -406,14 +415,14 @@ struct PlanMealRow: View {
                             if let reason = viewModel.reasonLine(of: meal) {
                                 Text(reason)
                                     .font(OMPFont.reason)
-                                    .foregroundStyle(Color.primary.opacity(0.75))
+                                    .foregroundStyle(Color.primary)
                             }
                         }
                     }
                     .fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: 0)
                     Image(systemName: "chevron.right")
-                        .foregroundStyle(Color.primary.opacity(0.75))
+                        .foregroundStyle(Color.primary)
                         .accessibilityHidden(true)
                 }
                 .contentShape(Rectangle())
