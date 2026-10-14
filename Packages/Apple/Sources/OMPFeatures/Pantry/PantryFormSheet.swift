@@ -20,6 +20,9 @@ struct PantryFormSheet: View {
 
     var body: some View {
         NavigationStack {
+            // The Save bar sits BELOW the scrolling form in a stack (not a safe-area inset), so
+            // the keyboard lifts it and it is never hidden while typing.
+            VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: OMPSpacing.medium) {
                     if let transcript = form.transcript {
@@ -37,31 +40,15 @@ struct PantryFormSheet: View {
                         InlineCard(title: message, systemImage: OMPSymbol.warning)
                             .accessibilityIdentifier(AccessibilityID.pantryFormError)
                     }
-                    if !form.canSave && !form.isSaving {
-                        Text(PantryCopy.saveNeedsAmount)
-                            .font(OMPFont.disclaimer)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    Button(PantryCopy.save) { finish { await form.save() } }
-                    .buttonStyle(.ompPrimary)
-                    .disabled(!form.canSave)
-                    .accessibilityIdentifier(AccessibilityID.pantryFormSave)
-                    if form.isEditing {
-                        Button(role: .destructive) {
-                            finish { await form.delete() }
-                        } label: {
-                            Text(PantryCopy.deleteItem)
-                        }
-                        .buttonStyle(.bordered)
-                        .ompMinimumHitTarget()
-                        .accessibilityIdentifier(AccessibilityID.pantryFormDelete)
-                    }
                 }
                 .frame(maxWidth: OMPMetrics.readableMaxWidth, alignment: .leading)
                 .padding(OMPSpacing.medium)
                 .frame(maxWidth: .infinity)
             }
+            .scrollDismissesKeyboard(.interactively)
             .accessibilityIdentifier(AccessibilityID.pantryForm)
+            bottomBar
+            }
             .navigationTitle(form.isEditing ? PantryCopy.editItem : PantryCopy.addItem)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -86,6 +73,37 @@ struct PantryFormSheet: View {
             viewModel.sheet = nil
             dismiss()
         }
+    }
+
+    private var bottomBar: some View {
+        VStack(spacing: OMPSpacing.small) {
+            if !form.canSave && !form.isSaving {
+                Text(PantryCopy.saveNeedsAmount)
+                    .font(OMPFont.disclaimer)
+                    .foregroundStyle(Color.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            Button(PantryCopy.save) { finish { await form.save() } }
+                .buttonStyle(.ompPrimary)
+                .disabled(!form.canSave)
+                .accessibilityIdentifier(AccessibilityID.pantryFormSave)
+            if form.isEditing {
+                Button(role: .destructive) {
+                    finish { await form.delete() }
+                } label: {
+                    Text(PantryCopy.deleteItem)
+                        .font(OMPFont.body)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .ompMinimumHitTarget()
+                .accessibilityIdentifier(AccessibilityID.pantryFormDelete)
+            }
+        }
+        .padding(OMPSpacing.medium)
+        .frame(maxWidth: .infinity)
+        .planBarBackground()
     }
 
     // MARK: Fields
