@@ -1,0 +1,2 @@
+App/OffMyPlate/Raw1.swift:1: UserConfirmation may be created only
+App/OffMyPlate/Raw2.swift:3: UserConfirmation may be created only

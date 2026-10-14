@@ -170,8 +170,13 @@ jobs:
 
           # scan_file <file>: succeeds (exit 0) if the pattern is found in the file's strings.
           # Output goes to a file first, then grep: no `strings | grep -q` SIGPIPE pitfall.
+          # Returns 0 found, 1 not found; a failing `strings` stops the whole step (exit 2),
+          # it is never read as "not found".
           scan_file() {
-            strings -a "$1" > "$work/strings.txt"
+            if ! strings -a "$1" > "$work/strings.txt"; then
+              echo "::error::strings failed on $1"
+              exit 2
+            fi
             grep -Eq "$pattern" "$work/strings.txt"
           }
 
