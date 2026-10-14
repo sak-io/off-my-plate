@@ -1,3 +1,4 @@
+import UIKit
 import XCTest
 
 /// App shell (task T21): tabs, the root safety-gate cover, and an accessibility audit.
@@ -107,8 +108,9 @@ final class AppShellUITests: XCTestCase {
 
     /// Runs the accessibility audit and reports EVERY issue in one run (the plain call stops at
     /// the first, which costs one CI cycle per issue). Fails if any issue is not ignored.
-    /// The only ignore in use is the owner-approved Dynamic Type exception for the system
-    /// "Plan" label (tracked for T28).
+    /// The only ignores in use are the owner-approved Dynamic Type exceptions (tracked for T28):
+    /// the system "Plan" label, and on iPad the element-less Dynamic Type issues that the
+    /// system tab bar / sidebar items raise (one per tab). Every other audit type still fails.
     @MainActor
     private func auditAll(_ app: XCUIApplication, ignoreDynamicTypeOnPlanLabel: Bool = false) {
         var found: [String] = []
@@ -116,7 +118,9 @@ final class AppShellUITests: XCTestCase {
             try app.performAccessibilityAudit { issue in
                 let ignored = ignoreDynamicTypeOnPlanLabel && issue.auditType == .dynamicType
                     && issue.element?.label == "Plan"
-                if !ignored {
+                let ipadChrome = UIDevice.current.userInterfaceIdiom == .pad && ignoreDynamicTypeOnPlanLabel
+                    && issue.auditType == .dynamicType && issue.element == nil
+                if !ignored && !ipadChrome {
                     let label = issue.element?.label ?? "?"
                     let id = issue.element?.identifier ?? ""
                     found.append("\(issue.auditType) | \(issue.compactDescription) | label '\(label)' id '\(id)'")

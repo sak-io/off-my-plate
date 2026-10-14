@@ -42,4 +42,4 @@
 | T18 review-1 | ASSUMPTION for owner: lunchbox children = child or teen age band | owner |
 | T16 delta review | Prepend (Cf, e.g. U+0600) + space may form a non-whitespace-initial Character; extend TranscriptSanitiser and add a test | follow-up |
 | T16 delta review | `droppedWords` fixture now sanitises its input (partly circular); keep explicit `describe` assertions | follow-up |
-| T21 | Shell audit test ignores Dynamic Type issue on the system "Plan" label (App/OffMyPlateUITests/AppShellUITests.swift); find the real cause and remove the exception | T28 |
+| T21 | Shell audit test ignores Dynamic Type on the system "Plan" label and, on iPad, element-less Dynamic Type issues from the system tab bar (App/OffMyPlateUITests/AppShellUITests.swift, owner-approved 2026-10-14); find the real cause and remove | T28 |
