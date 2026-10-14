@@ -110,12 +110,7 @@ final class AppShellUITests: XCTestCase {
         let app = launch(seed: "answered")
         let planShown = element(app, "tab.plan.root").waitForExistence(timeout: 15)
         XCTAssertTrue(planShown)
-        // Narrow, documented exception (tracked for T28): CI flags Dynamic Type on the system
-        // "Plan" title/tab label, which are system chrome. Every other audit type, and
-        // Dynamic Type on all other elements, still fails the test.
-        try app.performAccessibilityAudit { issue in
-            issue.auditType == .dynamicType && issue.element?.label == "Plan"
-        }
+        try app.performAccessibilityAudit()
     }
 
     @MainActor
