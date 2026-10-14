@@ -1,4 +1,4 @@
-App/OffMyPlate/VoiceIntent.swift:2: UserConfirmation may be created only in the approval sheet (OMPFeatures/**/Approval*.swift) and tests (ADR 0008, AC-5.6)
+App/OffMyPlate/VoiceIntent.swift:2: UserConfirmation may be created only in the approval sheet (the exact files OMPFeatures/Plan/ApprovalWeekBar.swift and ApprovalSheet.swift) and tests (ADR 0008, AC-5.6)
 Packages/Apple/Sources/OMPFeatures/Plan/PlanView.swift:2: UserConfirmation may be created only in the approval sheet
 Packages/Apple/Sources/OMPFeatures/Plan/Sheets/NotApprovalSheet.swift:1: UserConfirmation may be created only in the approval sheet
 Packages/Core/Sources/OMPDomain/Tests/FakeTests.swift:1: UserConfirmation may be created only in the approval sheet

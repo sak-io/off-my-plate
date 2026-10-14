@@ -18,6 +18,10 @@ public struct ImportSummary: Sendable, Hashable {
     public var quarantined: [String] = []
     /// Names of files left in the inbox because of a storage error (or a failed move to `failed/`); they are tried again next time.
     public var stuck: [String] = []
+    /// Files left in the inbox because this drain reached `ImportService.maxFilesPerDrain`; the next drain continues.
+    public var deferred = 0
+    /// Amounts not added to an existing row because the total would exceed `ImportService.maxMergedAmount`.
+    public var amountsSkipped = 0
 
     public init() {}
 
@@ -43,6 +47,20 @@ public final class ImportService: Sendable {
     let inbox: any InboxStorage
     let processed: any ProcessedImportStore
 
+    /// At most this many inbox files are handled per drain (security audit L2); the rest wait.
+    public static let maxFilesPerDrain = 200
+    /// Newest files kept in `failed/`; older ones are deleted (security audit L2).
+    public static let maxQuarantined = 50
+    /// A merged amount above this (or not finite) is not applied (security audit L1). Generous:
+    /// 100000 kg is 1e8 g.
+    public static let maxMergedAmount: Double = 1e9
+
+    /// The sum when it is a sane number, else nil (the existing row is left as it was).
+    private static func sane(_ sum: Quantity?) -> Quantity? {
+        guard let sum, sum.amount.isFinite, sum.amount <= maxMergedAmount else { return nil }
+        return sum
+    }
+
     public init(context: ServiceContext, inbox: any InboxStorage, processedImports: any ProcessedImportStore) {
         self.context = context
         self.inbox = inbox
@@ -55,12 +73,26 @@ public final class ImportService: Sendable {
         try await context.serialized {
             var summary = ImportSummary()
             let now = context.clock.now
-            let names = InboxFiles.inboxFileNames(in: try await inbox.fileNames())
+            var names = InboxFiles.inboxFileNames(in: try await inbox.fileNames())
+            // Name order is arbitrary but stable, so repeated drains make progress.
+            names.sort()
+            // Files that end up `stuck` do not count towards the cap (they would otherwise fill it
+            // for ever); total attempts are bounded too.
+            var handled = 0
+            var attempts = 0
+            var position = 0
             for name in names {
+                if handled >= Self.maxFilesPerDrain || attempts >= Self.maxFilesPerDrain * 4 {
+                    summary.deferred = names.count - position
+                    break
+                }
+                position += 1
+                attempts += 1
                 guard let id = InboxFiles.importID(fromFileName: name) else { continue }
                 if try await processed.contains(id) {
                     try? await inbox.remove(name)
                     summary.alreadyImported += 1
+                    handled += 1
                     continue
                 }
                 let parsed: InboxImport
@@ -75,6 +107,7 @@ public final class ImportService: Sendable {
                     do {
                         try await inbox.quarantine(name)
                         summary.quarantined.append(name)
+                        handled += 1
                     } catch {
                         summary.stuck.append(name)
                     }
@@ -94,6 +127,10 @@ public final class ImportService: Sendable {
                 try? await inbox.remove(name)
                 summary.destinations.insert(parsed.destination)
                 summary.filesImported += 1
+                handled += 1
+            }
+            if summary.quarantined.count > 0 {
+                try? await inbox.pruneQuarantine(keepNewest: Self.maxQuarantined)
             }
             if summary.filesImported > 0 {
                 try await ShoppingEngine(context: context).rederive()
@@ -138,9 +175,12 @@ public final class ImportService: Sendable {
                 var existing = list[index]
                 if let incoming, let have = existing.quantity, let unit = existing.unit {
                     let profile = found.map(ConversionProfile.init(ingredient:)) ?? .sameDimensionOnly
-                    if let sum = Quantity(have, unit).adding(incoming, using: profile) {
+                    let total = Quantity(have, unit).adding(incoming, using: profile)
+                    if let sum = Self.sane(total) {
                         existing.quantity = sum.amount
                         existing.unit = sum.unit
+                    } else if total != nil {
+                        summary.amountsSkipped += 1
                     }
                 }
                 if existing != list[index] {
@@ -181,8 +221,11 @@ public final class ImportService: Sendable {
                 var existing = pantry[index]
                 if let incoming {
                     let profile = found.map(ConversionProfile.init(ingredient:)) ?? .sameDimensionOnly
-                    if let sum = existing.amount.adding(incoming, using: profile) {
+                    let total = existing.amount.adding(incoming, using: profile)
+                    if let sum = Self.sane(total) {
                         existing.quantity = sum.amount
+                    } else if total != nil {
+                        summary.amountsSkipped += 1
                     }
                 }
                 existing.lastConfirmedAt = now

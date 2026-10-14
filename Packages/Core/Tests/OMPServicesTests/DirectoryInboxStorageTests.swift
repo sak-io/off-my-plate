@@ -173,4 +173,69 @@ struct DirectoryInboxStorageTests {
         #expect(summary.filesImported == 0)
         #expect(try await env.processed.count() == 0)
     }
+
+    @Test("a symlink in the inbox is not followed: reading it fails as a bad file and drain quarantines the link (audit L3)")
+    func symlinkIsNotFollowed() async throws {
+        let root = makeRoot()
+        defer { cleanup(root) }
+        let outside = makeRoot()
+        defer { cleanup(outside) }
+        let storage = DirectoryInboxStorage(root: root)
+        let env = ServicesBEnv()
+        let secret = try ServicesBFixture.inboxFile(id: "import-secret", items: [InboxImport.Item(name: "Secret")])
+        try write(secret.data, "outside.json", in: outside)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let link = root.appendingPathComponent("import-link.json")
+        try FileManager.default.createSymbolicLink(
+            at: link, withDestinationURL: outside.appendingPathComponent("outside.json"))
+
+        do {
+            _ = try await storage.read("import-link.json")
+            Issue.record("expected the symlink to be rejected")
+        } catch is InboxImportError {
+        }
+
+        let imports = ImportService(context: env.base.context, inbox: storage, processedImports: env.processed)
+        let summary = try await imports.drainInbox()
+        #expect(summary.quarantined == ["import-link.json"])
+        #expect(summary.filesImported == 0)
+        #expect(try await env.repositories.shopping.fetchAll().isEmpty)
+        // The target outside the inbox is untouched.
+        #expect(exists(outside.appendingPathComponent("outside.json")))
+    }
+
+    @Test("a directory named like an inbox file is rejected, not read")
+    func directoryIsNotAFile() async throws {
+        let root = makeRoot()
+        defer { cleanup(root) }
+        let storage = DirectoryInboxStorage(root: root)
+        try FileManager.default.createDirectory(
+            at: root.appendingPathComponent("import-dir.json"), withIntermediateDirectories: true)
+        do {
+            _ = try await storage.read("import-dir.json")
+            Issue.record("expected rejection")
+        } catch is InboxImportError {
+        }
+    }
+
+    @Test("pruneQuarantine keeps the newest files in failed/ and deletes the rest (audit L2)")
+    func pruneKeepsNewest() async throws {
+        let root = makeRoot()
+        defer { cleanup(root) }
+        let storage = DirectoryInboxStorage(root: root)
+        let failed = root.appendingPathComponent("failed", isDirectory: true)
+        try FileManager.default.createDirectory(at: failed, withIntermediateDirectories: true)
+        for number in 0..<5 {
+            let url = failed.appendingPathComponent("import-\(number).json")
+            try Data("x".utf8).write(to: url)
+            try FileManager.default.setAttributes(
+                [.modificationDate: Date(timeIntervalSince1970: 1_700_000_000 + Double(number) * 60)],
+                ofItemAtPath: url.path)
+        }
+        try await storage.pruneQuarantine(keepNewest: 2)
+        let left = try FileManager.default.contentsOfDirectory(atPath: failed.path).sorted()
+        #expect(left == ["import-3.json", "import-4.json"])
+        // Harmless when failed/ does not exist.
+        try await DirectoryInboxStorage(root: makeRoot()).pruneQuarantine(keepNewest: 2)
+    }
 }

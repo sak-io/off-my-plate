@@ -196,4 +196,17 @@ struct InboxFilesTests {
         #expect(ShareInputPolicy.preferredTypeIdentifier(among: ["public.jpeg", "public.plain-text"]) == "public.plain-text")
         #expect(ShareInputPolicy.preferredTypeIdentifier(among: ["public.url", "com.adobe.pdf"]) == nil)
     }
+
+    @Test("an absurd or non-finite quantity is dropped by the initialiser and rejected when decoding (audit L1)")
+    func absurdQuantity() throws {
+        #expect(InboxImport.Item(name: "Rice", quantity: 1e308, unit: .kilogram).quantity == nil)
+        #expect(InboxImport.Item(name: "Rice", quantity: .infinity, unit: .kilogram).quantity == nil)
+        #expect(InboxImport.Item(name: "Rice", quantity: .nan, unit: .kilogram).quantity == nil)
+        #expect(
+            InboxImport.Item(name: "Rice", quantity: InboxImport.Item.maxQuantity, unit: .kilogram).quantity
+                == InboxImport.Item.maxQuantity)
+        let huge = goldenV1.replacingOccurrences(of: "\"quantity\":1,", with: "\"quantity\":1e308,")
+        #expect(huge != goldenV1)
+        #expect(decodeError(huge) != nil)
+    }
 }

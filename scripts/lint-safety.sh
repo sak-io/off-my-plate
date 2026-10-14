@@ -22,7 +22,10 @@
 #      re-plan no longer has the recipe that was blocked; the plan is validated again before it
 #      is saved);
 #   5. `UserConfirmation(` (or `.init(`, or `confirmation: .init(`) appears outside tests and
-#      the approval sheet (Packages/Apple/Sources/OMPFeatures/**/Approval*.swift);
+#      the two exact approval files Packages/Apple/Sources/OMPFeatures/Plan/ApprovalWeekBar.swift
+#      and .../Plan/ApprovalSheet.swift (not a glob: a new file needs a reviewed change here);
+#      and any alias of the type (`typealias X = UserConfirmation`, `= UserConfirmation.self`,
+#      `UserConfirmation.init` without a call, `extension UserConfirmation`) outside tests;
 #   6. the safety suite (Packages/Core/Tests/OMPSafetySuiteTests/) contains `.disabled`,
 #      `withKnownIssue`, `.enabled(` or `#if`: nothing in it may be skipped, expected to
 #      fail or compiled out.
@@ -148,18 +151,102 @@ unblock_allowed() {
 scan "(^|$w)blockedBySafety[[:space:]]*=[[:space:]]*false($w|\$)" \
   "a safety block may be cleared only in $lifecycle_file, the OMPData mapping and tests (ADR 0008, R1)" unblock_allowed
 
-# 5. UserConfirmation is created only by the approval sheet's button (and tests).
+# 5. UserConfirmation is created only by the two approval buttons (and tests). Exact paths:
+#    CODEOWNERS covers the same two files.
+approval_ui_files="Packages/Apple/Sources/OMPFeatures/Plan/ApprovalWeekBar.swift Packages/Apple/Sources/OMPFeatures/Plan/ApprovalSheet.swift"
 confirmation_allowed() {
   is_test "$1" && return 0
-  [[ "$1" == Packages/Apple/Sources/OMPFeatures/* ]] || return 1
-  case "$(basename "$1")" in
-    Approval*.swift) return 0 ;;
-  esac
+  local f
+  for f in $approval_ui_files; do
+    [[ "$1" == "$f" ]] && return 0
+  done
   return 1
 }
-scan "(^|$w)UserConfirmation[[:space:]]*(\\.init)?[[:space:]]*\\(|(^|$w)confirmation[[:space:]]*:[[:space:]]*\\.init[[:space:]]*\\(" \
-  "UserConfirmation may be created only in the approval sheet (OMPFeatures/**/Approval*.swift) and tests (ADR 0008, AC-5.6)" \
-  confirmation_allowed
+
+# The checks for UserConfirmation run on a NORMALISED stream, not on lines: comments (// and
+# nested /* */) are removed, whitespace and newlines collapse to single spaces, and the whole
+# file is matched as one logical text, so `UserConfirmation` + newline + `()`, a comment between
+# the name and `(`, and a `typealias X =` split over two lines are all seen. The line reported is
+# where the `UserConfirmation` token is. String literals are kept (an interpolation can run code),
+# so a banned name inside a string is a false positive, never a miss.
+# Output of the awk program: "<line><TAB><kind>" with kind construct | alias.
+confirmation_awk='
+  { text = text $0 "\n" }
+  function emit(re, kind, needtoken,   s, off, pos, k, idx) {
+    s = joined; off = 0
+    while (match(s, re)) {
+      pos = off + RSTART
+      if (needtoken) { idx = index(substr(s, RSTART, RLENGTH), "UserConfirmation"); if (idx > 0) pos = pos + idx - 1 }
+      k = 1
+      while (k < nl && start[k + 1] <= pos) k++
+      print k "\t" kind
+      off = off + RSTART + RLENGTH - 1
+      s = substr(s, RSTART + RLENGTH)
+    }
+  }
+  END {
+    n = length(text); state = 0; depth = 0; cur = ""; nl = 0
+    for (i = 1; i <= n; i++) {
+      c = substr(text, i, 1); d = substr(text, i + 1, 1)
+      if (c == "\n") {
+        if (state == 1) state = 0
+        if (state == 3) state = 0
+        lines[++nl] = cur; cur = ""; continue
+      }
+      if (state == 1) continue
+      if (state == 2) {
+        if (c == "/" && d == "*") { depth++; i++ }
+        else if (c == "*" && d == "/") { depth--; i++; if (depth == 0) { state = 0; cur = cur " " } }
+        continue
+      }
+      if (state == 3) { cur = cur c; if (c == "\\") { cur = cur d; i++ } else if (c == "\"") state = 0; continue }
+      if (state == 4) {
+        cur = cur c
+        if (c == "\"" && d == "\"" && substr(text, i + 2, 1) == "\"") { cur = cur "\"\""; i += 2; state = 0 }
+        continue
+      }
+      if (c == "/" && d == "/") { state = 1; i++; cur = cur " "; continue }
+      if (c == "/" && d == "*") { state = 2; depth = 1; i++; continue }
+      if (c == "\"") {
+        if (d == "\"" && substr(text, i + 2, 1) == "\"") { cur = cur "\"\"\""; i += 2; state = 4 }
+        else { cur = cur c; state = 3 }
+        continue
+      }
+      cur = cur c
+    }
+    lines[++nl] = cur
+    joined = ""
+    for (k = 1; k <= nl; k++) {
+      l = lines[k]; gsub(/[ \t\r]+/, " ", l); sub(/^ /, "", l); sub(/ $/, "", l)
+      start[k] = length(joined) + 1
+      if (l != "") joined = joined l " "
+    }
+    nm = "[A-Za-z0-9_]"
+    emit("(^|[^A-Za-z0-9_])UserConfirmation ?(\\. ?init)? ?\\(", "construct", 1)
+    emit("(^|[^A-Za-z0-9_])confirmation ?: ?\\. ?init ?\\(", "construct", 0)
+    emit("(^|[^A-Za-z0-9_])typealias [^=;{}]*= ?([A-Za-z0-9_]+ ?\\. ?)*UserConfirmation([^A-Za-z0-9_]|$)", "alias", 1)
+    emit("= ?([A-Za-z0-9_]+ ?\\. ?)*UserConfirmation ?([^( .A-Za-z0-9_]|$)", "alias", 1)
+    emit("(^|[^A-Za-z0-9_])UserConfirmation ?\\. ?self([^A-Za-z0-9_]|$)", "alias", 1)
+    emit("(^|[^A-Za-z0-9_])UserConfirmation ?\\. ?init ?([^( A-Za-z0-9_]|$)", "alias", 1)
+    emit("(^|[^A-Za-z0-9_])extension ([A-Za-z0-9_]+ ?\\. ?)*UserConfirmation([^A-Za-z0-9_]|$)", "alias", 1)
+  }'
+construct_message="UserConfirmation may be created only in the approval sheet (the exact files OMPFeatures/Plan/ApprovalWeekBar.swift and ApprovalSheet.swift) and tests (ADR 0008, AC-5.6)"
+alias_message="UserConfirmation must not be aliased, referenced as a metatype/initialiser or extended: construct it only in the approval buttons (ADR 0008, AC-5.6)"
+while IFS= read -r file; do
+  rel="${file#"$root"/}"
+  is_test "$rel" && continue
+  while IFS=$'\t' read -r line kind; do
+    [[ -n "$line" ]] || continue
+    if [[ "$kind" == construct ]]; then
+      confirmation_allowed "$rel" && continue
+      msg="$construct_message"
+    else
+      msg="$alias_message"
+    fi
+    report "$rel:$line: $msg: $(sed -n "${line}p" "$file" | sed -E 's/^[[:space:]]+//')"
+  done < <(awk "$confirmation_awk" "$file" | LC_ALL=C sort -u)
+done < <(grep -rlE --include='*.swift' --exclude-dir=.build --exclude-dir=DerivedData \
+           'UserConfirmation|confirmation[[:space:]]*:[[:space:]]*\.init' "${scan_dirs[@]}" | LC_ALL=C sort || true)
 
 # 6. Nothing in the safety suite may be disabled, expected to fail or compiled out.
 not_in_suite() { [[ "$1" != "$suite_dir"* ]]; }

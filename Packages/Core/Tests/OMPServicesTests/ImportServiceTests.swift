@@ -188,4 +188,59 @@ struct ImportServiceTests {
             })
         #expect(try await env.base.household() == householdBefore)
     }
+
+    @Test("a merge that would exceed the sane maximum leaves the existing amount alone (audit L1)")
+    func insaneSumIsNotApplied() async throws {
+        let env = ServicesBEnv()
+        let huge = ShoppingItem(
+            id: ShoppingItemID("seed-huge"), key: "manual:rice", ingredientId: "rice", name: "Rice",
+            quantity: ImportService.maxMergedAmount, unit: .kilogram, aisle: .other, origin: .manual)
+        try await env.repositories.shopping.save(huge)
+        let file = try ServicesBFixture.inboxFile(
+            id: "import-1", items: [InboxImport.Item(name: "Rice", ingredientId: "rice", quantity: 2, unit: .kilogram)])
+        await env.inbox.put(file.name, file.data)
+
+        let summary = try await env.imports.drainInbox()
+        #expect(summary.filesImported == 1)
+        let rice = try await env.repositories.shopping.fetchAll().filter { $0.ingredientId == "rice" }
+        #expect(rice.count == 1)
+        #expect(rice.first?.quantity == ImportService.maxMergedAmount)
+        #expect(rice.first?.quantity?.isFinite == true)
+        #expect(summary.amountsSkipped == 1)
+    }
+
+    @Test("a drain handles at most maxFilesPerDrain files and the next drain continues (audit L2)")
+    func drainIsBounded() async throws {
+        let env = ServicesBEnv()
+        let total = ImportService.maxFilesPerDrain + 5
+        for number in 0..<total {
+            let file = try ServicesBFixture.inboxFile(
+                id: "import-" + String(format: "%04d", number), items: [InboxImport.Item(name: "Item \(number)")])
+            await env.inbox.put(file.name, file.data)
+        }
+        let first = try await env.imports.drainInbox()
+        #expect(first.filesImported == ImportService.maxFilesPerDrain)
+        #expect(first.deferred == 5)
+        #expect(await env.inbox.pendingNames().count == 5)
+        let second = try await env.imports.drainInbox()
+        #expect(second.filesImported == 5)
+        #expect(second.deferred == 0)
+        #expect(await env.inbox.pendingNames().isEmpty)
+    }
+
+    @Test("failed/ keeps only the newest maxQuarantined files (audit L2)")
+    func quarantineIsBounded() async throws {
+        let env = ServicesBEnv()
+        let total = ImportService.maxQuarantined + 3
+        for number in 0..<total {
+            await env.inbox.put("import-bad-" + String(format: "%04d", number) + ".json", Data("garbage".utf8))
+        }
+        let summary = try await env.imports.drainInbox()
+        #expect(summary.quarantined.count == total)
+        let kept = await env.inbox.failedNames()
+        #expect(kept.count == ImportService.maxQuarantined)
+        // Files are handled in name order, so the first three were quarantined first and dropped.
+        #expect(!kept.contains("import-bad-0000.json"))
+        #expect(kept.contains("import-bad-" + String(format: "%04d", total - 1) + ".json"))
+    }
 }

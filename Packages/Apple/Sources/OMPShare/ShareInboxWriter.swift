@@ -19,8 +19,9 @@ public enum ShareInbox {
     }
 }
 
-/// Writes `<root>/<importId>.json` atomically with Data Protection Complete. The folder is
-/// (re)created on every write (T19 review: "Delete all data" removes it).
+/// Writes `<root>/<importId>.json` atomically with Data Protection Complete (ADR 0011). Complete is
+/// fine here: a share sheet only runs on an unlocked device, and the app reads in the foreground.
+/// The folder is (re)created on every write (T19 review: "Delete all data" removes it).
 public struct DirectoryShareInboxWriter: ShareInboxWriting {
     public let root: URL
 

@@ -1,10 +1,12 @@
 # Apple platforms (plan section 9): everything that needs macOS and Xcode.
-#   Three jobs run in PARALLEL so wall time is the slowest one, not the sum, and one failure
+#   Several jobs run in PARALLEL so wall time is the slowest one, not the sum, and one failure
 #   does not hide the others:
 #   1. swift test for Packages/Core (Apple toolchain) and Packages/Apple (OMPData, ...),
 #      each with the zero-test guard (scripts/assert-tests-ran.sh);
 #   2. XcodeGen generates App/OffMyPlate.xcodeproj from App/project.yml (ADR 0006);
-#   3. xcodebuild test (app build, share extension, UI tests) on an iPhone 16 and an iPad
+#   3. release-hygiene builds the Release configuration and fails if a UI-test hook
+#      (`OMPUITest`) is in the shipped binary (security audit M2);
+#   4. xcodebuild test (app build, share extension, UI tests) on an iPhone 16 and an iPad
 #      simulator, each with the zero-test guard (scripts/assert-xcresult-tests-ran.sh).
 # Simulator builds are unsigned (CODE_SIGNING_ALLOWED=NO); no signing material in CI.
 #
@@ -127,3 +129,70 @@ jobs:
             -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO
           scripts/assert-xcresult-tests-ran.sh "$bundle"
+
+  release-hygiene:
+    name: Release build has no UI-test hooks (macOS 15, Xcode 26)
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/apple-setup
+
+      - name: Build Release for the iOS Simulator (unsigned)
+        run: |
+          xcodebuild build \
+            -project App/OffMyPlate.xcodeproj \
+            -scheme OffMyPlate \
+            -configuration Release \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedDataRelease" \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Fail if the Release app contains a UI-test or debug hook
+        shell: bash
+        run: |
+          set -euo pipefail
+          app="$RUNNER_TEMP/DerivedDataRelease/Build/Products/Release-iphonesimulator/OffMyPlate.app"
+          test -d "$app" || { echo "::error::Release app not found at $app"; exit 1; }
+          executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Info.plist")"
+          work="$RUNNER_TEMP/hygiene"
+          mkdir -p "$work"
+
+          # Swift keeps string literals of 15 bytes or fewer as immediates in machine code, so
+          # `strings` cannot see "-OMPUITestSeed" (14 B) or "-OMPUITestInbox" (15 B). The check
+          # therefore also looks for the hook TYPE names, which Swift embeds in mangled symbols
+          # and type metadata whatever the literal sizes are.
+          pattern='OMPUITest|DebugNetworkDenial|UITestSeed|UITestInbox|UITestSpeech'
+
+          # scan_file <file>: succeeds (exit 0) if the pattern is found in the file's strings.
+          # Output goes to a file first, then grep: no `strings | grep -q` SIGPIPE pitfall.
+          scan_file() {
+            strings -a "$1" > "$work/strings.txt"
+            grep -Eq "$pattern" "$work/strings.txt"
+          }
+
+          # Self-check: the same scan must detect a planted marker of 16+ bytes, otherwise a
+          # broken scan would pass silently.
+          printf 'int main(void){ static const char m[] = "OMPUITest_selfcheck_marker"; return m[0]; }\n' > "$work/marker.c"
+          clang -o "$work/marker" "$work/marker.c"
+          scan_file "$work/marker" || { echo "::error::self-check failed: the scan did not detect the planted marker"; exit 1; }
+          echo "self-check ok: planted marker detected"
+
+          # Guard against a vacuous pass: the binary must have plenty of text.
+          strings -a "$app/$executable" > "$work/exe-strings.txt"
+          test "$(wc -l < "$work/exe-strings.txt")" -gt 100 \
+            || { echo "::error::strings found almost nothing in $executable"; exit 1; }
+
+          found=0
+          while IFS= read -r -d '' file; do
+            if scan_file "$file"; then
+              echo "::error::UI-test or debug hook name found in ${file#"$app"/}:"
+              grep -Eo "$pattern" "$work/strings.txt" | sort -u | sed 's/^/  /'
+              found=1
+            fi
+          done < <(find "$app" -type f -print0)
+          exit "$found"

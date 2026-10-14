@@ -1,0 +1,7 @@
+# Keeps the pinned GitHub Actions (checkout is pinned by commit SHA) current (security audit L5).
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
