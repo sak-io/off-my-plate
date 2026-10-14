@@ -75,12 +75,19 @@ final class AppShellUITests: XCTestCase {
         XCTAssertTrue(planShown)
 
         tapTab(app, "Household")
+        let rootShown = element(app, "tab.household.root").waitForExistence(timeout: 15)
+        XCTAssertTrue(rootShown, "The Household tab did not open")
         let row = element(app, "household.about.disclaimer")
-        // The About row sits below the fold on small screens: scroll the list to it.
+        // The About row sits below the fold on small screens (and rows below it are not in the
+        // accessibility tree): scroll the Household list until it is reachable. Swipe the list
+        // itself, not the whole app (on iPad the app-level swipe can hit the sidebar), and give
+        // each scroll a moment to settle.
+        let list = app.collectionViews.firstMatch.exists ? app.collectionViews.firstMatch : app.tables.firstMatch
         var scrolls = 0
-        while !(row.exists && row.isHittable) && scrolls < 6 {
-            app.swipeUp()
+        while !(row.exists && row.isHittable) && scrolls < 12 {
+            if list.exists { list.swipeUp() } else { app.swipeUp() }
             scrolls += 1
+            _ = row.waitForExistence(timeout: 1)
         }
         let rowShown = row.waitForExistence(timeout: 5)
         XCTAssertTrue(rowShown, "Household has no row for the medical disclaimer (AC-2.6)")
