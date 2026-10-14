@@ -1,0 +1,6 @@
+{
+  "branch": "claude/ci-batch-1",
+  "id": "T16",
+  "note": "in batch-1; waiting for macOS CI on batch",
+  "state": "in_review"
+}
