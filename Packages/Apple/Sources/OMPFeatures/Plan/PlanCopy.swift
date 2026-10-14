@@ -251,6 +251,18 @@ enum PlanCopy {
         String(localized: "C-080", defaultValue: "Answer the safety question for \(name) to keep planning.", comment: "Blocked-by-safety card. Argument is a member name.")
     }
 
+    static var safetyChanged: String {
+        String(localized: "C-083", defaultValue: "Your safety answers changed. Some meals need replacing.", comment: "Card on an approved plan with meals that are no longer safe (R1).")
+    }
+
+    static var updatePlan: String {
+        String(localized: "C-083.action", defaultValue: "Update plan", comment: "Button on the safety-changed card.")
+    }
+
+    static var mealNeedsReplacing: String {
+        String(localized: "C-083.meal", defaultValue: "No longer safe: needs replacing", comment: "Marker on a meal that is no longer safe (R1).")
+    }
+
     static var answerNow: String {
         String(localized: "C-080.action", defaultValue: "Answer now", comment: "Button that reopens the safety question.")
     }

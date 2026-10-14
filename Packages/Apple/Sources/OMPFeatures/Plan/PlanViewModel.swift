@@ -244,6 +244,35 @@ public final class PlanViewModel {
         return approved.meals.first { $0.date == meal.date && $0.slot == meal.slot }?.cooked != nil
     }
 
+    /// R1: whether the approved plan has meals a hard-rule change made unsafe (C-083).
+    public var hasBlockedMeals: Bool {
+        approvedPlan?.meals.contains { $0.blockedBySafety } ?? false
+    }
+
+    /// Whether `meal` (or the approved meal it proposes to replace) is flagged unsafe.
+    public func isMealBlocked(_ meal: PlannedMeal) -> Bool {
+        if meal.blockedBySafety { return true }
+        guard let plan, let approved = approvedPlan, approved.id != plan.id else { return false }
+        return approved.meals.contains { $0.date == meal.date && $0.slot == meal.slot && $0.blockedBySafety }
+    }
+
+    /// "Update plan" (C-083): asks the service to regenerate, which makes a draft revision that
+    /// replaces the unsafe meals (locked safe meals stay). The user still approves it.
+    public func updatePlan() async {
+        guard let backend, let plan, !isBusy, !isBlocked else { return }
+        await perform {
+            _ = try await backend.regenerate(plan.id, keepingLocked: true)
+            try await self.reload()
+        }
+    }
+
+    /// Whether "Answer now" leads anywhere: the safety cover appears while someone is unasked;
+    /// a 180-day re-check has no flow yet (T22), so no button is offered for it.
+    public var canAnswerNow: Bool {
+        if case .unanswered = app.gateStatus { return true }
+        return false
+    }
+
     public func requestMarkCooked(_ meal: PlannedMeal) {
         guard let target = cookableMeal(for: meal), let approved = approvedPlan else { return }
         onMarkCooked?(approved.id, target.id)
@@ -351,7 +380,7 @@ public final class PlanViewModel {
             isRegenerating = false
         }
         do {
-            _ = try await backend.regenerate(plan.id)
+            _ = try await backend.regenerate(plan.id, keepingLocked: true)
             try await reload()
             errorMessage = nil
         } catch {
@@ -473,7 +502,7 @@ public final class PlanViewModel {
 
     /// Approves the draft. `confirmation` can only come from the approval controls' tap.
     public func approve(confirmation: UserConfirmation) async {
-        guard let backend, let plan, plan.status == .draft else { return }
+        guard let backend, let plan, plan.status == .draft, !isBlocked else { return }
         let isRevision = plan.basedOn != nil
         await perform {
             _ = try await backend.approve(plan.id, confirmation: confirmation)

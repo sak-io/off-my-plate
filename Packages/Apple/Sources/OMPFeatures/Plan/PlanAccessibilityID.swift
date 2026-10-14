@@ -15,6 +15,10 @@ extension AccessibilityID {
     static let planApprove = "plan.approve"
     static let planReviewChanges = "plan.reviewChanges"
     static let planList = "plan.list"
+    static let planSafetyChanged = "plan.safetyChanged"
+    static let planUpdate = "plan.update"
+    static let mealBlocked = "meal.blocked"
+    static func planBlockedMeal(_ id: String) -> String { "plan.blockedMeal.\(id)" }
 
     static let mealDetail = "meal.detail"
     static let mealLock = "meal.lock"

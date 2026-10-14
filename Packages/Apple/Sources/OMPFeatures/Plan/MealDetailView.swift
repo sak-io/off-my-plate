@@ -73,6 +73,11 @@ struct MealDetailView: View {
                     .foregroundStyle(Color.primary.opacity(0.75))
                     .fixedSize(horizontal: false, vertical: true)
             }
+            if viewModel.isMealBlocked(meal) {
+                StatusLabel(PlanCopy.mealNeedsReplacing, systemImage: OMPSymbol.warning)
+                    .font(OMPFont.reason)
+                    .accessibilityIdentifier(AccessibilityID.mealBlocked)
+            }
             if meal.locked {
                 StatusLabel(PlanCopy.locked, systemImage: OMPSymbol.locked)
                     .font(OMPFont.reason)

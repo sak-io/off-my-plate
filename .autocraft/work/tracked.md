@@ -43,3 +43,11 @@
 | T16 delta review | Prepend (Cf, e.g. U+0600) + space may form a non-whitespace-initial Character; extend TranscriptSanitiser and add a test | follow-up |
 | T16 delta review | `droppedWords` fixture now sanitises its input (partly circular); keep explicit `describe` assertions | follow-up |
 | T21 | Shell audit test ignores Dynamic Type on the system "Plan" label and, on iPad, element-less Dynamic Type issues from the system tab bar (App/OffMyPlateUITests/AppShellUITests.swift, owner-approved 2026-10-14); find the real cause and remove | T28 |
+| T23 review-1 | **OWNER-VISIBLE DEVIATION:** AC-6.2/6.3 (adjust portions, set a member to "Not eating") are not delivered; portions are read-only in S-11. Cause: Core has no servings-edit service. Proposed Core task: `PlanService.setServings(meal:member:portion:notEating:in:)` through the services + validator; editing an approved plan creates a draft revision (AC-5.4); then steppers in S-11 | owner / new Core task |
+| T23 review-1 | Mark cooked button is a no-op until S-15 (`onMarkCooked` nil); consider disabling or a hint if shipped before then | T24 |
+| T23 review-1 | Empty-slot reason (AC-4.4) has no UI test (seed cannot make an empty slot); VM test covers toggle only | follow-up |
+| T23 review-1 | C-081 shown as a permanent line, not an alert on tap: update screens.md to match | ux-designer |
+| T23 review-1 | Number self-coined copy ids in copy.md (C-062b/c, C-070a.*, C-070b.*, C-083.*, C-084.*, C-052.retry, C-063.action, C-071.ok, C-073.*, C-074.replace, C-075.*, C-076.*, C-078.not, C-079.*, plan.slot.*, plan.someone, plan.regenerate); C-065 "View list" action omitted | ux-designer / T24 |
+| T23 review-1 | Deferred: C-061 safety summary + Change (with S-33 task); C-040 "Still correct?" card and an Answer-now path for 180-day re-check (T22 flow; button hidden until then); C-082 new-member card; ingredient quantities in S-11 (T24); iPad split view (T28) | T22 / T24 / T28 |
+| T23 review-1 | Discard is reachable only from the approval sheet, which cannot open while safety blocks; a pending revision can be neither discarded nor approved until the gate clears (safe direction) | note |
+| T23 review-1 | NIT: `swapMealID` not cleared when the swap sheet is swiped away | follow-up |

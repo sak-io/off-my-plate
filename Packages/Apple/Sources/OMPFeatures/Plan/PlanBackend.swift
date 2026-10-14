@@ -19,7 +19,8 @@ public protocol PlanBackend: Sendable {
     func pendingDiff(series: PlanSeriesID) async throws -> PlanDiff?
 
     func generateWeek() async throws -> MealPlan
-    func regenerate(_ planID: MealPlanID) async throws -> MealPlan
+    /// Regenerates the working plan; `keepingLocked` keeps locked meals that are still safe (AC-8.3).
+    func regenerate(_ planID: MealPlanID, keepingLocked: Bool) async throws -> MealPlan
     func alternatives(for mealID: PlannedMealID, in planID: MealPlanID, reason: RerollReason?) async throws
         -> [MealAlternative]
     func swap(_ mealID: PlannedMealID, in planID: MealPlanID, to recipeID: RecipeID) async throws -> MealPlan
@@ -77,8 +78,8 @@ public final class LivePlanBackend: PlanBackend {
         try await plans.generateWeek().plan
     }
 
-    public func regenerate(_ planID: MealPlanID) async throws -> MealPlan {
-        try await plans.regenerate(planID, keepingLocked: true).plan
+    public func regenerate(_ planID: MealPlanID, keepingLocked: Bool) async throws -> MealPlan {
+        try await plans.regenerate(planID, keepingLocked: keepingLocked).plan
     }
 
     public func alternatives(for mealID: PlannedMealID, in planID: MealPlanID, reason: RerollReason?) async throws

@@ -146,6 +146,14 @@ final class PlanUITests: XCTestCase {
         XCTAssertEqual(backResult, .completed, "The approved plan is not back after discarding")
     }
 
+    /// Labels of the visible meal rows other than `mealID`, in order.
+    @MainActor
+    private func otherMealLabels(_ app: XCUIApplication, except mealID: String) -> [String] {
+        elements(app, prefix: "plan.meal.").allElementsBoundByIndex
+            .filter { $0.identifier != "plan.meal.\(mealID)" }
+            .map(\.label)
+    }
+
     @MainActor
     func testRegenerateKeepsLockedMeals() throws {
         let app = launchWithDraft()
@@ -161,6 +169,7 @@ final class PlanUITests: XCTestCase {
         XCTAssertTrue(lockedShown, "The meal does not show as locked")
         let mealID = String(locked.identifier.dropFirst("plan.lock.".count))
         let before = element(app, "plan.meal.\(mealID)").label
+        let othersBefore = otherMealLabels(app, except: mealID)
 
         element(app, "plan.regenerate").tap()
         let replace = app.buttons["Replace"]
@@ -176,6 +185,8 @@ final class PlanUITests: XCTestCase {
         XCTAssertTrue(stillLocked, "The locked meal lost its lock")
         let after = element(app, "plan.meal.\(mealID)").label
         XCTAssertEqual(before, after, "Regenerate replaced a locked meal")
+        let othersAfter = otherMealLabels(app, except: mealID)
+        XCTAssertNotEqual(othersBefore, othersAfter, "Regenerate changed no unlocked meal (no-op?)")
     }
 
     /// Runs the accessibility audit and reports EVERY issue in one run. The only ignores are the

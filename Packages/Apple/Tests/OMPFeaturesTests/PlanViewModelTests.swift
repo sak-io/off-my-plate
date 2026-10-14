@@ -18,6 +18,7 @@ private final class FakePlanBackend: PlanBackend, @unchecked Sendable {
 
     private(set) var approveCalls = 0
     private(set) var regenerateCalls = 0
+    private(set) var lastKeepingLocked: Bool?
     private(set) var generateCalls = 0
     private(set) var swapCalls: [RecipeID] = []
     private(set) var discardCalls = 0
@@ -52,9 +53,32 @@ private final class FakePlanBackend: PlanBackend, @unchecked Sendable {
         return plan
     }
 
-    func regenerate(_ planID: MealPlanID) async throws -> MealPlan {
+    /// Replaces every meal that is not kept; locked meals stay only when `keepingLocked`.
+    /// An approved plan yields a draft revision, as the service does.
+    func regenerate(_ planID: MealPlanID, keepingLocked: Bool) async throws -> MealPlan {
         regenerateCalls += 1
-        return plans.last { $0.id == planID } ?? plans[0]
+        lastKeepingLocked = keepingLocked
+        guard let source = plans.first(where: { $0.id == planID }) else { throw ServiceError.planNotFound(planID) }
+        var meals = source.meals
+        for index in meals.indices where !(keepingLocked && meals[index].locked) {
+            meals[index].recipeId = RecipeID("new\(index)")
+            meals[index].emptyReason = nil
+            meals[index].blockedBySafety = false
+        }
+        if source.status == .approved {
+            let revision = MealPlan(
+                id: MealPlanID("rev-\(regenerateCalls)"), seriesId: source.seriesId, revision: source.revision + 1,
+                basedOn: source.id, weekStart: source.weekStart, status: .draft, meals: meals,
+                contentVersion: "test", createdAt: fixtureNow)
+            plans.append(revision)
+            return revision
+        }
+        let replaced = MealPlan(
+            id: source.id, seriesId: source.seriesId, revision: source.revision, basedOn: source.basedOn,
+            weekStart: source.weekStart, status: source.status, meals: meals, contentVersion: "test",
+            createdAt: fixtureNow)
+        plans = plans.map { $0.id == planID ? replaced : $0 }
+        return replaced
     }
 
     func alternatives(for mealID: PlannedMealID, in planID: MealPlanID, reason: RerollReason?) async throws
@@ -116,13 +140,13 @@ private let weekStart = LocalDate(year: 2026, month: 10, day: 12)!  // fixtureNo
 /// A plan with one dinner a day from `weekStart`; a nil recipe is an empty slot.
 private func makePlan(
     id: String, status: PlanStatus = .draft, basedOn: MealPlanID? = nil, revision: Int = 1,
-    recipes: [String?], locked: Set<Int> = []
+    recipes: [String?], locked: Set<Int> = [], blocked: Set<Int> = []
 ) -> MealPlan {
     let meals = recipes.enumerated().map { index, recipe in
         PlannedMeal(
             id: PlannedMealID("m\(index)"), date: weekStart.adding(days: index), slot: .dinner,
             recipeId: recipe.map { RecipeID($0) }, emptyReason: recipe == nil ? .noSafeRecipe : nil,
-            locked: locked.contains(index), servings: [])
+            locked: locked.contains(index), servings: [], blockedBySafety: blocked.contains(index))
     }
     return MealPlan(
         id: MealPlanID(id), seriesId: series, revision: revision, basedOn: basedOn, weekStart: weekStart,
@@ -328,15 +352,50 @@ struct PlanViewModelTests {
         #expect(model.mealCount == 1)
     }
 
-    @Test("Regenerate asks the service to regenerate the working plan")
+    @Test("Regenerate keeps locked meals and replaces unlocked ones")
     func regenerate() async {
-        let backend = FakePlanBackend(plans: [makePlan(id: "p1", recipes: ["r0", "r1"], locked: [0])])
+        let backend = FakePlanBackend(plans: [makePlan(id: "p1", recipes: ["r0", "r1", "r2"], locked: [0])])
         let (model, _) = await makeViewModel(backend)
         await model.load()
         await model.regenerate()
         #expect(backend.regenerateCalls == 1)
-        #expect(model.plan?.meals[0].locked == true)
+        #expect(backend.lastKeepingLocked == true)
+        let meals = model.plan!.meals
+        #expect(meals[0].recipeId == RecipeID("r0"))
+        #expect(meals[0].locked)
+        #expect(meals[1].recipeId != RecipeID("r1"))
+        #expect(meals[2].recipeId != RecipeID("r2"))
         #expect(!model.isRegenerating)
+    }
+
+    @Test("R1: unsafe meals of an approved plan are marked, show the C-083 card state, and Update plan makes a revision")
+    func blockedMeals() async {
+        let approved = makePlan(id: "a1", status: .approved, recipes: ["r0", "r1"], blocked: [0])
+        let backend = FakePlanBackend(plans: [approved])
+        let (model, _) = await makeViewModel(backend)
+        await model.load()
+        #expect(model.hasBlockedMeals)
+        #expect(model.isMealBlocked(model.plan!.meals[0]))
+        #expect(!model.isMealBlocked(model.plan!.meals[1]))
+        #expect(model.cookableMeal(for: model.plan!.meals[0]) == nil)
+        await model.updatePlan()
+        #expect(backend.regenerateCalls == 1)
+        #expect(model.status == .pendingChanges)
+        // The unsafe approved meal stays flagged against its proposed replacement until approval.
+        #expect(model.isMealBlocked(model.plan!.meals[0]))
+        #expect(model.plan!.meals[0].recipeId != RecipeID("r0"))
+    }
+
+    @Test("A 180-day re-check block offers no Answer now button; an unasked member does")
+    func answerNowOnlyWhereAPathExists() async {
+        let old = member(.adult, 1, .confirmedNone, confirmedDaysAgo: 200)
+        let backend = FakePlanBackend(plans: [makePlan(id: "p1", recipes: ["r0"])])
+        let (stale, _) = await makeViewModel(backend, members: [old])
+        await stale.load()
+        #expect(stale.isBlocked)
+        #expect(!stale.canAnswerNow)
+        let (unasked, _) = await makeViewModel(backend, members: [member(.child, 1, .unasked)])
+        #expect(unasked.canAnswerNow)
     }
 
     @Test("Safety blocking disables Regenerate, Swap and approval, with C-081 for the person")

@@ -241,10 +241,12 @@ struct PlanBlockedCard: View {
         InlineCard(
             title: PlanCopy.blockedCard(viewModel.blockingName), systemImage: OMPSymbol.warning
         ) {
-            Button(PlanCopy.answerNow) { Task { await viewModel.answerNow() } }
-                .buttonStyle(.bordered)
-                .ompMinimumHitTarget()
-                .accessibilityIdentifier(AccessibilityID.planBlockedAnswer)
+            if viewModel.canAnswerNow {
+                Button(PlanCopy.answerNow) { Task { await viewModel.answerNow() } }
+                    .buttonStyle(.bordered)
+                    .ompMinimumHitTarget()
+                    .accessibilityIdentifier(AccessibilityID.planBlockedAnswer)
+            }
         }
         .accessibilityIdentifier(AccessibilityID.planBlocked)
     }
@@ -327,6 +329,16 @@ struct PlanWeekList: View {
             if let message = viewModel.errorMessage {
                 PlanErrorCard(message: message, viewModel: viewModel)
             }
+            if viewModel.hasBlockedMeals {
+                InlineCard(title: PlanCopy.safetyChanged, systemImage: OMPSymbol.warning) {
+                    Button(PlanCopy.updatePlan) { Task { await viewModel.updatePlan() } }
+                        .buttonStyle(.bordered)
+                        .ompMinimumHitTarget()
+                        .disabled(viewModel.isBlocked || viewModel.isBusy)
+                        .accessibilityIdentifier(AccessibilityID.planUpdate)
+                }
+                .accessibilityIdentifier(AccessibilityID.planSafetyChanged)
+            }
             if viewModel.showsFirstPlanBanner {
                 InlineCard(title: PlanCopy.firstPlanBanner) {
                     Button(PlanCopy.dismiss) { viewModel.bannerDismissed = true }
@@ -388,6 +400,11 @@ struct PlanMealRow: View {
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier(AccessibilityID.planMeal(id))
 
+            if viewModel.isMealBlocked(meal) {
+                StatusLabel(PlanCopy.mealNeedsReplacing, systemImage: OMPSymbol.warning)
+                    .font(OMPFont.reason)
+                    .accessibilityIdentifier(AccessibilityID.planBlockedMeal(id))
+            }
             if meal.locked {
                 StatusLabel(PlanCopy.locked, systemImage: OMPSymbol.locked)
                     .font(OMPFont.reason)
