@@ -262,19 +262,15 @@ public final class PantryService: Sendable {
     private func cookAmounts(for mealID: PlannedMealID, in plan: MealPlan) throws -> [CookAmount] {
         // The plan status is checked first so a draft is refused whatever else is wrong with it.
         guard plan.isEffectivelyApproved else { throw ServiceError.markCooked(.planNotApproved) }
-        guard let recipeID = plan.meal(mealID)?.recipeId else {
-            return try mappingDomainErrors {
-                try MarkCooked.proposedAmounts(
-                    mealId: mealID, in: plan,
-                    recipe: Recipe.placeholder, ingredients: context.library.ingredientsByID)
-            }
-        }
+        guard let meal = plan.meal(mealID) else { throw ServiceError.markCooked(.mealNotFound(mealID)) }
+        guard !meal.blockedBySafety else { throw ServiceError.markCooked(.blockedBySafety(mealID)) }
+        guard let recipeID = meal.recipeId else { throw ServiceError.markCooked(.emptyMeal(mealID)) }
         guard let recipe = context.library.recipesByID[recipeID] else {
             throw ServiceError.recipeNotInLibrary(recipeID)
         }
-        return try mappingDomainErrors {
-            try MarkCooked.proposedAmounts(
-                mealId: mealID, in: plan, recipe: recipe, ingredients: context.library.ingredientsByID)
+        let ingredients = context.library.ingredientsByID
+        return try mappingDomainErrors { () throws -> [CookAmount] in
+            try MarkCooked.proposedAmounts(mealId: mealID, in: plan, recipe: recipe, ingredients: ingredients)
         }
     }
 

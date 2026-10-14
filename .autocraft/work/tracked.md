@@ -22,7 +22,7 @@
 | T13 review-1 | `weekStart`-only change alters the hash but gives an empty diff (revisions copy weekStart) | T23 |
 | T05 review-1 | "Certified gluten-free" path for coeliac users (flours currently mayContain gluten) | future |
 | T05 handoff-2 | Label/translation for the new `kerala` cuisine chip (C-035b) | T22 |
-| T14 review-1 | Exclude optional recipe lines in `forShopping` only (garnish not bought; Mark cooked/safety still see them) | T19 |
+| T14 review-1 | Exclude optional recipe lines in `forShopping` only (garnish not bought; Mark cooked/safety still see them) | T19 — DONE (already in `IngredientRequirements.forShopping`; `ShoppingEngine`/`PantryService` use it) |
 | T14 review-1 | Mark cooked deducts expired items first (literal spec) — owner may prefer last | owner / T24 |
 | T14 review-1 | Pack-size rounding for the shopping list | future |
 | T06 review-1 | Veg + Jain + nut-free breakfast has only 2 options; puttu/idiyappam carry mayContain gluten via rice flour | owner sign-off / content |
@@ -37,9 +37,13 @@
 | T16 review-1 | Owner sign-off on Malayalam/Hindi restriction keywords (catalog.json) | owner G1 |
 | T12 review-1 | `replacingRecipe` (WeekPlanner+Editing.swift:24) is public and clears blockedBySafety without a clearance — make it internal or require a clearance; services validate | T18 / follow-up |
 | T12 review-1 | lint-safety PLANNER_HELPERS allow-list keyed by file+name only | follow-up |
-| T18 review-1 | App must call `recheckOpenPlans()` at launch before the first UI read; add a test that it repairs an interrupted household-save/plan-recheck | T19 / T21 |
+| T18 review-1 | App must call `recheckOpenPlans()` at launch before the first UI read; add a test that it repairs an interrupted household-save/plan-recheck | T19: test exists (`ApprovalRevalidationTests.ruleChangedBetweenValidationAndApprove`); the launch call itself is T21 |
 | T18 review-1 | `setLocked` computes an unused clearance — add a comment | follow-up |
 | T18 review-1 | ASSUMPTION for owner: lunchbox children = child or teen age band | owner |
 | T16 delta review | Prepend (Cf, e.g. U+0600) + space may form a non-whitespace-initial Character; extend TranscriptSanitiser and add a test | follow-up |
 | T16 delta review | `droppedWords` fixture now sanitises its input (partly circular); keep explicit `describe` assertions | follow-up |
 | T21 | Shell audit test ignores Dynamic Type on the system "Plan" label and, on iPad, element-less Dynamic Type issues from the system tab bar (App/OffMyPlateUITests/AppShellUITests.swift, owner-approved 2026-10-14); find the real cause and remove | T28 |
+| T19 | Apple layer: implement `ProcessedImportStore` and `CounterStore` over `ProcessedImportRecord`/`CounterRecord`, an `InboxStorage` over the App Group folder (`DirectoryInboxStorage`), and wire `ImportService`, `LearningService`, `DataService` in the composition root; call `DataService.prune()` and `ImportService.drainInbox()` at launch / scene active | T20 follow-up / T21 / T26 |
+| T19 | ASSUMPTION for owner: learner `RecipeTraits.keyIngredients` = first two non-optional lines of a recipe (no seed field marks the characteristic ingredients) | owner / content |
+| T19 | Import dedupe never edits plan-derived shopping lines (they are recomputed); an imported item whose ingredient is on the plan becomes its own "from Notes" row | owner (UX) |
+| T19 | `ImportService` merges before recording the import id: a stop in between merges the file twice on the next drain (visible duplicate preferred to lost items) | follow-up (needs a transactional store) |
