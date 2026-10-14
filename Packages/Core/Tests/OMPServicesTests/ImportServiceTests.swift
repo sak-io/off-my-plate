@@ -3,6 +3,23 @@ import OMPDomain
 import OMPServices
 import Testing
 
+/// An inbox over the in-memory one whose reads fail for the named files (a storage error, so
+/// the files stay in the inbox as `stuck`).
+private struct StuckSomeInbox: InboxStorage {
+    struct Failure: Error {}
+    let inner: InMemoryInboxStorage
+    let stuck: Set<String>
+
+    func fileNames() async throws -> [String] { await inner.fileNames() }
+    func read(_ name: String) async throws -> Data {
+        if stuck.contains(name) { throw Failure() }
+        return try await inner.read(name)
+    }
+    func quarantine(_ name: String) async throws { try await inner.quarantine(name) }
+    func remove(_ name: String) async throws { await inner.remove(name) }
+    func deleteAll() async throws { await inner.deleteAll() }
+}
+
 @Suite("ImportService.drainInbox: idempotent merge, quarantine, staples only (AC-11.3, AC-11.5, ADR 0011, T19)")
 struct ImportServiceTests {
     private static let items = [
@@ -242,5 +259,52 @@ struct ImportServiceTests {
         // Files are handled in name order, so the first three were quarantined first and dropped.
         #expect(!kept.contains("import-bad-0000.json"))
         #expect(kept.contains("import-bad-" + String(format: "%04d", total - 1) + ".json"))
+    }
+
+    @Test("stuck files do not use up the per-drain cap: every good file imports in one drain (audit L2)")
+    func stuckFilesDoNotFillTheCap() async throws {
+        let env = ServicesBEnv()
+        let stuckCount = ImportService.maxFilesPerDrain + 50
+        var stuck = Set<String>()
+        for number in 0..<stuckCount {
+            // "import-a-..." sorts before every "import-z-..." good file.
+            let name = "import-a-" + String(format: "%04d", number) + ".json"
+            stuck.insert(name)
+            await env.inbox.put(name, Data("{}".utf8))
+        }
+        let goodCount = 10
+        for number in 0..<goodCount {
+            let file = try ServicesBFixture.inboxFile(
+                id: "import-z-" + String(format: "%02d", number), items: [InboxImport.Item(name: "Good \(number)")])
+            await env.inbox.put(file.name, file.data)
+        }
+        let imports = ImportService(
+            context: env.base.context, inbox: StuckSomeInbox(inner: env.inbox, stuck: stuck),
+            processedImports: env.processed)
+        let summary = try await imports.drainInbox()
+        #expect(summary.filesImported == goodCount)
+        #expect(summary.stuck.count == stuckCount)
+        #expect(summary.deferred == 0)
+        #expect(try await env.repositories.shopping.fetchAll().count == goodCount)
+    }
+
+    @Test("with more stuck files than the attempt bound the drain still ends and reports the unvisited rest")
+    func attemptsAreBounded() async throws {
+        let env = ServicesBEnv()
+        let bound = ImportService.maxFilesPerDrain * 4
+        let total = bound + 100
+        var stuck = Set<String>()
+        for number in 0..<total {
+            let name = "import-a-" + String(format: "%04d", number) + ".json"
+            stuck.insert(name)
+            await env.inbox.put(name, Data("{}".utf8))
+        }
+        let imports = ImportService(
+            context: env.base.context, inbox: StuckSomeInbox(inner: env.inbox, stuck: stuck),
+            processedImports: env.processed)
+        let summary = try await imports.drainInbox()
+        #expect(summary.stuck.count == bound)
+        #expect(summary.deferred == 100)
+        #expect(summary.filesImported == 0)
     }
 }

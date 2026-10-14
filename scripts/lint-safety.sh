@@ -190,7 +190,7 @@ confirmation_awk='
       c = substr(text, i, 1); d = substr(text, i + 1, 1)
       if (c == "\n") {
         if (state == 1) state = 0
-        if (state == 3) state = 0
+        if (state == 3 || state == 5) state = 0
         lines[++nl] = cur; cur = ""; continue
       }
       if (state == 1) continue
@@ -200,10 +200,28 @@ confirmation_awk='
         continue
       }
       if (state == 3) { cur = cur c; if (c == "\\") { cur = cur d; i++ } else if (c == "\"") state = 0; continue }
+      if (state == 5 || state == 6) {
+        # Raw string: ends at a quote (three for the multi-line form) plus the same number of #.
+        cur = cur c
+        if (c == "\"" && substr(text, i + 1, rq - 1) == substr("\"\"", 1, rq - 1) && substr(text, i + rq, rh) == hs) {
+          cur = cur substr(text, i + 1, rq - 1 + rh); i += rq - 1 + rh; state = 0
+        }
+        continue
+      }
       if (state == 4) {
         cur = cur c
         if (c == "\"" && d == "\"" && substr(text, i + 2, 1) == "\"") { cur = cur "\"\""; i += 2; state = 0 }
         continue
+      }
+      if (c == "#") {
+        rh = 0; j = i
+        while (substr(text, j, 1) == "#") { rh++; j++ }
+        if (substr(text, j, 1) == "\"") {
+          hs = substr(text, i, rh)
+          if (substr(text, j + 1, 2) == "\"\"") { rq = 3; state = 6 } else { rq = 1; state = 5 }
+          cur = cur hs substr(text, j, rq); i = j + rq - 1
+          continue
+        }
       }
       if (c == "/" && d == "/") { state = 1; i++; cur = cur " "; continue }
       if (c == "/" && d == "*") { state = 2; depth = 1; i++; continue }
