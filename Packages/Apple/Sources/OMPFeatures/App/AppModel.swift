@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import OMPCapture
 import OMPDomain
 import OMPServices
 
@@ -20,6 +21,14 @@ public final class AppModel {
     public private(set) var household: Household?
     /// The safety gate status of `household`, re-evaluated by `refresh()`.
     public private(set) var gateStatus: GateStatus
+
+    /// The services onboarding and the safety cover call (T22); set by the composition root.
+    public var safetyServices: SafetyServices?
+    /// On-device voice for the safety question (T30); `nil` hides nothing, the mic explains.
+    public var speechCapture: (any SpeechCapture)?
+    /// True from the first launch without a household until the first plan is made (T22).
+    /// While it is set the shell shows onboarding, not the tabs or the gate cover.
+    public private(set) var onboardingActive = false
 
     /// - Parameters:
     ///   - repositories: where data lives.
@@ -63,10 +72,18 @@ public final class AppModel {
             OMPLog.app.error("Household load failed: \(kind, privacy: .public)")
             gateStatus = .loadFailed
         }
+        if gateStatus == .noHousehold { onboardingActive = true }
         // Locals only: log interpolations are autoclosures, and only data-free values go in.
         let statusName = gateStatus.logName
         let blockedCount = gateStatus.blockedMemberCount
         OMPLog.gate.info(
             "Gate status \(statusName, privacy: .public); members blocking \(blockedCount, privacy: .public)")
+    }
+
+    /// Onboarding made the first plan (or the user reached the end): show the app, with the
+    /// gate re-evaluated against the household onboarding created.
+    public func finishOnboarding() async {
+        onboardingActive = false
+        await refresh()
     }
 }
