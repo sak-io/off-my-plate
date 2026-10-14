@@ -48,7 +48,7 @@ enum CompositionRoot {
         _ model: AppModel, repositories: Repositories, clock: any DomainClock, speech: any SpeechCapture
     ) {
         do {
-            let seed = try SeedLibrary.loadBundled()
+            let seed = try SeedLoader.loadBundled()
             let context = ServiceContext(
                 repositories: repositories, clock: clock, library: PlanningLibrary(seed: seed),
                 diagnostics: { _ in OMPLog.app.fault("The validator rejected planner output") })
@@ -65,7 +65,7 @@ enum CompositionRoot {
     /// loaded (the Plan tab then shows C-052 and nothing is planned).
     private static func makePlanBackend(_ repositories: Repositories, clock: any DomainClock) -> (any PlanBackend)? {
         do {
-            let library = PlanningLibrary(seed: try SeedLibrary.loadBundled())
+            let library = PlanningLibrary(seed: try SeedLoader.loadBundled())
             let context = ServiceContext(
                 repositories: repositories, clock: clock, library: library,
                 diagnostics: { diagnostic in
