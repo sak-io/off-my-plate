@@ -1,10 +1,9 @@
 {
   "branch": "feat/t27",
-  "claimed_at": "2026-10-14T12:11:14Z",
-  "heartbeat_at": "2026-10-14T12:11:14Z",
+  "commit": "7e25bf0",
   "id": "T27",
-  "lease_hours": 6,
+  "note": "merged via batch-4, CI green (5 jobs); audit findings waived+tracked for T28",
   "owner": "claude-lead",
-  "state": "claimed",
-  "updated_at": "2026-10-14T12:11:14Z"
+  "state": "merged",
+  "updated_at": "2026-10-14T20:29:51Z"
 }
