@@ -158,7 +158,7 @@ All user-facing strings for v1. IDs (`C-xxx`) are referenced from `screens.md`; 
 | C-134 | Permission denied | Voice is off for OffMyPlate. To speak your pantry, turn on Microphone and Speech Recognition in Settings. You can always type instead. · Open Settings · Type instead |
 | C-135 | Unavailable | Voice isn't available on this device right now. You can type instead. · Type instead |
 | C-136 | `NSMicrophoneUsageDescription` | OffMyPlate listens only while you hold the mic open, to add things to your pantry. |
-| C-137 | `NSSpeechRecognitionUsageDescription` | OffMyPlate turns what you say into pantry items. Speech is processed on this device when it supports it. |
+| C-137 | `NSSpeechRecognitionUsageDescription` | OffMyPlate turns what you say into pantry items. Speech stays on this device. |
 
 C-137 note for architect: if the device can't recognise on-device, Apple's speech service may be used by the system. Copy must match the implementation; if v1 forces on-device only (`requiresOnDeviceRecognition`), change the second sentence to "Speech stays on this device." and use C-135 when unsupported.
 
