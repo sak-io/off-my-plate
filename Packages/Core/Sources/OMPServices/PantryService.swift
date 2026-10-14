@@ -242,7 +242,8 @@ public final class PantryService: Sendable {
             try await context.repositories.cookLogs.save(log)
             try await context.repositories.learningEvents.save(
                 LearningEvent(id: LearningEventID(context.makeID()), kind: .cooked(recipe: recipeID), at: now))
-            // Last, so an interrupted call can be repeated rather than leave a cooked meal with no log.
+            // Last, so a meal is never marked cooked without a log. NOT idempotent: the deductions
+            // and the log are already saved, so repeating an interrupted call deducts again (tracked).
             plan.meals[index].cooked = CookRef(cookLogId: log.id, cookedAt: now)
             try await context.repositories.mealPlans.save(plan)
             try await shopping.rederive()

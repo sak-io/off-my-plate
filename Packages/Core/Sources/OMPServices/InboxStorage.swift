@@ -93,12 +93,19 @@ public struct DirectoryInboxStorage: InboxStorage {
         let manager = FileManager.default
         guard manager.fileExists(atPath: url.path) else { throw InboxStorageError.notFound(name) }
         // Do not read a huge file just to reject it.
-        if let size = (try manager.attributesOfItem(atPath: url.path)[.size] as? NSNumber)?.intValue,
-            size > InboxImport.maxFileBytes
-        {
+        let attributes = try manager.attributesOfItem(atPath: url.path)
+        var size: Int?
+        if let number = attributes[.size] as? NSNumber {
+            size = number.intValue
+        } else if let bytes = attributes[.size] as? UInt64 {
+            size = Int(clamping: bytes)
+        }
+        if let size, size > InboxImport.maxFileBytes {
             throw InboxImportError.fileTooLarge(bytes: size)
         }
-        return try Data(contentsOf: url)
+        let data = try Data(contentsOf: url)
+        if data.count > InboxImport.maxFileBytes { throw InboxImportError.fileTooLarge(bytes: data.count) }
+        return data
     }
 
     public func quarantine(_ name: String) async throws {

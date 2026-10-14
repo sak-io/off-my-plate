@@ -16,7 +16,7 @@ public struct ImportSummary: Sendable, Hashable {
     /// Names of the files moved to `failed/` because they could not be read (ADR 0011). The app
     /// tells the user; nothing is dropped silently.
     public var quarantined: [String] = []
-    /// Names of unreadable files that could not even be moved; they are tried again next time.
+    /// Names of files left in the inbox because of a storage error (or a failed move to `failed/`); they are tried again next time.
     public var stuck: [String] = []
 
     public init() {}
@@ -32,7 +32,8 @@ public struct ImportSummary: Sendable, Hashable {
 ///   before the file is deleted, so a second drain, or a file that could not be deleted, never
 ///   merges twice. (If the app stops between merging and recording, the next drain merges the
 ///   file again; a visible duplicate is preferred to silently losing the user's items.)
-/// - **Corrupt files are quarantined**, not dropped.
+/// - **Corrupt files are quarantined**, not dropped. Only a bad file (`InboxImportError`) is
+///   quarantined; a storage error leaves the file in place (`stuck`) for the next drain.
 /// - **Learning evidence only.** Each resolved item adds one `.importedItem` event (a staple
 ///   signal). Imports never read or write rules, members or safety status (AC-11.5).
 /// - Items are de-duplicated against existing non-plan rows by ingredient (or by name for free
@@ -69,13 +70,19 @@ public final class ImportService: Sendable {
                     guard parsed.importId == id else {
                         throw InboxImportError.invalid("The import id does not match the file name.")
                     }
-                } catch {
+                } catch is InboxImportError {
+                    // The file itself is bad (not JSON, wrong schema, too large, id mismatch).
                     do {
                         try await inbox.quarantine(name)
                         summary.quarantined.append(name)
                     } catch {
                         summary.stuck.append(name)
                     }
+                    continue
+                } catch {
+                    // A storage error (transient I/O, permission): the file may be fine, so keep
+                    // it in the inbox and try again next drain.
+                    summary.stuck.append(name)
                     continue
                 }
                 switch parsed.destination {

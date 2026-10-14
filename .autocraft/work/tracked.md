@@ -47,3 +47,8 @@
 | T19 | ASSUMPTION for owner: learner `RecipeTraits.keyIngredients` = first two non-optional lines of a recipe (no seed field marks the characteristic ingredients) | owner / content |
 | T19 | Import dedupe never edits plan-derived shopping lines (they are recomputed); an imported item whose ingredient is on the plan becomes its own "from Notes" row | owner (UX) |
 | T19 | `ImportService` merges before recording the import id: a stop in between merges the file twice on the next drain (visible duplicate preferred to lost items) | follow-up (needs a transactional store) |
+| T19 review-1 | `markCooked` is not idempotent after an interruption (deductions + log saved before the cooked ref): repeat deducts twice | follow-up (transactional store) |
+| T19 review-1 | Add a test: Mark cooked refuses a `blockedBySafety` meal (rule change after approval -> recheck -> markCooked) | follow-up |
+| T19 review-1 | `confirmVoice .add` does not validate ingredient ids against the library and creates duplicate rows for an ingredient already in the pantry | follow-up |
+| T19 review-1 | Confirm in T26 that the Share Extension recreates the Inbox folder (`createDirectory`) after "Delete all data" removed it | T26 |
+| T19 review-1 | `markCooked` accepts caller-edited amounts unchecked (safe: deduct clamps at zero) | none |

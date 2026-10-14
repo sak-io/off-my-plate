@@ -44,7 +44,8 @@ public final class DataService: Sendable {
     }
 
     /// Deletes cook logs, learning events and processed-import ids older than 12 months (NFR
-    /// Storage). Facts stay: they are the household's current preferences. The app calls this at
+    /// Storage). Facts stay (inferred, unconfirmed ones may fall back to observing on the next
+    /// learning refresh once their events are gone): they are the household's current preferences. The app calls this at
     /// launch.
     ///
     /// - Returns: the cutoff used.
