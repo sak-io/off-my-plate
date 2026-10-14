@@ -1,0 +1,6 @@
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/PlanUITests.swift:227: error: -[OffMyPlateUITests.PlanUITests testDraftPlanPassesAccessibilityAudit] : XCTAssertTrue failed - Accessibility audit issues (3):
+XCUIAccessibilityAuditType(rawValue: 131072) | Text clipped | label '?' id '' type 0 frame (0.0, 0.0, 0.0, 0.0) | 
+Test Case '-[OffMyPlateUITests.PlanUITests testDraftPlanPassesAccessibilityAudit]' failed (38.061 seconds).
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/PlanUITests.swift:227: error: -[OffMyPlateUITests.PlanUITests testDraftPlanPassesAccessibilityAudit] : XCTAssertTrue failed - Accessibility audit issues (1):
+XCUIAccessibilityAuditType(rawValue: 131072) | Text clipped | label 'Approve week' id 'plan.approve' type 9 frame (16.0, 661.0, 361.0, 44.33333333333337) | Attributes: Button, 0x105478e20, {{16.0, 661.0}, {361.0, 44.3}}, identifier: 'plan.approve', label: 'Approve week'
+Test Case '-[OffMyPlateUITests.PlanUITests testDraftPlanPassesAccessibilityAudit]' failed (17.744 seconds).
