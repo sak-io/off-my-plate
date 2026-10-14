@@ -37,6 +37,918 @@
         }
       }
     },
+    "C-050": {
+      "comment": "Plan loading text (S-04, S-10).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Planning your week…"
+          }
+        }
+      }
+    },
+    "C-052": {
+      "comment": "Plan generation or save error.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I couldn't make a plan just now. Please try again."
+          }
+        }
+      }
+    },
+    "C-052.retry": {
+      "comment": "Retry button on the plan error card.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        }
+      }
+    },
+    "C-053": {
+      "comment": "Plan tab navigation title (S-10).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This week"
+          }
+        }
+      }
+    },
+    "C-053a": {
+      "comment": "Plan date range: first day, last day.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ – %@"
+          }
+        }
+      }
+    },
+    "C-054": {
+      "comment": "Status label of a draft plan.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft · not in use yet"
+          }
+        }
+      }
+    },
+    "C-055": {
+      "comment": "Status label of an approved plan; the date it was approved.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved %@"
+          }
+        }
+      }
+    },
+    "C-056": {
+      "comment": "Status label of an approved plan with a pending draft revision.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes not approved yet"
+          }
+        }
+      }
+    },
+    "C-060": {
+      "comment": "First-plan banner (dismissible).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A starting point. Swap anything and I'll learn."
+          }
+        }
+      }
+    },
+    "C-062": {
+      "comment": "Approve button of a draft plan.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approve week"
+          }
+        }
+      }
+    },
+    "C-062.caption": {
+      "comment": "Caption under the Approve week button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Builds your shopping list and lets you mark meals cooked."
+          }
+        }
+      }
+    },
+    "C-062a": {
+      "comment": "VoiceOver hint of Approve week. Argument is the number of meals.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approves all %lld meals for this week"
+          }
+        }
+      }
+    },
+    "C-062b": {
+      "comment": "Title of the approval sheet for a first plan (opened by voice).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approve this week?"
+          }
+        }
+      }
+    },
+    "C-062c": {
+      "comment": "Body of the approval sheet for a first plan.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everything in this plan was checked for everyone."
+          }
+        }
+      }
+    },
+    "C-063": {
+      "comment": "Empty state of the Plan tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No plan for this week"
+          }
+        }
+      }
+    },
+    "C-063.action": {
+      "comment": "Button on the empty Plan tab that generates a plan.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make a plan"
+          }
+        }
+      }
+    },
+    "C-064": {
+      "comment": "Row text of a meal with no safe recipe (AC-4.4).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No safe recipe for this meal yet."
+          }
+        }
+      }
+    },
+    "C-064.body": {
+      "comment": "Explanation of an empty meal slot (AC-4.4).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "None of my recipes fit everyone's must-avoid list for this meal. You could mark someone as not eating, or plan this one yourself."
+          }
+        }
+      }
+    },
+    "C-064.why": {
+      "comment": "Button that explains an empty meal slot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Why?"
+          }
+        }
+      }
+    },
+    "C-065": {
+      "comment": "Toast after approving a first plan.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Week approved. Your shopping list is ready."
+          }
+        }
+      }
+    },
+    "C-066": {
+      "comment": "Caption in meal detail of a draft plan.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approve the week to mark meals cooked."
+          }
+        }
+      }
+    },
+    "C-067": {
+      "comment": "Swap sheet empty state.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No other safe recipe for this meal. Try changing who's eating."
+          }
+        }
+      }
+    },
+    "C-068": {
+      "comment": "Swap sheet title. Arguments: day, meal name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swap %@ %@"
+          }
+        }
+      }
+    },
+    "C-068.dontFeel": {
+      "comment": "Swap reason chip.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don't feel like it"
+          }
+        }
+      }
+    },
+    "C-068.kids": {
+      "comment": "Swap reason chip.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kids won't eat it"
+          }
+        }
+      }
+    },
+    "C-068.pick": {
+      "comment": "Swap sheet list header.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick one"
+          }
+        }
+      }
+    },
+    "C-068.pickForMe": {
+      "comment": "Swap sheet re-roll button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick for me"
+          }
+        }
+      }
+    },
+    "C-068.tooLong": {
+      "comment": "Swap reason chip.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too long"
+          }
+        }
+      }
+    },
+    "C-068.why": {
+      "comment": "Swap sheet reason header.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Why change it? (optional)"
+          }
+        }
+      }
+    },
+    "C-069": {
+      "comment": "Toast after editing an approved plan.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swapped. Changes need your approval."
+          }
+        }
+      }
+    },
+    "C-070": {
+      "comment": "Review bar button of a plan with pending changes.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review %lld changes"
+          }
+        }
+      }
+    },
+    "C-070a": {
+      "comment": "Approval diff sheet title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approve %lld changes?"
+          }
+        }
+      }
+    },
+    "C-070a.approve": {
+      "comment": "Approval diff sheet primary button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approve changes"
+          }
+        }
+      }
+    },
+    "C-070a.discard": {
+      "comment": "Approval diff sheet destructive button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard changes"
+          }
+        }
+      }
+    },
+    "C-070a.header": {
+      "comment": "Approval diff section header. Arguments: day, meal slot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · %@"
+          }
+        }
+      }
+    },
+    "C-070a.notYet": {
+      "comment": "Approval diff sheet dismiss button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not yet"
+          }
+        }
+      }
+    },
+    "C-070a.now": {
+      "comment": "Approval diff, new meal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Now: %@"
+          }
+        }
+      }
+    },
+    "C-070a.question": {
+      "comment": "Approval sheet title when only locks changed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approve changes?"
+          }
+        }
+      }
+    },
+    "C-070a.rest": {
+      "comment": "Approval diff sheet subtitle.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everything else stays as approved."
+          }
+        }
+      }
+    },
+    "C-070a.was": {
+      "comment": "Approval diff, old meal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Was: %@"
+          }
+        }
+      }
+    },
+    "C-070b.added": {
+      "comment": "Approval diff, slot added.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added"
+          }
+        }
+      }
+    },
+    "C-070b.empty": {
+      "comment": "Approval diff, slot emptied.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Now empty: no safe recipe"
+          }
+        }
+      }
+    },
+    "C-070b.portions": {
+      "comment": "Approval diff, servings changed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Portions changed"
+          }
+        }
+      }
+    },
+    "C-070b.removed": {
+      "comment": "Approval diff, slot removed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removed"
+          }
+        }
+      }
+    },
+    "C-070c": {
+      "comment": "Approval sheet validator result.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safety check passed for everyone"
+          }
+        }
+      }
+    },
+    "C-071": {
+      "comment": "Alert when the safety check fails at approval.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something changed since this plan was made, so I need to replace a few meals to keep everyone safe."
+          }
+        }
+      }
+    },
+    "C-071.ok": {
+      "comment": "Dismiss button of an alert.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
+      }
+    },
+    "C-072": {
+      "comment": "Toast after approving a revision.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes approved. Your list is updated."
+          }
+        }
+      }
+    },
+    "C-073": {
+      "comment": "Discard confirmation.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard your changes? Your approved plan stays as it is."
+          }
+        }
+      }
+    },
+    "C-073.discard": {
+      "comment": "Discard confirm button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard"
+          }
+        }
+      }
+    },
+    "C-073.keep": {
+      "comment": "Discard cancel button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep editing"
+          }
+        }
+      }
+    },
+    "C-074": {
+      "comment": "Regenerate confirmation.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace all unlocked meals? Locked meals stay."
+          }
+        }
+      }
+    },
+    "C-074.replace": {
+      "comment": "Confirm button of regenerate.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace"
+          }
+        }
+      }
+    },
+    "C-075.lock": {
+      "comment": "Lock a meal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lock"
+          }
+        }
+      }
+    },
+    "C-075.locked": {
+      "comment": "Label of a locked meal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locked"
+          }
+        }
+      }
+    },
+    "C-075.unlock": {
+      "comment": "Unlock a meal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock"
+          }
+        }
+      }
+    },
+    "C-075.value": {
+      "comment": "VoiceOver value of a locked meal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locked, stays when you regenerate"
+          }
+        }
+      }
+    },
+    "C-076": {
+      "comment": "Mark cooked button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark cooked"
+          }
+        }
+      }
+    },
+    "C-076.cooked": {
+      "comment": "Label of a meal marked cooked.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cooked"
+          }
+        }
+      }
+    },
+    "C-076.meal": {
+      "comment": "VoiceOver label of Mark cooked. Argument is the meal name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark %@ cooked"
+          }
+        }
+      }
+    },
+    "C-078": {
+      "comment": "Portion count of one person. Argument is a number.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ portion(s)"
+          }
+        }
+      }
+    },
+    "C-078.not": {
+      "comment": "A person who is not eating this meal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not eating"
+          }
+        }
+      }
+    },
+    "C-079": {
+      "comment": "Label of a meal changed in a pending revision.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changed"
+          }
+        }
+      }
+    },
+    "C-079.approved": {
+      "comment": "Approved meal of a changed row. Argument is the meal name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approved: %@"
+          }
+        }
+      }
+    },
+    "C-079.proposed": {
+      "comment": "Proposed meal of a changed row. Argument is the meal name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proposed: %@"
+          }
+        }
+      }
+    },
+    "C-080": {
+      "comment": "Blocked-by-safety card. Argument is a member name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Answer the safety question for %@ to keep planning."
+          }
+        }
+      }
+    },
+    "C-080.action": {
+      "comment": "Button that reopens the safety question.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Answer now"
+          }
+        }
+      }
+    },
+    "C-081": {
+      "comment": "Shown when a disabled action is used. Argument is a member name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I can't change meals until I know what %@ must avoid."
+          }
+        }
+      }
+    },
+    "C-084.cuisine": {
+      "comment": "Reason template (cuisine affinity).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A cuisine you like"
+          }
+        }
+      }
+    },
+    "C-084.different": {
+      "comment": "Reason template.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something different from yesterday"
+          }
+        }
+      }
+    },
+    "C-084.lunchbox": {
+      "comment": "Reason template.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Good for lunchboxes"
+          }
+        }
+      }
+    },
+    "C-084.often": {
+      "comment": "Reason template.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You cook this often"
+          }
+        }
+      }
+    },
+    "C-084.quick": {
+      "comment": "Reason template. Argument is the meal name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quick weekday %@"
+          }
+        }
+      }
+    },
+    "C-084.repeated": {
+      "comment": "Reason template when variety was relaxed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repeated: few safe options"
+          }
+        }
+      }
+    },
+    "C-084.unlocked": {
+      "comment": "Reason template for a locked meal replaced for safety.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replaced because the old one was no longer safe"
+          }
+        }
+      }
+    },
+    "C-084.uses": {
+      "comment": "Reason template. Argument is an ingredient name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uses your %@"
+          }
+        }
+      }
+    },
     "C-090": {
       "comment": "Disclaimer footer on the safety question and the must-avoid list (S-02, S-33).",
       "extractionState": "manual",
@@ -73,6 +985,18 @@
         }
       }
     },
+    "C-095": {
+      "comment": "Save failed on any screen.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something went wrong saving that. Your other information is safe. Please try again."
+          }
+        }
+      }
+    },
     "C-096": {
       "comment": "Data couldn't load at launch.",
       "extractionState": "manual",
@@ -81,6 +1005,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "I couldn't open your data. Restart the app; if it keeps happening, check your device has free space."
+          }
+        }
+      }
+    },
+    "C-104": {
+      "comment": "Lunchbox prompt card.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Do any of the kids take lunch to school?"
+          }
+        }
+      }
+    },
+    "C-104.no": {
+      "comment": "Lunchbox prompt answer.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No"
+          }
+        }
+      }
+    },
+    "C-104.notNow": {
+      "comment": "Lunchbox prompt answer.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not now"
+          }
+        }
+      }
+    },
+    "C-104.yes": {
+      "comment": "Lunchbox prompt answer.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yes"
+          }
+        }
+      }
+    },
+    "C-105": {
+      "comment": "School lunches sheet title.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "School lunches"
+          }
+        }
+      }
+    },
+    "C-105.days": {
+      "comment": "School lunches sheet section.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Which days?"
+          }
+        }
+      }
+    },
+    "C-105.hint": {
+      "comment": "School lunches sheet caption while Save is disabled.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick at least one child and one day."
+          }
+        }
+      }
+    },
+    "C-105.who": {
+      "comment": "School lunches sheet section.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who takes lunch to school?"
           }
         }
       }
@@ -105,6 +1125,330 @@
           "stringUnit": {
             "state": "translated",
             "value": "Child %lld"
+          }
+        }
+      }
+    },
+    "plan.banner.dismiss": {
+      "comment": "Button that dismisses the first-plan banner.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss"
+          }
+        }
+      }
+    },
+    "plan.cancel": {
+      "comment": "Cancel button of a sheet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "plan.day.fri": {
+      "comment": "Short weekday.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fri"
+          }
+        }
+      }
+    },
+    "plan.day.mon": {
+      "comment": "Short weekday.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mon"
+          }
+        }
+      }
+    },
+    "plan.day.sat": {
+      "comment": "Short weekday.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sat"
+          }
+        }
+      }
+    },
+    "plan.day.sun": {
+      "comment": "Short weekday.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sun"
+          }
+        }
+      }
+    },
+    "plan.day.thu": {
+      "comment": "Short weekday.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thu"
+          }
+        }
+      }
+    },
+    "plan.day.tue": {
+      "comment": "Short weekday.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tue"
+          }
+        }
+      }
+    },
+    "plan.day.wed": {
+      "comment": "Short weekday.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wed"
+          }
+        }
+      }
+    },
+    "plan.detail.ingredients": {
+      "comment": "Section header of meal detail.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingredients"
+          }
+        }
+      }
+    },
+    "plan.detail.steps": {
+      "comment": "Section header of meal detail.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steps"
+          }
+        }
+      }
+    },
+    "plan.detail.whosEating": {
+      "comment": "Section header of meal detail.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who's eating"
+          }
+        }
+      }
+    },
+    "plan.meal.none": {
+      "comment": "Meal name when a meal has no recipe.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No recipe"
+          }
+        }
+      }
+    },
+    "plan.minutes": {
+      "comment": "Cooking time in minutes.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld min"
+          }
+        }
+      }
+    },
+    "plan.open": {
+      "comment": "Context menu item that opens a meal.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        }
+      }
+    },
+    "plan.regenerate": {
+      "comment": "Toolbar button that regenerates the plan.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Regenerate"
+          }
+        }
+      }
+    },
+    "plan.save": {
+      "comment": "Save button of a sheet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        }
+      }
+    },
+    "plan.schoolLunches.saved": {
+      "comment": "Toast after saving school lunches.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "School lunches saved."
+          }
+        }
+      }
+    },
+    "plan.schoolLunches.savedLater": {
+      "comment": "Toast after saving school lunches while the safety gate blocks planning.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved. Lunchboxes are added once the safety questions are answered."
+          }
+        }
+      }
+    },
+    "plan.slot.breakfast": {
+      "comment": "Meal slot name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Breakfast"
+          }
+        }
+      }
+    },
+    "plan.slot.dinner": {
+      "comment": "Meal slot name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dinner"
+          }
+        }
+      }
+    },
+    "plan.slot.lunch": {
+      "comment": "Meal slot name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lunch"
+          }
+        }
+      }
+    },
+    "plan.slot.lunchbox": {
+      "comment": "Meal slot name for school lunchboxes.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lunchbox"
+          }
+        }
+      }
+    },
+    "plan.slot.snack": {
+      "comment": "Meal slot name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snack"
+          }
+        }
+      }
+    },
+    "plan.someone": {
+      "comment": "Fallback for a person's name in a sentence.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "someone"
+          }
+        }
+      }
+    },
+    "plan.status.accessibility": {
+      "comment": "VoiceOver label of the plan status. Argument is the visible status text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plan status: %@"
+          }
+        }
+      }
+    },
+    "plan.swap": {
+      "comment": "Swap a meal (row action and meal detail button).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swap"
           }
         }
       }

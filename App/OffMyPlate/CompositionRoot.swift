@@ -2,6 +2,7 @@ import Foundation
 import OMPData
 import OMPDomain
 import OMPFeatures
+import OMPRecipes
 import OMPServices
 
 /// The composition root (ADR 0004): the only place that chooses concrete implementations.
@@ -17,17 +18,44 @@ enum CompositionRoot {
         #if DEBUG
         if let seed = UITestSeed(arguments: arguments) {
             OMPLog.app.info("UI test seed \(seed.rawValue, privacy: .public): in-memory store")
-            return AppModel(repositories: seed.repositories(now: clock.now), clock: clock)
+            let repositories = seed.repositories(now: clock.now)
+            return AppModel(
+                repositories: repositories, clock: clock, planBackend: makePlanBackend(repositories, clock: clock))
         }
         #endif
 
         do {
             let store = try PersistenceStore(location: try StoreLocation.appDefault())
-            return AppModel(repositories: store.makeRepositories(), clock: clock)
+            let repositories = store.makeRepositories()
+            return AppModel(
+                repositories: repositories, clock: clock, planBackend: makePlanBackend(repositories, clock: clock))
         } catch {
             let kind = OMPLog.errorKind(error)
             OMPLog.app.fault("Store could not be opened: \(kind, privacy: .public)")
             return AppModel.storeUnavailable(clock: clock)
+        }
+    }
+
+    /// The planning services over the bundled recipe library, or nil when the library cannot be
+    /// loaded (the Plan tab then shows C-052 and nothing is planned).
+    private static func makePlanBackend(_ repositories: Repositories, clock: any DomainClock) -> (any PlanBackend)? {
+        do {
+            let library = PlanningLibrary(seed: try SeedLibrary.loadBundled())
+            let context = ServiceContext(
+                repositories: repositories, clock: clock, library: library,
+                diagnostics: { diagnostic in
+                    switch diagnostic {
+                    case .validatorRejectedPlannerOutput(let planId, let meals):
+                        let count = meals.count
+                        OMPLog.app.fault(
+                            "Validator rejected planner output: \(count, privacy: .public) meals; plan \(planId.rawValue, privacy: .private)")
+                    }
+                })
+            return LivePlanBackend(context: context)
+        } catch {
+            let kind = OMPLog.errorKind(error)
+            OMPLog.app.fault("Recipe library could not be loaded: \(kind, privacy: .public)")
+            return nil
         }
     }
 }

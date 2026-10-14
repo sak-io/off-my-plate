@@ -48,6 +48,7 @@ targets:
       - package: Core
         products:
           - OMPDomain
+          - OMPRecipes
           - OMPServices
       - package: Apple
         products:
