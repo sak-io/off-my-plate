@@ -1,11 +1,10 @@
 {
   "branch": "feat/t19",
-  "claimed_at": "2026-10-14T03:30:12Z",
-  "heartbeat_at": "2026-10-14T03:30:12Z",
+  "commit": "6689fe1",
   "id": "T19",
-  "lease_hours": 6,
+  "note": "merged via batch-3, CI green (5 jobs)",
   "owner": "claude-lead-dev1",
-  "state": "claimed",
-  "updated_at": "2026-10-14T03:30:12Z",
+  "state": "merged",
+  "updated_at": "2026-10-14T12:10:54Z",
   "wip_branch": "wip/T19"
 }
