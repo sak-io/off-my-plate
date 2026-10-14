@@ -1,6 +1,6 @@
 # Status
 
-**Phase:** Kickoff, step 3 (build) — 16 of 30 tasks merged; app-screen tasks on hold until macOS CI works
+**Phase:** Kickoff, step 3 (build) - see `work/BOARD.md`
 **Branch:** `claude/build-v1`
 
 ## Owner decisions at kickoff (2026-10-12)
@@ -12,27 +12,15 @@
 4. **Autonomy:** 3 since 2026-10-12. The owner said "Go ahead and build it. Don't need my approval" for the plan; the owner still merges the final pull request.
 5. **Team:** lean (starter + architect + qa-engineer) plus ux-designer. GitHub handle for `--owner`: to be confirmed.
 
-## Done
-- UX design (`docs/design/`) and architecture plan, 15 ADRs and 30-task breakdown (`docs/architecture/`, `docs/adr/`). Owner waived plan approval; recommendations R1–R9 apply as defaults.
-- Spec approved by owner ("AGREED", 2026-10-12): `docs/specs/offmyplate-v1.md`. All gap defaults G1–G12 accepted.
+## Live status
+**Source of truth is `work/BOARD.md`** (generated from `work/status/*.json`; protocol in `AGENTS.md`). Any AI system or human picks only `not_started` tasks (`python3 scripts/board.py next`).
 
-- T01 foundation merged; both CI jobs green on 0884abe (Linux Swift 6.2, macOS Xcode 26.3 / Swift 6.2.4). T01 lint follow-up merged.
-- T02 app walking skeleton merged (d75f9ec): CI green before merge, incl. app build and UI tests on iPhone and iPad simulators.
-- T03 domain contracts, T07 units, T08 safety gate, T04 seed loader merged (CI green on both platforms before merge).
-- T13 plan lifecycle, T17 learner, T09 plan validator, T05 ingredients (184, Kerala staples), T14 pantry/shopping math, T06 30 seed recipes (26 Kerala), T10 planner core merged (CI green on both platforms; combined branch green at a1a4ac4).
-- T15 Notes parser, T20 SwiftData persistence (macOS CI green), T11 planner scoring/editing merged.
-- T21 app shell: written (feat/t21), Linux green; waiting for macOS CI. T16 voice/safety text: written, in review.
-- Tracked review follow-ups: `.autocraft/work/tracked.md`.
+Summary (2026-10-14): 16 of 30 merged; T12, T16, T18, T21 are in review on batch branch `claude/ci-batch-1` (Linux CI green, macOS CI being fixed); T19 has partial work on `wip/T19`; T22-T30 not started.
 
-Process note: task branches are pushed as `claude/ci-tNN` so CI runs before merge (deviation from session-branch mode). The git proxy does not allow deleting remote branches; the owner can delete `claude/ci-*` branches on GitHub.
-
-## Next
-- Build T01–T30 per `docs/architecture/tasks.md`. Verification is GitHub Actions CI (no local Swift toolchain: download.swift.org is blocked).
-
-## macOS CI unavailable (2026-10-13)
-GitHub refuses to start macOS jobs: "recent account payments have failed or your spending limit needs to be increased" (Billing & plans). Owner decision: until fixed, merge core (pure-Swift `Packages/Core`) tasks when Linux CI is green; hold all app/screen tasks (Packages/Apple, App/) until macOS CI works. T11 was merged on Linux-green only (its previous revision 3fe2e5a was green on macOS too).
-
-**Update:** Linux jobs are now refused too (same billing message), so no CI runs at all. New tasks paused; T12 and T18 developers finish their current work, nothing merges until CI runs again. T16 approved, waiting for CI.
+## Process notes
+- GitHub Actions works again (repo is public). CI is batched: several finished tasks go on one `claude/ci-batch-N` branch per CI cycle.
+- Task branches are pushed as `claude/ci-*` so CI runs before merge. The git proxy cannot delete remote branches; the owner can delete merged `claude/ci-*` and `wip/*` branches on GitHub.
+- Review follow-ups: `.autocraft/work/tracked.md`.
 
 ## Usage budget (owner decision, 2026-10-13)
 At most 2 agents at a time; reviewers on Sonnet; short briefs; one review round for small non-safety tasks. Recorded in `.autocraft/custom/team-rules.md` and `.autocraft/config.yml`.
@@ -40,5 +28,4 @@ At most 2 agents at a time; reviewers on Sonnet; short briefs; one review round 
 ## Owner to-dos (non-blocking; defaults applied)
 - R4 restriction definitions and G1 recipe/allergen sign-off (before beta).
 - R6 bundle ID / App Group / team / Xcode version (defaults: `app.offmyplate.OffMyPlate`, `group.app.offmyplate`, team in git-ignored `Local.xcconfig`, Xcode 26).
-- R3 make sure GitHub Actions is enabled for the repo (macOS minutes cost 10× on private repos).
 - R2 (optional) allow download.swift.org in the environment's network settings.

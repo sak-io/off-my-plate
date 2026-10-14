@@ -171,6 +171,8 @@ public struct PlanContentDTO: Codable, Sendable, Hashable {
             return Reason(kind: "cuisineYouLike", cuisineId: try Mapping.raw(id, entity: entity))
         case .repeatedFewSafeOptions:
             return Reason(kind: "repeatedFewSafeOptions")
+        case .lockedMealNoLongerSafe:
+            return Reason(kind: "lockedMealNoLongerSafe")
         }
     }
 
@@ -192,6 +194,8 @@ public struct PlanContentDTO: Codable, Sendable, Hashable {
             return .cuisineYouLike(try Mapping.entityID(reason.cuisineId ?? "", entity: entity))
         case "repeatedFewSafeOptions":
             return .repeatedFewSafeOptions
+        case "lockedMealNoLongerSafe":
+            return .lockedMealNoLongerSafe
         default:
             throw PersistenceError.invalidValue(entity: entity, field: "reason.kind", value: reason.kind)
         }

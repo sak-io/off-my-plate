@@ -1,4 +1,6 @@
 # Apple platforms (plan section 9): everything that needs macOS and Xcode.
+#   Three jobs run in PARALLEL so wall time is the slowest one, not the sum, and one failure
+#   does not hide the others:
 #   1. swift test for Packages/Core (Apple toolchain) and Packages/Apple (OMPData, ...),
 #      each with the zero-test guard (scripts/assert-tests-ran.sh);
 #   2. XcodeGen generates App/OffMyPlate.xcodeproj from App/project.yml (ADR 0006);
@@ -17,7 +19,7 @@ on:
     branches: ["claude/**", "main"]
     # Docs-only and team-bookkeeping pushes do not need a build (saves macOS minutes). If the last
     # commit on a branch is docs-only it gets no run of its own; the previous code commit's run applies.
-    paths-ignore: ["docs/**", ".autocraft/**", "**/*.md"]
+    paths-ignore: ["docs/**", ".autocraft/**", "work/**", "**/*.md"]
   pull_request:
   workflow_dispatch:
 
@@ -35,27 +37,19 @@ defaults:
     shell: bash
 
 jobs:
-  apple-macos:
-    name: Apple platforms (macOS 15, Xcode 26)
+  swift-tests:
+    name: Swift packages (macOS 15, Xcode 26)
     runs-on: macos-15
-    timeout-minutes: 60
+    timeout-minutes: 30
     steps:
       - name: Check out
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
         with:
           persist-credentials: false
 
-      - name: Select Xcode
-        run: |
-          xcode="$(ls -d /Applications/Xcode_26*.app 2>/dev/null | grep -viE 'beta|_rc|release_candidate' | sort -V | tail -n 1 || true)"
-          if [[ -z "$xcode" ]]; then
-            echo "::error::No stable Xcode 26 on this macos-15 runner image. Installed:"
-            ls -d /Applications/Xcode*.app || true
-            exit 1
-          fi
-          sudo xcode-select --switch "$xcode/Contents/Developer"
-          xcodebuild -version
-          swift --version
+      - uses: ./.github/actions/apple-setup
+        with:
+          generate-project: "false"
 
       - name: Test Core (fails if no Swift Testing test ran)
         run: |
@@ -74,68 +68,60 @@ jobs:
           scripts/tests/test-select-simulator.sh
           scripts/tests/test-assert-xcresult-tests-ran.sh
 
-      # Homebrew verifies the bottle's SHA-256 from the formula. Auto-update is off so the
-      # job uses the formula version in the runner image (fast, no surprise upgrades); it
-      # updates only if that install fails. project.yml's minimumXcodeGenVersion makes
-      # XcodeGen itself refuse to run if it is too old. App/.xcodegen-version is the version
-      # the project is developed with; a different CI version is reported as a warning.
-      - name: Install XcodeGen
-        env:
-          HOMEBREW_NO_INSTALL_CLEANUP: "1"
-          HOMEBREW_NO_ENV_HINTS: "1"
-        run: |
-          if ! HOMEBREW_NO_AUTO_UPDATE=1 brew install xcodegen; then
-            brew update
-            brew install xcodegen
-          fi
-          installed="$(xcodegen --version | grep -oE '[0-9]+(\.[0-9]+)+' | head -n 1)"
-          pinned="$(tr -d '[:space:]' < App/.xcodegen-version)"
-          echo "XcodeGen $installed (App/.xcodegen-version: $pinned)"
-          if [[ "$installed" != "$pinned" ]]; then
-            echo "::warning::XcodeGen $installed on CI differs from App/.xcodegen-version ($pinned)"
-          fi
+  ui-iphone:
+    name: UI tests iPhone (macOS 15, Xcode 26)
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
+        with:
+          persist-credentials: false
 
-      - name: Generate the Xcode project
-        run: |
-          (cd App && xcodegen generate --spec project.yml)
-          # Generation must only produce the git-ignored .xcodeproj, never rewrite tracked
-          # files (Info.plist, entitlements) or leave untracked ones behind.
-          git diff --exit-code -- App
-          untracked="$(git status --porcelain --untracked-files=all -- App)"
-          if [[ -n "$untracked" ]]; then
-            echo "::error::xcodegen generate changed the working tree:"
-            echo "$untracked"
-            exit 1
-          fi
+      - uses: ./.github/actions/apple-setup
 
-      - name: Pick simulators (newest iOS 18+ runtime; no hardcoded OS versions)
+      - name: Pick simulator (newest iOS 18+ runtime; no hardcoded OS versions)
         run: |
           xcrun simctl list runtimes
-          iphone="$(scripts/select-simulator.sh iphone "iPhone 16")"
-          ipad="$(scripts/select-simulator.sh ipad "iPad (A16)")"
-          echo "IPHONE_UDID=$iphone" >> "$GITHUB_ENV"
-          echo "IPAD_UDID=$ipad" >> "$GITHUB_ENV"
+          echo "SIM_UDID=$(scripts/select-simulator.sh iphone "iPhone 16")" >> "$GITHUB_ENV"
 
-      - name: Build and UI-test on iPhone (fails if no test ran)
+      - name: Build and UI-test (fails if no test ran)
         run: |
           bundle="$RUNNER_TEMP/ui-iphone.xcresult"
           xcodebuild test \
             -project App/OffMyPlate.xcodeproj \
             -scheme OffMyPlate \
-            -destination "id=$IPHONE_UDID" \
+            -destination "id=$SIM_UDID" \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" \
             -resultBundlePath "$bundle" \
             -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO
           scripts/assert-xcresult-tests-ran.sh "$bundle"
 
-      - name: UI-test on iPad (fails if no test ran)
+  ui-ipad:
+    name: UI tests iPad (macOS 15, Xcode 26)
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/apple-setup
+
+      - name: Pick simulator (newest iOS 18+ runtime; no hardcoded OS versions)
+        run: |
+          xcrun simctl list runtimes
+          echo "SIM_UDID=$(scripts/select-simulator.sh ipad "iPad (A16)")" >> "$GITHUB_ENV"
+
+      - name: Build and UI-test (fails if no test ran)
         run: |
           bundle="$RUNNER_TEMP/ui-ipad.xcresult"
           xcodebuild test \
             -project App/OffMyPlate.xcodeproj \
             -scheme OffMyPlate \
-            -destination "id=$IPAD_UDID" \
+            -destination "id=$SIM_UDID" \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" \
             -resultBundlePath "$bundle" \
             -parallel-testing-enabled NO \

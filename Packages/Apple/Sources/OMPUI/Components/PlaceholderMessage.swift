@@ -27,7 +27,7 @@ public struct PlaceholderMessage: View {
                 .accessibilityIdentifier(titleIdentifier)
             Text(message)
                 .font(.body)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.primary.opacity(0.75))
                 .multilineTextAlignment(.center)
         }
         .padding()

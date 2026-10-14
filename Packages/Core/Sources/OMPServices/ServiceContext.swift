@@ -17,12 +17,21 @@ public struct PlanningLibrary: Sendable {
     /// Restrictions offered on the safety screen. Rules are only ever built from these, so a
     /// caller cannot hand in its own (weaker) tag set.
     public let restrictions: [Restriction]
+    /// The recipes and ingredients by id, for shopping, Mark cooked and learning (they never
+    /// feed a safety decision).
+    public let recipesByID: [RecipeID: Recipe]
+    public let ingredientsByID: [IngredientID: Ingredient]
+    /// Resolves typed, spoken or imported names to taxonomy ingredients.
+    public let resolver: IngredientResolver
 
     public init(recipes: [Recipe], ingredients: [Ingredient], restrictions: [Restriction], contentVersion: String) {
         self.contentVersion = contentVersion
         self.planner = PlannerLibrary(recipes: recipes, ingredients: ingredients, contentVersion: contentVersion)
         self.safety = SafetyCheckLibrary(recipes: recipes, ingredients: ingredients)
         self.restrictions = restrictions
+        self.recipesByID = Dictionary(recipes.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        self.ingredientsByID = Dictionary(ingredients.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        self.resolver = IngredientResolver(ingredients: ingredients)
     }
 
     /// The library for the bundled (or any loaded) seed content.

@@ -76,7 +76,8 @@ public struct SafetyTextParser: Sendable {
         self.maxKeywordWords = longest
     }
 
-    public func parse(_ text: String) -> [SafetyCandidate] {
+    public func parse(_ input: String) -> [SafetyCandidate] {
+        let text = TranscriptSanitiser.sanitise(input)
         let capped = text.prefix(SafetyTextParser.maxInputLength)
         var candidates: [SafetyCandidate] = []
         for clause in SafetyTextParser.clauses(capped) {

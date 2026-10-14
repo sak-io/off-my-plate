@@ -5,6 +5,8 @@
 
 The autocraft agent team is installed (see below). To resume work, run `/status`.
 
+**Live task board (any AI system):** see `AGENTS.md` and `work/BOARD.md`; pick only `not_started` tasks via `python3 scripts/board.py next`.
+
 Never paste or commit secrets. Nothing reaches `main` until the owner merges the pull request.
 
 <!-- autocraft:begin (managed block - edit .autocraft/custom/, then run autocraft sync) -->
@@ -77,7 +79,3 @@ The owner's Claude plan has a rolling usage limit, and a wide parallel team exha
 - **Short briefs:** each agent gets the task id, the exact files and spec/ADR sections it needs, and the CI facts — not "read the whole plan". Agents read only what their task needs.
 - **One review round for small, non-safety tasks** when CI is green and round 1 finds no BLOCKER/MAJOR; remaining MINOR/NIT items are tracked in `.autocraft/work/tracked.md`. Safety-critical tasks (safety gate, validator, planner, plan approval, safety suite, services that call them) keep full review until approved.
 - CI on both platforms stays mandatory before every merge; independent review is never skipped.
-
-## macOS CI unavailable (owner decision, 2026-10-13)
-GitHub refuses macOS jobs (billing/spending limit). Until the owner says it is fixed: merge `Packages/Core`-only tasks when Linux CI is green; do not merge tasks touching `Packages/Apple` or `App/` until macOS CI is green again. When macOS returns, re-run CI on the session branch first.
-<!-- autocraft:end -->

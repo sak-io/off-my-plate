@@ -1,0 +1,54 @@
+name: apple-setup
+description: Select the newest stable Xcode 26, install XcodeGen and generate the Xcode project.
+inputs:
+  generate-project:
+    description: "Install XcodeGen and generate App/OffMyPlate.xcodeproj"
+    default: "true"
+runs:
+  using: composite
+  steps:
+    - name: Select Xcode
+      shell: bash
+      run: |
+        xcode="$(ls -d /Applications/Xcode_26*.app 2>/dev/null | grep -viE 'beta|_rc|release_candidate' | sort -V | tail -n 1 || true)"
+        if [[ -z "$xcode" ]]; then
+          echo "::error::No stable Xcode 26 on this macos-15 runner image. Installed:"
+          ls -d /Applications/Xcode*.app || true
+          exit 1
+        fi
+        sudo xcode-select --switch "$xcode/Contents/Developer"
+        xcodebuild -version
+        swift --version
+
+    - name: Install XcodeGen
+      if: inputs.generate-project == 'true'
+      shell: bash
+      env:
+        HOMEBREW_NO_INSTALL_CLEANUP: "1"
+        HOMEBREW_NO_ENV_HINTS: "1"
+      run: |
+        if ! HOMEBREW_NO_AUTO_UPDATE=1 brew install xcodegen; then
+          brew update
+          brew install xcodegen
+        fi
+        installed="$(xcodegen --version | grep -oE '[0-9]+(\.[0-9]+)+' | head -n 1)"
+        pinned="$(tr -d '[:space:]' < App/.xcodegen-version)"
+        echo "XcodeGen $installed (App/.xcodegen-version: $pinned)"
+        if [[ "$installed" != "$pinned" ]]; then
+          echo "::warning::XcodeGen $installed on CI differs from App/.xcodegen-version ($pinned)"
+        fi
+
+    - name: Generate the Xcode project
+      if: inputs.generate-project == 'true'
+      shell: bash
+      run: |
+        (cd App && xcodegen generate --spec project.yml)
+        # Generation must only produce the git-ignored .xcodeproj, never rewrite tracked
+        # files (Info.plist, entitlements) or leave untracked ones behind.
+        git diff --exit-code -- App
+        untracked="$(git status --porcelain --untracked-files=all -- App)"
+        if [[ -n "$untracked" ]]; then
+          echo "::error::xcodegen generate changed the working tree:"
+          echo "$untracked"
+          exit 1
+        fi
