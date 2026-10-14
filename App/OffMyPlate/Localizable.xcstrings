@@ -853,6 +853,42 @@
         }
       }
     },
+    "C-083": {
+      "comment": "Card on an approved plan with meals that are no longer safe (R1).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your safety answers changed. Some meals need replacing."
+          }
+        }
+      }
+    },
+    "C-083.action": {
+      "comment": "Button on the safety-changed card.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update plan"
+          }
+        }
+      }
+    },
+    "C-083.meal": {
+      "comment": "Marker on a meal that is no longer safe (R1).",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No longer safe: needs replacing"
+          }
+        }
+      }
+    },
     "C-084.cuisine": {
       "comment": "Reason template (cuisine affinity).",
       "extractionState": "manual",
