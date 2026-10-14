@@ -319,7 +319,6 @@ struct PlanWeekList: View {
             Section {
                 header
                     .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
             }
             ForEach(viewModel.days) { day in
                 Section {
@@ -345,7 +344,9 @@ struct PlanWeekList: View {
 
     @ViewBuilder
     private var header: some View {
-        VStack(alignment: .leading, spacing: OMPSpacing.small) {
+        // Each element is its own list row (default insets), not one custom-inset row: the
+        // single tall row failed the iPad Dynamic Type audit after the safety strip landed.
+        Group {
             if let status = viewModel.status {
                 let text = viewModel.statusText(status)
                 HStack(alignment: .firstTextBaseline, spacing: OMPSpacing.small) {
@@ -404,8 +405,6 @@ struct PlanWeekList: View {
                 .accessibilityIdentifier(AccessibilityID.planBanner)
             }
         }
-        .padding(.horizontal, OMPSpacing.medium)
-        .padding(.vertical, OMPSpacing.small)
     }
 
     private static func symbol(for status: PlanStatusKind) -> String {
