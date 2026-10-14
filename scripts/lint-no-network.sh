@@ -48,6 +48,8 @@ if [[ ${#scan_dirs[@]} -eq 0 ]]; then
 fi
 
 violations=0
+skip_suffix=""
+only_file=""
 report() {
   echo "$1" >&2
   violations=$((violations + 1))
@@ -74,6 +76,12 @@ scan() { # regex, message, include-glob...
     if printf '%s\n' "$text" | grep -qE "$comment_re"; then
       continue
     fi
+    if [[ -n "$skip_suffix" && "$file" == */"$skip_suffix" ]]; then
+      continue
+    fi
+    if [[ -n "$only_file" && "$file" != "$only_file" ]]; then
+      continue
+    fi
     report "$file:$line: $message: $(printf '%s' "$text" | sed -E 's/^[[:space:]]+//')"
   done < <(grep -rnE "${includes[@]}" --exclude-dir=.build --exclude-dir=DerivedData \
              "$regex" "${scan_dirs[@]}" || true)
@@ -86,7 +94,21 @@ scan "$import_re" "network/web/analytics framework import is not allowed (ADR 00
 
 symbols='URLSession|NSURLSession|URLRequest|NSURLRequest|NSMutableURLRequest|NSURLConnection|NWConnection|NWListener|NWBrowser|NWPathMonitor|NWEndpoint|CFSocket|CFStreamCreatePairWithSocket|getStreamsToHost|WKWebView|SFSafariViewController|ASWebAuthenticationSession'
 symbol_re="(^|[^A-Za-z0-9_])($symbols)"
+# One reviewed exception (T28, AC-13.2): the DEBUG-only network-denial probe must name
+# `URLRequest` because `URLProtocol.canInit(with:)` takes one. That single file is exempt from
+# the URLRequest symbol ONLY (every other symbol is still banned there); no other file is.
+probe_rel="App/OffMyPlate/DebugNetworkDenial.swift"
+symbols_probe='URLSession|NSURLSession|NSURLRequest|NSMutableURLRequest|NSURLConnection|NWConnection|NWListener|NWBrowser|NWPathMonitor|NWEndpoint|CFSocket|CFStreamCreatePairWithSocket|getStreamsToHost|WKWebView|SFSafariViewController|ASWebAuthenticationSession'
+symbol_probe_re="(^|[^A-Za-z0-9_])($symbols_probe)"
+# First pass: every file but the probe. Second pass: the probe, without URLRequest.
+skip_suffix="$probe_rel"
 scan "$symbol_re" "networking API is not allowed (ADR 0002, AC-13.2)" '*.swift'
+skip_suffix=""
+if [[ -f "$root/$probe_rel" ]]; then
+  only_file="$root/$probe_rel"
+  scan "$symbol_probe_re" "networking API is not allowed (ADR 0002, AC-13.2)" '*.swift'
+  only_file=""
+fi
 
 scan '(^|[^A-Za-z0-9_])(url|id)[[:space:]]*:' \
   "remote dependency in a package manifest is not allowed (zero third-party packages)" \

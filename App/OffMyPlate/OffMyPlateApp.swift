@@ -7,12 +7,19 @@ struct OffMyPlateApp: App {
     @State private var model: AppModel
 
     init() {
+        #if DEBUG
+        // AC-13.2 UI-test probe (Debug builds only): records any URL request the app attempts.
+        DebugNetworkDenial.installIfRequested(arguments: ProcessInfo.processInfo.arguments)
+        #endif
         _model = State(initialValue: CompositionRoot.makeAppModel(arguments: ProcessInfo.processInfo.arguments))
     }
 
     var body: some Scene {
         WindowGroup {
             AppShellView(model: model)
+                #if DEBUG
+                .overlay(alignment: .topLeading) { DebugNetworkAttemptsProbe() }
+                #endif
         }
     }
 }
