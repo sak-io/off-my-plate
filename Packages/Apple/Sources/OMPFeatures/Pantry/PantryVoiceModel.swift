@@ -76,6 +76,7 @@ public final class PantryVoiceModel {
             state = .unavailable(availability)
             return
         }
+        listeningTask?.cancel()
         transcript = ""
         drafts = []
         unparsedText = ""
@@ -95,6 +96,7 @@ public final class PantryVoiceModel {
                     let kind = OMPLog.errorKind(error)
                     OMPLog.app.error("Pantry voice failed: \(kind, privacy: .public)")
                 }
+                guard !Task.isCancelled else { return }
                 self?.finishListening(interrupted: failed)
             }
         } catch {

@@ -10,6 +10,8 @@ extension AccessibilityID {
     static let pantryError = "pantry.error"
     static let pantryErrorRetry = "pantry.error.retry"
     static let pantryLoading = "pantry.loading"
+    static let pantrySearch = "pantry.search"
+    static let pantrySearchClear = "pantry.search.clear"
     static let pantryAdd = "pantry.add"
     static let pantrySpeak = "pantry.speak"
     static func pantryGroup(_ location: String) -> String { "pantry.group.\(location)" }

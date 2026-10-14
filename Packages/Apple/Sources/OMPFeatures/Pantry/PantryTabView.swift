@@ -24,7 +24,6 @@ public struct PantryTabView: View {
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier(AccessibilityID.tabRoot(.pantry))
                 .navigationTitle(PantryCopy.title)
-                .searchable(text: $viewModel.searchText, prompt: PantryCopy.search)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         Button {
@@ -171,10 +170,14 @@ struct PantryEmptyView: View {
 // MARK: The list
 
 struct PantryList: View {
-    let viewModel: PantryViewModel
+    @Bindable var viewModel: PantryViewModel
 
     var body: some View {
         List {
+            Section {
+                PantrySearchField(text: $viewModel.searchText)
+                    .listRowBackground(Color.clear)
+            }
             if let message = viewModel.errorMessage {
                 Section {
                     InlineCard(title: message, systemImage: OMPSymbol.warning) {
@@ -254,6 +257,7 @@ struct PantryRowView: View {
             if row.isStale {
                 StatusLabel(PantryCopy.stale, systemImage: OMPSymbol.warning)
                     .font(OMPFont.reason)
+                    .ompMinimumHitTarget()
                     .accessibilityIdentifier(AccessibilityID.pantryStale(id))
                 Button(PantryCopy.stillHaveIt) { Task { await viewModel.reconfirm(row.id) } }
                     .buttonStyle(.bordered)
@@ -264,6 +268,7 @@ struct PantryRowView: View {
             if row.isUnresolved {
                 StatusLabel(PantryCopy.notRecognised, systemImage: OMPSymbol.warning)
                     .font(OMPFont.reason)
+                    .ompMinimumHitTarget()
                     .accessibilityIdentifier(AccessibilityID.pantryUnresolved(id))
                 Button(PantryCopy.matchIt) { viewModel.openEdit(row.id) }
                     .buttonStyle(.bordered)
@@ -284,5 +289,39 @@ struct PantryRowView: View {
             Button(PantryCopy.editItem) { viewModel.openEdit(row.id) }
             Button(PantryCopy.delete, role: .destructive) { Task { await viewModel.delete(row.id) } }
         }
+    }
+}
+
+/// An explicit search field (the system search bar failed the "Text clipped" audit): magnifier,
+/// text-style font, a clear button, at least 44 pt tall.
+struct PantrySearchField: View {
+    @Binding var text: String
+
+    var body: some View {
+        HStack(spacing: OMPSpacing.small) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(Color.primary)
+                .accessibilityHidden(true)
+            TextField(PantryCopy.search, text: $text)
+                .font(OMPFont.body)
+                .autocorrectionDisabled()
+                .accessibilityLabel(PantryCopy.search)
+                .accessibilityIdentifier(AccessibilityID.pantrySearch)
+            if !text.isEmpty {
+                Button {
+                    text = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Color.primary)
+                .ompMinimumHitTarget()
+                .accessibilityLabel(PantryCopy.clearSearch)
+                .accessibilityIdentifier(AccessibilityID.pantrySearchClear)
+            }
+        }
+        .padding(.horizontal, OMPSpacing.medium)
+        .frame(minHeight: OMPMetrics.minimumHitTarget)
+        .ompCardBackground()
     }
 }

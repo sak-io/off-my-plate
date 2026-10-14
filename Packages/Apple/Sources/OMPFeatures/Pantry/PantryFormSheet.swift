@@ -41,6 +41,17 @@ struct PantryFormSheet: View {
                             .font(OMPFont.disclaimer)
                             .fixedSize(horizontal: false, vertical: true)
                     }
+                    Button(PantryCopy.save) {
+                        Task {
+                            if await form.save() {
+                                await viewModel.sheetChangedPantry()
+                                viewModel.sheet = nil
+                            }
+                        }
+                    }
+                    .buttonStyle(.ompPrimary)
+                    .disabled(!form.canSave)
+                    .accessibilityIdentifier(AccessibilityID.pantryFormSave)
                     if form.isEditing {
                         Button(role: .destructive) {
                             Task {
@@ -67,18 +78,6 @@ struct PantryFormSheet: View {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(PantryCopy.cancel) { viewModel.sheet = nil }
                         .accessibilityIdentifier(AccessibilityID.pantryFormCancel)
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(PantryCopy.save) {
-                        Task {
-                            if await form.save() {
-                                await viewModel.sheetChangedPantry()
-                                viewModel.sheet = nil
-                            }
-                        }
-                    }
-                    .disabled(!form.canSave)
-                    .accessibilityIdentifier(AccessibilityID.pantryFormSave)
                 }
             }
             .onAppear {

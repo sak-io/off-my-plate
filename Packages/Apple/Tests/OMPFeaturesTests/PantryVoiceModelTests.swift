@@ -260,4 +260,18 @@ struct PantryVoiceModelTests {
         #expect(model.state == .confirm)
         #expect(backend.stored.isEmpty)
     }
+
+    @Test("Try again while a card is showing starts a fresh listen and the old one cannot overwrite it")
+    func restartReplacesEarlierListen() async {
+        let backend = FakePantryBackend()
+        let fake = speech()
+        let model = makeModel(backend, speech: fake)
+        await model.start()
+        await settle(model)
+        await model.start()
+        await settle(model)
+        #expect(fake.startCount == 2)
+        #expect(model.state == .confirm)
+        #expect(model.drafts.count == 2)
+    }
 }
