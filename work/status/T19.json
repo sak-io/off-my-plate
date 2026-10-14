@@ -1,6 +1,11 @@
 {
+  "branch": "feat/t19",
+  "claimed_at": "2026-10-14T03:30:12Z",
+  "heartbeat_at": "2026-10-14T03:30:12Z",
   "id": "T19",
-  "note": "partial work on wip/T19 (resume from it)",
-  "state": "not_started",
+  "lease_hours": 6,
+  "owner": "claude-lead-dev1",
+  "state": "claimed",
+  "updated_at": "2026-10-14T03:30:12Z",
   "wip_branch": "wip/T19"
 }
