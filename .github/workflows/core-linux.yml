@@ -42,6 +42,11 @@ jobs:
       - name: Toolchain
         run: swift --version
 
+      # The swift container has no Python; the localisation lint and the task-board self-test need it
+      # (without it the board test skips and the localisation test fails with exit 127).
+      - name: Install python3
+        run: apt-get update -qq && apt-get install -y -qq python3
+
       - name: Script self-tests and lints (planted violations must fail, then the repository)
         run: scripts/check-core.sh --lint-only
 
