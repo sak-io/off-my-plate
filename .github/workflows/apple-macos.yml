@@ -70,64 +70,97 @@ jobs:
           scripts/tests/test-select-simulator.sh
           scripts/tests/test-assert-xcresult-tests-ran.sh
 
-  ui-iphone:
-    name: UI tests iPhone (macOS 15, Xcode 26)
+  # UI tests: build ONCE, then run the XCUITest classes in parallel shards on each device. One serial
+  # job per device took 25-35 minutes (49 tests, each launching the app); shards cut the wall time to
+  # roughly build + the longest shard. scripts/ui-shard-classes.sh lists the classes per shard and
+  # --check (run in the Linux lint step and here) fails if a test class belongs to no shard.
+  ui-build:
+    name: Build UI tests (macOS 15, Xcode 26)
     runs-on: macos-15
-    timeout-minutes: 45
+    timeout-minutes: 30
     steps:
       - name: Check out
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
         with:
           persist-credentials: false
 
+      - name: Every UI test class belongs to a shard
+        run: scripts/ui-shard-classes.sh --check
+
       - uses: ./.github/actions/apple-setup
 
-      - name: Pick simulator (newest iOS 18+ runtime; no hardcoded OS versions)
+      - name: Build the app and the UI tests once (generic iOS Simulator, unsigned)
         run: |
-          xcrun simctl list runtimes
-          echo "SIM_UDID=$(scripts/select-simulator.sh iphone "iPhone 16")" >> "$GITHUB_ENV"
-
-      - name: Build and UI-test (fails if no test ran)
-        run: |
-          bundle="$RUNNER_TEMP/ui-iphone.xcresult"
-          xcodebuild test \
+          xcodebuild build-for-testing \
             -project App/OffMyPlate.xcodeproj \
             -scheme OffMyPlate \
-            -destination "id=$SIM_UDID" \
+            -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" \
-            -resultBundlePath "$bundle" \
-            -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO
-          scripts/assert-xcresult-tests-ran.sh "$bundle"
+          ls "$RUNNER_TEMP"/DerivedData/Build/Products/*.xctestrun
+          tar -C "$RUNNER_TEMP/DerivedData/Build" -czf "$RUNNER_TEMP/ui-products.tgz" Products
+          ls -lh "$RUNNER_TEMP/ui-products.tgz"
 
-  ui-ipad:
-    name: UI tests iPad (macOS 15, Xcode 26)
+      - name: Upload the build for the test shards
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ui-products
+          path: ${{ runner.temp }}/ui-products.tgz
+          retention-days: 1
+          compression-level: 0
+
+  ui-test:
+    name: UI tests ${{ matrix.device }} shard ${{ matrix.shard }} (macOS 15, Xcode 26)
+    needs: ui-build
     runs-on: macos-15
-    timeout-minutes: 45
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        device: [iPhone, iPad]
+        shard: [1, 2, 3]
     steps:
       - name: Check out
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
         with:
           persist-credentials: false
 
-      - uses: ./.github/actions/apple-setup
+      - name: Select Xcode
+        uses: ./.github/actions/apple-setup
+        with:
+          generate-project: "false"
+
+      - name: Download the build
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ui-products
+          path: ${{ runner.temp }}/artifact
 
       - name: Pick simulator (newest iOS 18+ runtime; no hardcoded OS versions)
         run: |
           xcrun simctl list runtimes
-          echo "SIM_UDID=$(scripts/select-simulator.sh ipad "iPad (A16)")" >> "$GITHUB_ENV"
+          if [[ "${{ matrix.device }}" == "iPad" ]]; then
+            echo "SIM_UDID=$(scripts/select-simulator.sh ipad "iPad (A16)")" >> "$GITHUB_ENV"
+          else
+            echo "SIM_UDID=$(scripts/select-simulator.sh iphone "iPhone 16")" >> "$GITHUB_ENV"
+          fi
 
-      - name: Build and UI-test (fails if no test ran)
+      - name: Run this shard's UI tests (fails if no test ran)
         run: |
-          bundle="$RUNNER_TEMP/ui-ipad.xcresult"
-          xcodebuild test \
-            -project App/OffMyPlate.xcodeproj \
-            -scheme OffMyPlate \
+          mkdir -p "$RUNNER_TEMP/dd"
+          tar -C "$RUNNER_TEMP/dd" -xzf "$RUNNER_TEMP/artifact/ui-products.tgz"
+          xctestrun="$(ls "$RUNNER_TEMP"/dd/Products/*.xctestrun | head -n 1)"
+          only=()
+          while IFS= read -r cls; do only+=("-only-testing:OffMyPlateUITests/$cls"); done \
+            < <(scripts/ui-shard-classes.sh "${{ matrix.shard }}")
+          echo "xctestrun: $xctestrun"; printf 'shard classes: %s\n' "${only[*]}"
+          bundle="$RUNNER_TEMP/ui-${{ matrix.device }}-${{ matrix.shard }}.xcresult"
+          xcodebuild test-without-building \
+            -xctestrun "$xctestrun" \
             -destination "id=$SIM_UDID" \
-            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
             -resultBundlePath "$bundle" \
             -parallel-testing-enabled NO \
-            CODE_SIGNING_ALLOWED=NO
+            "${only[@]}"
           scripts/assert-xcresult-tests-ran.sh "$bundle"
 
   release-hygiene:
