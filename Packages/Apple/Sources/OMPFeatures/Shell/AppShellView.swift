@@ -82,7 +82,7 @@ public struct AppShellView: View {
             }
 
             Tab(AppTab.household.title, systemImage: AppTab.household.systemImage, value: AppTab.household) {
-                HouseholdTabPlaceholder()
+                HouseholdTabView(model: model)
             }
         }
         .tabViewStyle(.sidebarAdaptable)

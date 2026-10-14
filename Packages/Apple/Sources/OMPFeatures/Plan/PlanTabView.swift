@@ -11,11 +11,14 @@ public struct PlanTabView: View {
     private let model: AppModel
     @State private var viewModel: PlanViewModel
     @State private var path: [PlannedMealID] = []
+    @State private var reflect: ReflectBackModel
 
     public init(model: AppModel) {
         self.model = model
-        _viewModel = State(
-            initialValue: PlanViewModel(backend: model.planBackend, app: model, clock: model.clock))
+        let plan = PlanViewModel(backend: model.planBackend, app: model, clock: model.clock)
+        _viewModel = State(initialValue: plan)
+        // The answer to a reflect-back card (C-101 to C-103) is shown as the plan's toast.
+        _reflect = State(initialValue: ReflectBackModel(app: model, announce: { plan.toast = $0 }))
     }
 
     public var body: some View {
@@ -24,6 +27,9 @@ public struct PlanTabView: View {
             // scroll under an inset stay in the accessibility tree and the audit measures their
             // contrast against the bar (Dinner, Kerala rasam ... contrast failures, batch 3).
             VStack(spacing: 0) {
+                if viewModel.phase == .loaded || viewModel.phase == .empty {
+                    PlanSafetyStrip(model: model, reflect: reflect, onSafetyChanged: { await viewModel.load() })
+                }
                 content
                 bottomBar
             }
@@ -35,6 +41,7 @@ public struct PlanTabView: View {
                 }
         }
         .task(id: model.gateStatus) { await viewModel.load() }
+        .task(id: model.gateStatus) { await reflect.load() }
         .sheet(item: sheetBinding) { sheet in
             switch sheet {
             case .approval: ApprovalSheet(viewModel: viewModel)

@@ -39,40 +39,6 @@ struct PlanTabPlaceholder: View {
     }
 }
 
-/// The Household tab placeholder with About -> the full disclaimer, so the disclaimer is
-/// reachable from anywhere in the app (AC-2.6, AC-14.1, S-37).
-struct HouseholdTabPlaceholder: View {
-    var body: some View {
-        NavigationStack {
-            List {
-                Section {
-                    Text(TabPlaceholder.comingSoon).font(.body).foregroundStyle(Color.primary.opacity(0.75))
-                }
-                Section(Self.aboutTitle) {
-                    NavigationLink(Self.disclaimerTitle) {
-                        DisclaimerNoteView()
-                            .navigationTitle(Self.disclaimerTitle)
-                    }
-                    .accessibilityIdentifier("household.about.disclaimer")
-                }
-            }
-            .accessibilityIdentifier(AccessibilityID.tabRoot(.household))
-            .navigationTitle(AppTab.household.title)
-        }
-    }
-
-    static var aboutTitle: String {
-        String(localized: "shell.household.about", defaultValue: "About", comment: "Household section (C-110).")
-    }
-
-    static var disclaimerTitle: String {
-        String(
-            localized: "shell.household.disclaimer", defaultValue: "Not medical advice",
-            comment: "Row that opens the full medical disclaimer (S-37).")
-    }
-}
-
-
 /// The body of a tab placeholder: symbol, title and message in plain text styles, in a scroll
 /// view so it stays usable at every Dynamic Type size.
 private struct PlaceholderBody: View {

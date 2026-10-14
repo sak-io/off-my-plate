@@ -39,7 +39,10 @@ enum CompositionRoot {
             let repositories = store.makeRepositories()
             let model = AppModel(
                 repositories: repositories, clock: clock, planBackend: makePlanBackend(repositories, clock: clock))
-            wireSafety(model, repositories: repositories, clock: clock, speech: OnDeviceSpeechCapture(backend: SystemSpeechBackend()))
+            // "Delete all data" also rewrites the SQLite file and truncates its log (AC-16.2, T27).
+            wireSafety(
+                model, repositories: repositories, clock: clock, speech: OnDeviceSpeechCapture(backend: SystemSpeechBackend()),
+                eraseStore: { try await store.eraseAllData() })
             wireImports(
                 model, repositories: repositories, clock: clock, inbox: appGroupInbox(),
                 processed: store.makeProcessedImportStore())
@@ -54,7 +57,8 @@ enum CompositionRoot {
     /// Builds the use-case services (T18) over the same repositories and gives them to the
     /// model, with the bundled seed library and the safety keyword table (T16).
     private static func wireSafety(
-        _ model: AppModel, repositories: Repositories, clock: any DomainClock, speech: any SpeechCapture
+        _ model: AppModel, repositories: Repositories, clock: any DomainClock, speech: any SpeechCapture,
+        eraseStore: (@Sendable () async throws -> Void)? = nil
     ) {
         do {
             let seed = try SeedLoader.loadBundled()
@@ -66,6 +70,10 @@ enum CompositionRoot {
             model.speechCapture = speech
             model.pantryBackend = LivePantryBackend(context: context)
             model.shoppingBackend = LiveShoppingBackend(context: context)
+            // Household tab, learning and delete-all (T27). T26 adds its DataService here.
+            model.settingsBackend = LiveSettingsBackend(
+                context: context, parser: SafetyTextParser(keywords: seed.catalog.restrictionKeywords),
+                eraseStore: eraseStore)
         } catch {
             let kind = OMPLog.errorKind(error)
             OMPLog.app.fault("Seed library could not be loaded: \(kind, privacy: .public)")
@@ -173,6 +181,11 @@ enum UITestSeed: String {
     /// Like `answered`, plus a stocked pantry: salt, oil and curry leaves (in nearly every seed
     /// recipe), rice, stale milk and the unrecognised "masala mix" (T24).
     case pantry
+    /// As `answered`, plus stated, confirmed and default soft facts and three weekday "too long"
+    /// re-rolls, so a reflect-back card is proposed and "What I've learned" has every section.
+    case learned
+    /// Adult 1 and Child 1 answered 200 days ago: the 180-day "Still correct?" card shows.
+    case stale
 
     static let argument = "-OMPUITestSeed"
 
@@ -185,6 +198,8 @@ enum UITestSeed: String {
     func repositories(now: Date) -> Repositories {
         let empty = Repositories.inMemory()
         let seeded: [Household]
+        var facts: [Fact] = []
+        var events: [LearningEvent] = []
         switch self {
         case .empty:
             return empty
@@ -197,12 +212,58 @@ enum UITestSeed: String {
                 Self.member(.adult, 1, answeredAt: now), Self.member(.child, 1, answeredAt: nil),
                 Self.member(.child, 2, answeredAt: nil),
             ])]
+        case .learned:
+            seeded = [Self.household(now: now, members: [
+                Self.member(.adult, 1, answeredAt: now), Self.member(.child, 1, answeredAt: now),
+            ])]
+            facts = Self.learnedFacts(now: now)
+            events = Self.quickWeekdayEvents(now: now)
+        case .stale:
+            let old = now.addingTimeInterval(-200 * 86_400)
+            seeded = [Self.household(now: now, members: [
+                Self.member(.adult, 1, answeredAt: old), Self.member(.child, 1, answeredAt: old),
+            ])]
         }
         return Repositories(
             household: InMemoryRepository<Household>(seeded), mealPlans: empty.mealPlans,
             pantry: InMemoryRepository<PantryItem>(self == .pantry ? Self.pantryItems(now: now) : []),
-            shopping: empty.shopping, cookLogs: empty.cookLogs, facts: empty.facts,
-            learningEvents: empty.learningEvents, promptStates: empty.promptStates)
+            shopping: empty.shopping, cookLogs: empty.cookLogs, facts: InMemoryRepository<Fact>(facts),
+            learningEvents: InMemoryRepository<LearningEvent>(events), promptStates: empty.promptStates)
+    }
+
+    /// A stated, a confirmed and a default cuisine fact.
+    private static func learnedFacts(now: Date) -> [Fact] {
+        func fact(_ cuisine: CuisineID, _ origin: FactOrigin) -> Fact {
+            let key = FactKey(subject: .household, statement: .cuisineAffinity(cuisine))
+            return Fact(
+                id: FactLearner.stableID(for: key), statement: key.statement, origin: origin, confidence: 1,
+                status: .active, createdAt: now, updatedAt: now)
+        }
+        return [
+            fact("southIndian", .stated), fact("northIndian", .confirmed), fact("westIndian", .appDefault),
+        ]
+    }
+
+    /// Three "too long" re-rolls on weekdays in two different ISO weeks, inside the 56-day
+    /// window: the learner proposes "Quick dinners on weekdays" (AC-12.2).
+    private static func quickWeekdayEvents(now: Date) -> [LearningEvent] {
+        let zone = TimeZone.autoupdatingCurrent
+        func weekday(onOrBefore date: Date) -> Date {
+            var day = date
+            for _ in 0..<7 {
+                if Weekday.schoolWeek.contains(LocalDate(day, in: zone).weekday) { return day }
+                day = day.addingTimeInterval(-86_400)
+            }
+            return day
+        }
+        let first = weekday(onOrBefore: now.addingTimeInterval(-86_400))
+        let second = weekday(onOrBefore: first.addingTimeInterval(-8 * 86_400))
+        let third = weekday(onOrBefore: second.addingTimeInterval(-86_400))
+        return [first, second, third].enumerated().map { index, date in
+            LearningEvent(
+                id: LearningEventID("seed-reroll-\(index)"),
+                kind: .rerolled(recipe: RecipeID("seed-recipe"), slot: .dinner, reason: .tooLong), at: date)
+        }
     }
 
     private static func pantryItem(

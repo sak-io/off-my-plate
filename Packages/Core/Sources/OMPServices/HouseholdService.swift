@@ -115,6 +115,46 @@ public final class HouseholdService: Sendable {
         }
     }
 
+    /// The longest name stored; longer input is cut (AC-16.1: a name is optional and only a label).
+    public static let maxNameLength = 40
+
+    /// Sets or clears a member's optional name (AC-16.1). The name is trimmed; empty text clears
+    /// it, so the generated label ("Adult 1") shows again. A name never touches safety status or
+    /// rules, so no re-check runs.
+    ///
+    /// - Throws: `.invalidInput` for an unknown or removed member.
+    @discardableResult
+    public func setName(_ name: String?, for memberID: MemberID) async throws -> Household {
+        try await context.serialized {
+            var household = try await engine.requireHousehold()
+            guard let index = household.members.firstIndex(where: { $0.id == memberID && !$0.isDeleted }) else {
+                throw ServiceError.invalidInput("no such member")
+            }
+            let cleaned = Self.cleanName(name)
+            household.members[index].name = cleaned.isEmpty ? nil : cleaned
+            household.updatedAt = context.clock.now
+            try await context.repositories.household.replace(with: household)
+            return household
+        }
+    }
+
+    /// Drops control, format (bidi overrides, zero-width) and line/paragraph separator
+    /// characters, trims, cuts to `maxNameLength` and trims again.
+    static func cleanName(_ name: String?) -> String {
+        guard let name else { return "" }
+        var scalars = String.UnicodeScalarView()
+        for scalar in name.unicodeScalars {
+            switch scalar.properties.generalCategory {
+            case .control, .format, .lineSeparator, .paragraphSeparator, .surrogate, .privateUse, .unassigned:
+                continue
+            default:
+                scalars.append(scalar)
+            }
+        }
+        let trimmed = String(scalars).trimmingCharacters(in: .whitespacesAndNewlines)
+        return String(trimmed.prefix(maxNameLength)).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
     /// Changes a member's age band (AC-3.4). Crossing between child and grown bands resets the
     /// member to `unasked`, so the safety question is asked again.
     ///

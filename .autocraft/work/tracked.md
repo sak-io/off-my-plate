@@ -69,3 +69,4 @@
 | T26 | The import `ServiceContext` has its own lock, separate from the plan backend's and safety services' contexts (existing pattern); imports and plan re-derivation of the shopping list are not mutually serialised | follow-up (share one context in the composition root) |
 | T26 | C-111 has no singular; "Added 1 item from Notes." is used for n = 1 | owner (copy) |
 | T26 | The Notes-import toast is not covered by an accessibility audit (it hides after 4 s, the audit takes longer) | none |
+| T27 review-1 | Delete all: wire `DataService` (inbox, processed imports, counters) into `LiveSettingsBackend` in the composition root; until then only repositories + store file are erased. `AppModel.storePurgeIncomplete` is set but not shown anywhere (decide whether to tell the user) | T26 |

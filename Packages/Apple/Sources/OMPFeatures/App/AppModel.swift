@@ -27,6 +27,8 @@ public final class AppModel {
 
     /// The services onboarding and the safety cover call (T22); set by the composition root.
     public var safetyServices: SafetyServices?
+    /// The Household tab, learning and delete-all services (T27); set by the composition root.
+    public var settingsBackend: (any SettingsBackend)?
     /// On-device voice for the safety question (T30); `nil` hides nothing, the mic explains.
     public var speechCapture: (any SpeechCapture)?
     /// The pantry use cases the Pantry tab and the cooked sheet call (T24); set by the composition root.
@@ -93,6 +95,19 @@ public final class AppModel {
         let blockedCount = gateStatus.blockedMemberCount
         OMPLog.gate.info(
             "Gate status \(statusName, privacy: .public); members blocking \(blockedCount, privacy: .public)")
+    }
+
+    /// True when the last "Delete all data" removed every record but could not rewrite the
+    /// store file (T27); the records are gone either way.
+    public private(set) var storePurgeIncomplete = false
+
+    /// "Delete all data" finished (T27, AC-16.2): the stores are empty, so forget the household
+    /// and restart onboarding at S-01.
+    public func dataWasDeleted(purgeIncomplete: Bool = false) async {
+        storePurgeIncomplete = purgeIncomplete
+        household = nil
+        gateStatus = .noHousehold
+        onboardingActive = true
     }
 
     /// Onboarding made the first plan (or the user reached the end): show the app, with the
