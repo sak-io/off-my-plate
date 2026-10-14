@@ -223,7 +223,13 @@ final class PlanUITests: XCTestCase {
             found.append("audit threw: \(error)")
         }
         }
-        let tree = found.isEmpty ? "" : "\nElement tree:\n" + String(app.debugDescription.prefix(7000))
+        // Only the bottom of the screen (y >= 560): the full tree is dominated by list rows.
+        let bottom = app.debugDescription.split(separator: "\n").filter { line in
+            guard let r = line.range(of: "{{") else { return false }
+            let nums = line[r.upperBound...].prefix(while: { $0 != "}" }).split(separator: ",")
+            return Double(nums.last?.trimmingCharacters(in: .whitespaces) ?? "") ?? 0 >= 560
+        }.joined(separator: "\n")
+        let tree = found.isEmpty ? "" : "\nBottom of screen (y >= 560):\n" + String(bottom.prefix(6000))
         XCTAssertTrue(found.isEmpty, "Accessibility audit issues (\(found.count)):\n" + found.joined(separator: "\n") + tree)
     }
 
