@@ -1,0 +1,3 @@
+- [ ] Restriction and keyword definitions approved. Reviewer: ________ Date: 2026-10-20
+- [ ] Privacy policy, data map and disclaimer wording approved. Reviewer: ________ Date: ________
+- [ ] Recipe allergen tags spot-checked by a dietitian or food-safety reviewer. Reviewer: ________ Date: ________
