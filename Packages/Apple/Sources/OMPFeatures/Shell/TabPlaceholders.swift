@@ -8,10 +8,7 @@ struct TabPlaceholder: View {
 
     var body: some View {
         NavigationStack {
-            ContentUnavailableView(
-                tab.title,
-                systemImage: tab.systemImage,
-                description: Text(Self.comingSoon).font(.body).foregroundStyle(Color.primary.opacity(0.75)))
+            PlaceholderBody(title: tab.title, systemImage: tab.systemImage, message: Self.comingSoon)
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier(AccessibilityID.tabRoot(tab))
                 .navigationTitle(tab.title)
@@ -29,10 +26,7 @@ struct TabPlaceholder: View {
 struct PlanTabPlaceholder: View {
     var body: some View {
         NavigationStack {
-            ContentUnavailableView(
-                AppTab.plan.title,
-                systemImage: AppTab.plan.systemImage,
-                description: Text(TabPlaceholder.comingSoon).font(.body).foregroundStyle(Color.primary.opacity(0.75)))
+            PlaceholderBody(title: AppTab.plan.title, systemImage: AppTab.plan.systemImage, message: TabPlaceholder.comingSoon)
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier(AccessibilityID.tabRoot(.plan))
                 .safeAreaInset(edge: .bottom) {
@@ -75,5 +69,33 @@ struct HouseholdTabPlaceholder: View {
         String(
             localized: "shell.household.disclaimer", defaultValue: "Not medical advice",
             comment: "Row that opens the full medical disclaimer (S-37).")
+    }
+}
+
+
+/// The body of a tab placeholder: symbol, title and message in plain text styles, in a scroll
+/// view so it stays usable at every Dynamic Type size.
+private struct PlaceholderBody: View {
+    let title: String
+    let systemImage: String
+    let message: String
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: OMPSpacing.small) {
+                Image(systemName: systemImage)
+                    .font(.largeTitle)
+                    .accessibilityHidden(true)
+                Text(title)
+                    .font(.title2.bold())
+                    .multilineTextAlignment(.center)
+                Text(message)
+                    .font(.body)
+                    .foregroundStyle(Color.primary.opacity(0.75))
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(OMPSpacing.large)
+        }
     }
 }
