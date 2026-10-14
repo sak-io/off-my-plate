@@ -198,7 +198,11 @@ final class OnboardingUITests: XCTestCase {
             try app.performAccessibilityAudit { issue in
                 let label = issue.element?.label ?? "?"
                 let id = issue.element?.identifier ?? ""
-                found.append("\(issue.auditType) | \(issue.compactDescription) | label '\(label)' id '\(id)'")
+                let kind = issue.element?.elementType.rawValue ?? 0
+                let frame = issue.element?.frame ?? .zero
+                let debug = String((issue.element?.debugDescription ?? "").prefix(300))
+                found.append(
+                    "\(issue.auditType) | \(issue.compactDescription) | label '\(label)' id '\(id)' type \(kind) frame \(frame) \(debug)")
                 return true
             }
         } catch {
