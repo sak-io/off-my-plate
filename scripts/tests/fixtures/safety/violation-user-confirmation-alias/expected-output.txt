@@ -1,0 +1,3 @@
+Packages/Apple/Sources/OMPFeatures/Plan/ApprovalSheet.swift:1: UserConfirmation must not be aliased
+App/OffMyPlate/Meta.swift:1: UserConfirmation must not be aliased
+App/OffMyPlate/Meta.swift:2: UserConfirmation must not be aliased

@@ -1,10 +1,12 @@
 # Apple platforms (plan section 9): everything that needs macOS and Xcode.
-#   Three jobs run in PARALLEL so wall time is the slowest one, not the sum, and one failure
+#   Several jobs run in PARALLEL so wall time is the slowest one, not the sum, and one failure
 #   does not hide the others:
 #   1. swift test for Packages/Core (Apple toolchain) and Packages/Apple (OMPData, ...),
 #      each with the zero-test guard (scripts/assert-tests-ran.sh);
 #   2. XcodeGen generates App/OffMyPlate.xcodeproj from App/project.yml (ADR 0006);
-#   3. xcodebuild test (app build, share extension, UI tests) on an iPhone 16 and an iPad
+#   3. release-hygiene builds the Release configuration and fails if a UI-test hook
+#      (`OMPUITest`) is in the shipped binary (security audit M2);
+#   4. xcodebuild test (app build, share extension, UI tests) on an iPhone 16 and an iPad
 #      simulator, each with the zero-test guard (scripts/assert-xcresult-tests-ran.sh).
 # Simulator builds are unsigned (CODE_SIGNING_ALLOWED=NO); no signing material in CI.
 #
@@ -127,3 +129,42 @@ jobs:
             -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO
           scripts/assert-xcresult-tests-ran.sh "$bundle"
+
+  release-hygiene:
+    name: Release build has no UI-test hooks (macOS 15, Xcode 26)
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/apple-setup
+
+      - name: Build Release for the iOS Simulator (unsigned)
+        run: |
+          xcodebuild build \
+            -project App/OffMyPlate.xcodeproj \
+            -scheme OffMyPlate \
+            -configuration Release \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedDataRelease" \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Fail if the Release app contains an OMPUITest launch hook
+        run: |
+          app="$RUNNER_TEMP/DerivedDataRelease/Build/Products/Release-iphonesimulator/OffMyPlate.app"
+          test -d "$app" || { echo "::error::Release app not found at $app"; exit 1; }
+          executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Info.plist")"
+          # Guard against a vacuous pass: strings must see the binary's text.
+          test "$(strings -a "$app/$executable" | wc -l)" -gt 100 \
+            || { echo "::error::strings found almost nothing in $executable"; exit 1; }
+          found=0
+          while IFS= read -r -d '' file; do
+            if strings -a "$file" | grep -q 'OMPUITest'; then
+              echo "::error::OMPUITest found in ${file#"$app"/}"
+              found=1
+            fi
+          done < <(find "$app" -type f -print0)
+          exit "$found"

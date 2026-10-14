@@ -22,7 +22,10 @@
 #      re-plan no longer has the recipe that was blocked; the plan is validated again before it
 #      is saved);
 #   5. `UserConfirmation(` (or `.init(`, or `confirmation: .init(`) appears outside tests and
-#      the approval sheet (Packages/Apple/Sources/OMPFeatures/**/Approval*.swift);
+#      the two exact approval files Packages/Apple/Sources/OMPFeatures/Plan/ApprovalWeekBar.swift
+#      and .../Plan/ApprovalSheet.swift (not a glob: a new file needs a reviewed change here);
+#      and any alias of the type (`typealias X = UserConfirmation`, `= UserConfirmation.self`,
+#      `UserConfirmation.init` without a call, `extension UserConfirmation`) outside tests;
 #   6. the safety suite (Packages/Core/Tests/OMPSafetySuiteTests/) contains `.disabled`,
 #      `withKnownIssue`, `.enabled(` or `#if`: nothing in it may be skipped, expected to
 #      fail or compiled out.
@@ -148,18 +151,25 @@ unblock_allowed() {
 scan "(^|$w)blockedBySafety[[:space:]]*=[[:space:]]*false($w|\$)" \
   "a safety block may be cleared only in $lifecycle_file, the OMPData mapping and tests (ADR 0008, R1)" unblock_allowed
 
-# 5. UserConfirmation is created only by the approval sheet's button (and tests).
+# 5. UserConfirmation is created only by the two approval buttons (and tests). Exact paths:
+#    CODEOWNERS covers the same two files.
+approval_ui_files="Packages/Apple/Sources/OMPFeatures/Plan/ApprovalWeekBar.swift Packages/Apple/Sources/OMPFeatures/Plan/ApprovalSheet.swift"
 confirmation_allowed() {
   is_test "$1" && return 0
-  [[ "$1" == Packages/Apple/Sources/OMPFeatures/* ]] || return 1
-  case "$(basename "$1")" in
-    Approval*.swift) return 0 ;;
-  esac
+  local f
+  for f in $approval_ui_files; do
+    [[ "$1" == "$f" ]] && return 0
+  done
   return 1
 }
 scan "(^|$w)UserConfirmation[[:space:]]*(\\.init)?[[:space:]]*\\(|(^|$w)confirmation[[:space:]]*:[[:space:]]*\\.init[[:space:]]*\\(" \
-  "UserConfirmation may be created only in the approval sheet (OMPFeatures/**/Approval*.swift) and tests (ADR 0008, AC-5.6)" \
+  "UserConfirmation may be created only in the approval sheet (the exact files OMPFeatures/Plan/ApprovalWeekBar.swift and ApprovalSheet.swift) and tests (ADR 0008, AC-5.6)" \
   confirmation_allowed
+# Aliases and indirect references would bypass the construction check above, so they are banned
+# everywhere outside tests (the type's own declaration is not matched by these).
+in_tests() { is_test "$1"; }
+scan "(^|$w)typealias[[:space:]][^=]*=[^/]*(^|$w)UserConfirmation($w|\$)|=[[:space:]]*([A-Za-z0-9_]+\\.)*UserConfirmation[[:space:]]*\$|(^|$w)UserConfirmation[[:space:]]*\\.self($w|\$)|(^|$w)UserConfirmation[[:space:]]*\\.init[[:space:]]*(\$|[^[:space:](A-Za-z0-9_])|(^|$w)extension[[:space:]]+([A-Za-z0-9_]+\\.)*UserConfirmation($w|\$)" \
+  "UserConfirmation must not be aliased, referenced as a metatype/initialiser or extended: construct it only in the approval buttons (ADR 0008, AC-5.6)" in_tests
 
 # 6. Nothing in the safety suite may be disabled, expected to fail or compiled out.
 not_in_suite() { [[ "$1" != "$suite_dir"* ]]; }

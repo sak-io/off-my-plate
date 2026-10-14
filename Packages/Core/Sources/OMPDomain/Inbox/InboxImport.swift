@@ -36,6 +36,9 @@ public struct InboxImport: Sendable, Hashable, Codable {
     /// One confirmed row.
     public struct Item: Sendable, Hashable, Codable {
         public static let maxNameLength = 200
+        /// Largest amount one imported row may carry (security audit L1); a larger one is dropped
+        /// like a non-finite one, and a file that says otherwise fails to decode.
+        public static let maxQuantity: Double = 100_000
 
         /// As shown on the review screen (possibly edited by the user).
         public let name: String
@@ -46,7 +49,7 @@ public struct InboxImport: Sendable, Hashable, Codable {
         public let unit: MeasureUnit?
 
         /// Normalises its input: the name is trimmed and cut to `maxNameLength` characters; a
-        /// quantity that is not finite and positive is dropped, and so is a non-quantified unit
+        /// quantity that is not finite, positive and at most `maxQuantity` is dropped, and so is a non-quantified unit
         /// ("pinch") together with its amount.
         public init(
             name: String, ingredientId: IngredientID? = nil, quantity: Double? = nil, unit: MeasureUnit? = nil
@@ -55,7 +58,7 @@ public struct InboxImport: Sendable, Hashable, Codable {
             self.name = String(trimmed.prefix(Item.maxNameLength))
             self.ingredientId = ingredientId
             let quantified = unit.map(\.isQuantified) ?? true
-            if let quantity, quantity.isFinite, quantity > 0, quantified {
+            if let quantity, quantity.isFinite, quantity > 0, quantity <= Item.maxQuantity, quantified {
                 self.quantity = quantity
                 self.unit = unit
             } else {
@@ -89,7 +92,7 @@ public struct InboxImport: Sendable, Hashable, Codable {
             guard self.quantity == quantity, self.unit == unit else {
                 throw DecodingError.dataCorruptedError(
                     forKey: .quantity, in: container,
-                    debugDescription: "A quantity must be finite and positive, with a quantified unit.")
+                    debugDescription: "A quantity must be finite, positive and at most 100000, with a quantified unit.")
             }
         }
 
