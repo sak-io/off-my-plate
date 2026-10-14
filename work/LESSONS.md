@@ -8,3 +8,7 @@
 - Every behavior change needs unit tests; the test-count asserts (`assert-tests-ran.sh`) fail a run that silently skips tests.
 - Batch CI: push several finished tasks on one `claude/ci-batch-N` branch; one CI cycle instead of one per task.
 - Docs-only changes (`*.md`, `work/**`) do not trigger CI.
+- `App/OffMyPlate/CompositionRoot.swift` is compiled only by the app target, so a wrong name there (e.g. `SeedLibrary.loadBundled` vs `SeedLoader.loadBundled`) is NOT caught by the Swift package tests; check API names against the package source before using them.
+- Accessibility audit (XCUITest) pitfalls found the hard way: avoid `ContentUnavailableView`, default `List` section headers and `.secondary` text (contrast / Dynamic Type); a bottom bar placed as a safe-area inset keeps rows scrolled under it in the accessibility tree and they fail contrast; give the app ~2 s to settle before auditing; run the audit in two passes on long lists (timeouts on iPad); system tab bar chrome raises element-less issues on iPad (owner-approved exceptions, tracked for T28).
+- A UI job that dies with "Failed to get background assertion ... Timed out" never ran a test body: it is a simulator launch flake, re-run that job once.
+- Explicit plus/minus Buttons are more testable than SwiftUI `Stepper` (its inner "Increment" button was not found by XCUITest on this runner).

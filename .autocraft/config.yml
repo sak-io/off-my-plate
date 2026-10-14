@@ -11,7 +11,7 @@ capabilities: [database, privacy-compliance]  # (secrets-and-config, deployment-
 experience: intermediate  # beginner | intermediate | expert  (how agents explain and decide)
 autonomy_level: 3  # 1 = approve every phase, 2 = approve architecture + merges, 3 = approve merges only
 max_review_rounds: 3       # review loops before escalating to a human
-max_parallel_developers: 2 # owner 2026-10-14: at most 3 agents running at once (raised from 2); revisit if the usage limit is hit
+max_parallel_developers: 3 # owner 2026-10-14: at most 4 agents running at once (raised from 3 once T19 merged); revisit if the usage limit is hit
 default_branch: main
 language: ""               # set when GitHub CI is installed (autocraft github --lang ...)
 human_owner: ""            # GitHub handle to notify when something is release-ready
