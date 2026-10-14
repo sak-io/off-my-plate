@@ -11,7 +11,7 @@ struct TabPlaceholder: View {
             ContentUnavailableView {
                 Label(tab.title, systemImage: tab.systemImage)
             } description: {
-                Text(Self.comingSoon).foregroundStyle(Color.primary.opacity(0.75))
+                Text(Self.comingSoon).font(.body).foregroundStyle(Color.primary.opacity(0.75))
             }
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier(AccessibilityID.tabRoot(tab))
@@ -33,7 +33,7 @@ struct PlanTabPlaceholder: View {
             ContentUnavailableView {
                 Label(AppTab.plan.title, systemImage: AppTab.plan.systemImage)
             } description: {
-                Text(TabPlaceholder.comingSoon).foregroundStyle(Color.primary.opacity(0.75))
+                Text(TabPlaceholder.comingSoon).font(.body).foregroundStyle(Color.primary.opacity(0.75))
             }
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier(AccessibilityID.tabRoot(.plan))
@@ -54,7 +54,7 @@ struct HouseholdTabPlaceholder: View {
         NavigationStack {
             List {
                 Section {
-                    Text(TabPlaceholder.comingSoon).foregroundStyle(Color.primary.opacity(0.75))
+                    Text(TabPlaceholder.comingSoon).font(.body).foregroundStyle(Color.primary.opacity(0.75))
                 }
                 Section(Self.aboutTitle) {
                     NavigationLink(Self.disclaimerTitle) {
