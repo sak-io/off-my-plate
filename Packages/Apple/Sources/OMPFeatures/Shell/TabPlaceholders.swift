@@ -52,7 +52,7 @@ struct HouseholdTabPlaceholder: View {
         NavigationStack {
             List {
                 Section {
-                    Text(TabPlaceholder.comingSoon)
+                    Text(TabPlaceholder.comingSoon).foregroundStyle(Color.primary.opacity(0.75))
                 }
                 Section(Self.aboutTitle) {
                     NavigationLink(Self.disclaimerTitle) {
