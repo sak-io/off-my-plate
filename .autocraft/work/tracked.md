@@ -61,3 +61,5 @@
 | T23 review-1 | Discard is reachable only from the approval sheet, which cannot open while safety blocks; a pending revision can be neither discarded nor approved until the gate clears (safe direction) | note |
 | T23 review-1 | NIT: `swapMealID` not cleared when the swap sheet is swiped away | follow-up |
 | T23 | PlanUITests audit ignores element-less issues on iPad (system tab bar/sidebar chrome; any audit type) and Dynamic Type on the system "Plan" label — owner-approved 2026-10-14 (widened from the shell test); find the real cause and remove both exceptions | T28 |
+| T25 review | "Need it" shown selected by default on every unchecked row (misleading, VoiceOver); UI tests lack Check-you-have and Bought-everything pantry assertions; share header uses Core English text with ISO dates | follow-up |
+| T25 review | QUESTION for owner: C-149 "Clear checked items" currently unchecks (deletes nothing); should it delete? Also no Localizable.xcstrings entries for Shopping strings (defaultValue works) | owner / T28 |
