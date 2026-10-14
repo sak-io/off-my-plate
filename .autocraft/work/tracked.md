@@ -64,3 +64,5 @@
 | T25 review | "Need it" shown selected by default on every unchecked row (misleading, VoiceOver); UI tests lack Check-you-have and Bought-everything pantry assertions; share header uses Core English text with ISO dates | follow-up |
 | T25 review | QUESTION for owner: C-149 "Clear checked items" currently unchecks (deletes nothing); should it delete? Also no Localizable.xcstrings entries for Shopping strings (defaultValue works) | owner / T28 |
 | T26 review | App/project.yml comment above OffMyPlateShare still lists only OMPDomain, OMPRecipes, OMPUI: add OMPShare; ADR 0011 needs an architect ack for the new OMPShare target | follow-up |
+| T27 review-2 | MUST FIX next push: HouseholdService.cleanName strips ALL format characters, which removes ZWJ/ZWNJ (U+200D/U+200C) that Malayalam/Indic names and ZWJ emoji need; allow U+200C and U+200D, add tests (Malayalam chillu example, ZWJ emoji, cut at a grapheme cluster) | next batch |
+| T27 review-2 | No test for the busy-purge retry path in StoreErase; storePurgeIncomplete is not shown to the user (also T26/T28) | follow-up |
