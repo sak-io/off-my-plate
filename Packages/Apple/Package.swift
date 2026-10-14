@@ -15,6 +15,7 @@ let package = Package(
         .library(name: "OMPCapture", targets: ["OMPCapture"]),
         .library(name: "OMPUI", targets: ["OMPUI"]),
         .library(name: "OMPFeatures", targets: ["OMPFeatures"]),
+        .library(name: "OMPShare", targets: ["OMPShare"]),
     ],
     dependencies: [
         .package(path: "../Core"),
@@ -38,6 +39,16 @@ let package = Package(
         // Design system: tokens and shared SwiftUI components (task T21). No Core dependency,
         // so the share extension can link it without reaching services.
         .target(name: "OMPUI"),
+        // The Share Extension's logic and screen (S-40, ADR 0011, task T26). Links only OMPDomain
+        // and OMPUI: never OMPServices, OMPData or OMPFeatures, so the extension cannot reach
+        // planning, approval, the household or the store.
+        .target(
+            name: "OMPShare",
+            dependencies: [
+                "OMPUI",
+                .product(name: "OMPDomain", package: "Core"),
+            ]
+        ),
         // Screens and view models; the app target stays a thin composition root.
         .target(
             name: "OMPFeatures",
@@ -63,6 +74,13 @@ let package = Package(
         .testTarget(
             name: "OMPUITests",
             dependencies: ["OMPUI"]
+        ),
+        .testTarget(
+            name: "OMPShareTests",
+            dependencies: [
+                "OMPShare",
+                .product(name: "OMPDomain", package: "Core"),
+            ]
         ),
         .testTarget(
             name: "OMPFeaturesTests",

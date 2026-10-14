@@ -75,6 +75,16 @@ public final class PersistenceStore: Sendable {
         )
     }
 
+    /// The processed-import store on this container (ADR 0011, T26).
+    public func makeProcessedImportStore() -> SwiftDataProcessedImportStore {
+        SwiftDataProcessedImportStore(modelContainer: container)
+    }
+
+    /// The local counter store on this container (ADR 0014).
+    public func makeCounterStore() -> SwiftDataCounterStore {
+        SwiftDataCounterStore(modelContainer: container)
+    }
+
     /// Deletes every record of every type in one save, including processed imports and
     /// counters (AC-16.2). The container and existing repositories stay usable afterwards.
     /// Inbox files and the `UserDefaults` suite are the caller's part of "Delete all data".

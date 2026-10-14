@@ -1,24 +1,27 @@
+import OMPDomain
+import OMPShare
 import OMPUI
 import SwiftUI
 import UIKit
-import UniformTypeIdentifiers
 
 /// Principal class of the share extension (Info.plist `NSExtensionPrincipalClass`).
 ///
-/// Walking skeleton (task T02): says "Hello" when the shared items contain text and shows
-/// an "unsupported" message otherwise. Task T26 replaces the content with parse -> review
-/// -> destination -> confirm -> inbox write (ADR 0011).
+/// Task T26 (S-40, flow F10, ADR 0011): reads the shared text, parses it, shows the review screen
+/// and writes one inbox file into the App Group. It links only OMPDomain, OMPUI and OMPShare:
+/// never the services, the store, the household or the plan.
 final class ShareViewController: UIViewController {
+    private var model: ShareImportModel?
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        let inputItems = extensionContext?.inputItems ?? []
-        let content = ShareSkeletonView(
-            containsText: Self.containsText(inputItems),
-            onDone: { [weak self] in
+        let model = ShareImportModel(writer: Self.makeWriter())
+        self.model = model
+        let content = ShareImportView(
+            model: model,
+            onClose: { [weak self] in
                 self?.extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
-            }
-        )
+            })
 
         let host = UIHostingController(rootView: content)
         addChild(host)
@@ -31,45 +34,35 @@ final class ShareViewController: UIViewController {
             host.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
         host.didMove(toParent: self)
-    }
 
-    /// True when any attachment of any shared item is plain text (or a subtype of it).
-    /// Only checks the declared types; the text itself is not loaded until task T26.
-    static func containsText(_ inputItems: [Any]) -> Bool {
-        inputItems
-            .compactMap { $0 as? NSExtensionItem }
-            .flatMap { $0.attachments ?? [] }
-            .contains { $0.hasItemConformingToTypeIdentifier(UTType.plainText.identifier) }
-    }
-}
-
-/// The extension's only screen in the walking skeleton.
-struct ShareSkeletonView: View {
-    let containsText: Bool
-    let onDone: @MainActor () -> Void
-
-    var body: some View {
-        NavigationStack {
-            Group {
-                if containsText {
-                    PlaceholderMessage(
-                        title: "Hello",
-                        message: "OffMyPlate will turn this text into a shopping or pantry list.",
-                        titleIdentifier: "share.hello"
-                    )
-                } else {
-                    PlaceholderMessage(
-                        title: "Text only",
-                        message: "OffMyPlate can only import shared text, such as a list from Notes.",
-                        titleIdentifier: "share.unsupported"
-                    )
-                }
-            }
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { onDone() }
-                }
+        let providers = Self.providers(of: extensionContext?.inputItems ?? [])
+        Task { @MainActor in
+            if ShareTextDetection.containsText(typeIdentifiers: ShareTextLoader.typeIdentifiers(of: providers)),
+                let text = await ShareTextLoader.text(from: providers)
+            {
+                model.load(text: text)
+            } else {
+                model.showNotText()
             }
         }
     }
+
+    /// Every attachment of every shared item.
+    static func providers(of inputItems: [Any]) -> [NSItemProvider] {
+        inputItems.compactMap { $0 as? NSExtensionItem }.flatMap { $0.attachments ?? [] }
+    }
+
+    /// The inbox writer for the App Group named in Info.plist (`OMPAppGroupIdentifier`). Without
+    /// the group (an unsigned build) the write fails and the review shows C-173.
+    private static func makeWriter() -> any ShareInboxWriting {
+        let groupID = Bundle.main.object(forInfoDictionaryKey: "OMPAppGroupIdentifier") as? String ?? ""
+        guard let root = ShareInbox.rootURL(appGroupID: groupID) else { return UnavailableInboxWriter() }
+        return DirectoryShareInboxWriter(root: root)
+    }
+}
+
+/// Used when the App Group container cannot be found: every write fails (C-173).
+private struct UnavailableInboxWriter: ShareInboxWriting {
+    struct Unavailable: Error {}
+    func write(_ item: InboxImport) async throws { throw Unavailable() }
 }
