@@ -42,9 +42,25 @@ if [[ -n "$unverified" && "$unverified" -gt 0 ]]; then
   echo "release-readiness: warning: $unverified ingredients have unverified allergen tags" >&2
 fi
 
+valid_date() { # YYYY-MM-DD real calendar date
+  local y="${1:0:4}" m="${1:5:2}" d="${1:8:2}" max
+  m=$((10#$m)); d=$((10#$d)); y=$((10#$y))
+  (( m >= 1 && m <= 12 && d >= 1 )) || return 1
+  case "$m" in
+    4|6|9|11) max=30 ;;
+    2) if (( (y % 4 == 0 && y % 100 != 0) || y % 400 == 0 )); then max=29; else max=28; fi ;;
+    *) max=31 ;;
+  esac
+  (( d <= max ))
+}
+
 # 2/3. sign-off lines (R4/G4): ticked box, a reviewer name, an ISO date
 ticked() { # label-regex
-  grep -E "^- \[[xX]\] $1" "$record" | grep -qE 'Reviewer: [^_ ][^ ]*.* Date: [0-9]{4}-[0-9]{2}-[0-9]{2}' 
+  local line date
+  line="$(grep -E "^- \[[xX]\] $1" "$record" | head -1)" || return 1
+  grep -qE 'Reviewer: [^_ ][^ ]*.* Date: [0-9]{4}-[0-9]{2}-[0-9]{2}$' <<<"$line" || return 1
+  date="${line##* }"
+  valid_date "$date"
 }
 ticked 'Restriction and keyword definitions approved' \
   || fail "restriction/keyword definitions are not signed off in $record (R4/G4)"

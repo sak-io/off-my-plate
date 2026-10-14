@@ -4,7 +4,7 @@ For App Store Connect, App Privacy section. Source: `docs/release/data-map.md`, 
 
 | Question | Answer |
 |---|---|
-| Do you or your third-party partners collect data from this app? | **No** (data never leaves the device; Apple's definition of "collect" means transmitting off-device) |
+| Do you or your third-party partners collect data from this app? | **No** (the app never transmits data; note theuser's own iCloud/device backup may contain app data today, an open owner decision in `data-map.md` "Device backups", also an open G4 item; Apple's definition of "collect" means transmitting off-device) |
 | Data types collected | None. Health-adjacent allergy/diet info and children's optional names stay on-device |
 | Used for tracking? | **No** |
 | Tracking domains | None |
