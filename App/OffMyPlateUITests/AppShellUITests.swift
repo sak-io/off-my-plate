@@ -76,6 +76,12 @@ final class AppShellUITests: XCTestCase {
 
         tapTab(app, "Household")
         let row = element(app, "household.about.disclaimer")
+        // The About row sits below the fold on small screens: scroll the list to it.
+        var scrolls = 0
+        while !(row.exists && row.isHittable) && scrolls < 6 {
+            app.swipeUp()
+            scrolls += 1
+        }
         let rowShown = row.waitForExistence(timeout: 5)
         XCTAssertTrue(rowShown, "Household has no row for the medical disclaimer (AC-2.6)")
         row.tap()
