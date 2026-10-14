@@ -328,6 +328,19 @@ struct SafetyAnswerModelTests {
         #expect(stored.rules.isEmpty)
     }
 
+    @Test("Text submitted after Continue (late transcript) adds no rows behind the summary")
+    func lateTextIgnoredInSummary() async throws {
+        let fake = FakeSpeechCapture(availability: .available)
+        let (model, _, _) = try await onboardingModel(speech: fake)
+        model.toggleChip(restriction("milk"))
+        model.continueToSummary()
+        model.draftText = "no beef"
+        model.submitText()
+        #expect(model.items.count == 1)
+        #expect(model.phase == .summary)
+        #expect(fake.stopCount >= 1)
+    }
+
     @Test("Denied permission shows the notice; chips and text still work")
     func voiceDenied() async throws {
         let fake = FakeSpeechCapture(availability: .permissionDenied)

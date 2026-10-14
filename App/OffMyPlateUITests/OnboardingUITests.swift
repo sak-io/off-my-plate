@@ -65,20 +65,19 @@ final class OnboardingUITests: XCTestCase {
     func testWhoIsEatingBoundsAndContinue() throws {
         let app = launch(seed: "empty")
         waitFor(app, "onboarding.who")
-        let adults = app.steppers["onboarding.adults"]
-        let children = app.steppers["onboarding.children"]
-        let shown = adults.waitForExistence(timeout: 5)
-        XCTAssertTrue(shown)
+        let adultsPlus = waitFor(app, "onboarding.adults.plus")
+        let childrenPlus = element(app, "onboarding.children.plus")
 
         // Max: 2 adults + 10 more = 12 people; "+" disables at the cap.
-        for _ in 0..<10 { adults.buttons["Increment"].tap() }
-        let adultsPlusEnabled = adults.buttons["Increment"].isEnabled
-        let childrenPlusEnabled = children.buttons["Increment"].isEnabled
+        for _ in 0..<10 { adultsPlus.tap() }
+        let adultsPlusEnabled = adultsPlus.isEnabled
+        let childrenPlusEnabled = childrenPlus.isEnabled
         XCTAssertFalse(adultsPlusEnabled, "Adults can go past the cap of 12")
         XCTAssertFalse(childrenPlusEnabled, "Children can go past the cap of 12")
 
         // Invalid: nobody -> Continue disabled.
-        for _ in 0..<12 { adults.buttons["Decrement"].tap() }
+        let adultsMinus = element(app, "onboarding.adults.minus")
+        for _ in 0..<12 { adultsMinus.tap() }
         let continueEnabled = element(app, "onboarding.continue").isEnabled
         XCTAssertFalse(continueEnabled, "Continue is enabled with nobody eating")
     }
