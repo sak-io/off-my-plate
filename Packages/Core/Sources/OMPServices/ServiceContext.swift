@@ -87,6 +87,18 @@ public enum ServiceError: Error, Sendable, Hashable {
     case lifecycle(PlanLifecycleError)
     case safetyTransition(SafetyTransitionError)
     case householdSize(HouseholdSizeError)
+    /// Mark cooked is not available for that meal (AC-5.3, AC-9.6, R1).
+    case markCooked(MarkCookedError)
+    case pantryItemNotFound(PantryItemID)
+    case shoppingItemNotFound(ShoppingItemID)
+    case factNotFound(FactID)
+    /// The ingredient is not in the taxonomy.
+    case unknownIngredient(IngredientID)
+    /// The meal's recipe is not in the loaded library.
+    case recipeNotInLibrary(RecipeID)
+    /// Input the service cannot accept (an empty name, a negative amount, a plan item that
+    /// cannot be removed by hand, ...). The text is for developers, not for display.
+    case invalidInput(String)
 }
 
 /// Serialises the services' read-validate-write sequences (one at a time, FIFO).
@@ -170,6 +182,8 @@ func mappingDomainErrors<T>(_ body: () throws -> T) throws -> T {
         throw ServiceError.safetyTransition(error)
     } catch let error as HouseholdSizeError {
         throw ServiceError.householdSize(error)
+    } catch let error as MarkCookedError {
+        throw ServiceError.markCooked(error)
     } catch let error as PlannerError {
         switch error {
         case .clearanceNotValid: throw ServiceError.clearanceNotValid
