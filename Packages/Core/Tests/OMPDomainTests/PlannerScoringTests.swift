@@ -328,6 +328,8 @@ struct PlannerSignalsTests {
         let elapsed = try ContinuousClock().measure { try run() }
         // The product budget is 200 ms per week (T11); CI debug builds on shared runners are
         // noisy, so the assertion only catches gross regressions (T11 review-1).
+        // T28: record the real number in the log (product budget 200 ms; NFR 2 s on-device).
+        print("PERF planner full week (200 recipes, warm): \(elapsed)")
         #expect(elapsed < .seconds(2), "\(elapsed)")
     }
 }

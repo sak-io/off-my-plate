@@ -5,6 +5,32 @@ public enum ToastTiming {
     public static let visibleDuration: Duration = .seconds(4)
 }
 
+/// How the toast moves (AC-15.4): it slides in from the bottom, or with Reduce Motion on it only
+/// fades and nothing is animated. Kept as plain data so a unit test can pin the policy.
+enum ToastMotion: Equatable {
+    case slideAndFade
+    case fadeOnly
+
+    init(reduceMotion: Bool) {
+        self = reduceMotion ? .fadeOnly : .slideAndFade
+    }
+
+    var transition: AnyTransition {
+        switch self {
+        case .slideAndFade: .move(edge: .bottom).combined(with: .opacity)
+        case .fadeOnly: .opacity
+        }
+    }
+
+    /// The animation applied to appearing and disappearing; nil means none.
+    var animation: Animation? {
+        switch self {
+        case .slideAndFade: .default
+        case .fadeOnly: nil
+        }
+    }
+}
+
 /// A short confirmation shown at the bottom ("Plan approved", inbox merge C-111).
 ///
 /// It is announced to VoiceOver, hides itself after 4 seconds, and fades instead of sliding
@@ -25,7 +51,7 @@ struct ToastModifier: ViewModifier {
                         .padding(.vertical, OMPSpacing.small + 4)
                         .ompCardBackground()
                         .padding(OMPSpacing.medium)
-                        .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
+                        .transition(ToastMotion(reduceMotion: reduceMotion).transition)
                         .accessibilityIdentifier("toast")
                         .task(id: message) {
                             AccessibilityNotification.Announcement(message).post()
@@ -35,7 +61,7 @@ struct ToastModifier: ViewModifier {
                         }
                 }
             }
-            .animation(reduceMotion ? nil : .default, value: message)
+            .animation(ToastMotion(reduceMotion: reduceMotion).animation, value: message)
     }
 }
 
