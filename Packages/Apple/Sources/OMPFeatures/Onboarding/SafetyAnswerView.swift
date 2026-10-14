@@ -89,10 +89,16 @@ struct SafetyAnswerView: View {
         }
 
         if model.canRemoveSubject, let member = model.subjectMember {
-            Button(SafetyCopy.removeMember(member.displayName)) { model.isConfirmingRemoveMember = true }
-                .font(OMPFont.reason)
-                .multilineTextAlignment(.leading)
-                .ompMinimumHitTarget()
+            Button { model.isConfirmingRemoveMember = true } label: {
+                Text(SafetyCopy.removeMember(member.displayName))
+                    .font(OMPFont.reason)
+                    .underline()
+                    .foregroundStyle(Color.primary)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .buttonStyle(.plain)
+            .ompMinimumHitTarget()
                 .accessibilityIdentifier(AccessibilityID.safetyRemoveMember)
         }
     }
@@ -146,7 +152,7 @@ struct SafetyAnswerView: View {
                     model.voice == .listening ? SafetyCopy.done : SafetyCopy.speak,
                     systemImage: model.voice == .listening ? OMPSymbol.listening : OMPSymbol.mic)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(SafetyOutlinedButtonStyle())
             .ompMinimumHitTarget()
             .accessibilityIdentifier(AccessibilityID.safetyMic)
         }
@@ -169,7 +175,7 @@ struct SafetyAnswerView: View {
                         Button(SafetyCopy.openSettings) {
                             if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                         }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(SafetyOutlinedButtonStyle())
                         .ompMinimumHitTarget()
                     }
                     #endif
@@ -177,7 +183,7 @@ struct SafetyAnswerView: View {
                         model.dismissVoiceNotice()
                         textFocused = true
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(SafetyOutlinedButtonStyle())
                     .ompMinimumHitTarget()
                     .accessibilityIdentifier(AccessibilityID.safetyVoiceTypeInstead)
                 }
@@ -245,7 +251,7 @@ struct SafetyAnswerView: View {
                 .accessibilityIdentifier(AccessibilityID.safetyItemPick(item.id))
             }
             Button(SafetyCopy.remove) { model.remove(item.id) }
-                .buttonStyle(.bordered)
+                .buttonStyle(SafetyOutlinedButtonStyle())
                 .ompMinimumHitTarget()
                 .accessibilityLabel(removeLabel(item))
                 .accessibilityIdentifier(AccessibilityID.safetyItemRemove(item.id))
@@ -288,8 +294,27 @@ struct SafetyAnswerView: View {
             .disabled(model.isSaving)
             .accessibilityIdentifier(AccessibilityID.safetySummarySave)
         Button(SafetyCopy.change) { model.backToEntry() }
-            .buttonStyle(.bordered)
+            .buttonStyle(SafetyOutlinedButtonStyle())
             .ompMinimumHitTarget()
             .accessibilityIdentifier(AccessibilityID.safetySummaryChange)
+    }
+}
+
+/// A visible, high-contrast secondary button: primary-coloured label and outline on the plain
+/// background (the default bordered style tints the label on a gray fill and fails the audit).
+struct SafetyOutlinedButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(OMPFont.body)
+            .multilineTextAlignment(.center)
+            .foregroundStyle(Color.primary)
+            .padding(.horizontal, OMPSpacing.medium)
+            .padding(.vertical, OMPSpacing.small)
+            .frame(minHeight: OMPMetrics.minimumHitTarget)
+            .overlay(
+                RoundedRectangle(cornerRadius: OMPMetrics.cardCornerRadius, style: .continuous)
+                    .strokeBorder(Color.primary, lineWidth: 1))
+            .opacity(configuration.isPressed ? 0.6 : 1)
+            .contentShape(RoundedRectangle(cornerRadius: OMPMetrics.cardCornerRadius, style: .continuous))
     }
 }
