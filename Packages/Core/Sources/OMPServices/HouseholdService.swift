@@ -115,6 +115,29 @@ public final class HouseholdService: Sendable {
         }
     }
 
+    /// The longest name stored; longer input is cut (AC-16.1: a name is optional and only a label).
+    public static let maxNameLength = 40
+
+    /// Sets or clears a member's optional name (AC-16.1). The name is trimmed; empty text clears
+    /// it, so the generated label ("Adult 1") shows again. A name never touches safety status or
+    /// rules, so no re-check runs.
+    ///
+    /// - Throws: `.invalidInput` for an unknown or removed member.
+    @discardableResult
+    public func setName(_ name: String?, for memberID: MemberID) async throws -> Household {
+        try await context.serialized {
+            var household = try await engine.requireHousehold()
+            guard let index = household.members.firstIndex(where: { $0.id == memberID && !$0.isDeleted }) else {
+                throw ServiceError.invalidInput("no such member")
+            }
+            let trimmed = name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            household.members[index].name = trimmed.isEmpty ? nil : String(trimmed.prefix(Self.maxNameLength))
+            household.updatedAt = context.clock.now
+            try await context.repositories.household.replace(with: household)
+            return household
+        }
+    }
+
     /// Changes a member's age band (AC-3.4). Crossing between child and grown bands resets the
     /// member to `unasked`, so the safety question is asked again.
     ///
