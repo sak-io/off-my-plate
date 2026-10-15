@@ -1,5 +1,10 @@
 # off-my-plate
 
+> Status: Work in progress (WIP)
+> This project is not yet ready for use, testing, or production deployment.
+
+OffMyPlate is an iOS/iPadOS household meal planner that helps families plan meals around pantry inventory, dietary rules, and preferences. All 30 planned v1 tasks are built and CI is green, but the app is **not release-ready**: it still needs owner sign-offs and decisions, and a real-device check. See `docs/STATUS.md` for the current status and the list of what is needed.
+
 OffMyPlate: an on-device iOS/iPadOS meal planner for families, with a mandatory food-safety
 gate. Product and technical intent: `docs/product-concept.md`, `docs/technical-specification.md`;
 the v1 spec is `docs/specs/offmyplate-v1.md` and the architecture `docs/architecture/plan.md`.
@@ -63,9 +68,12 @@ blocked (common in cloud sessions). CI is the verification of record either way.
 - `core-linux.yml`: `swift:6.2-noble` container; script self-tests, lints, `swift build`,
   `swift test` for Core (plus the zero-test guard).
 - `apple-macos.yml`: `macos-15` runner with the newest stable Xcode 26 (the job fails if there
-  is none); `swift test` for Core and `Packages/Apple`; XcodeGen; `xcodebuild test` (app,
-  share extension, UI tests) on an iPhone 16 and an iPad simulator, picked from the installed
-  runtimes by `scripts/select-simulator.sh` (newest iOS 18+; no hardcoded OS versions).
+  is none). Jobs run in parallel: `swift test` for Core and `Packages/Apple`; a Release build
+  that must contain no UI-test hooks; and the UI tests, built once and run in shards
+  (`scripts/ui-shard-classes.sh`; `--check` fails if a test class is in no shard) on an iPhone 16
+  simulator on every push. The iPad simulator shards run on `main`, on manual dispatch, or when
+  the head commit message contains the iPad marker (see `work/LESSONS.md`). Simulators are
+  picked from the installed runtimes by `scripts/select-simulator.sh` (newest iOS 18+).
   `scripts/assert-xcresult-tests-ran.sh` fails a UI-test run in which no test passed.
 Both run on pushes to `claude/**` and `main`, on pull requests and on demand
 (`workflow_dispatch`). Superseded pull-request runs are cancelled; branch pushes always finish.
