@@ -1,0 +1,3 @@
+Packages/Apple/Sources/OMPData/Repositories/PlanRepository.swift:2: PlanApproval may be created only in Packages/Core/Sources/OMPDomain/Plan/PlanLifecycle.swift, the OMPData mapping and tests (ADR 0008)
+Packages/Core/Sources/OMPServices/Approve.swift:1: PlanApproval may be created only in
+lint-safety: FAILED with 2 violation(s)

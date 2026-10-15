@@ -1,0 +1,28 @@
+\u001b[36;1m  echo \"::error::No stable Xcode 26 on this macos-15 runner image. Installed:\"\u001b[0m
+\u001b[36;1m  echo \"::error::xcodegen generate changed the working tree:\"\u001b[0m
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/AppShellUITests.swift:133: error: -[OffMyPlateUITests.AppShellUITests testGateCoverPassesAccessibilityAudit] : XCTAssertTrue failed - Accessibility audit issues (1):
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'Speak' id ''
+Test Case '-[OffMyPlateUITests.AppShellUITests testGateCoverPassesAccessibilityAudit]' failed (15.719 seconds).
+\t Executed 5 tests, with 1 failure (0 unexpected) in 156.058 (156.061) seconds
+\t Executed 10 tests, with 0 failures (0 unexpected) in 161.953 (161.960) seconds
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/PlanUITests.swift:212: error: -[OffMyPlateUITests.PlanUITests testDraftPlanPassesAccessibilityAudit] : XCTAssertTrue failed - Accessibility audit issues (6):
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'Builds your shopping list and lets you mark meals cooked.' id ''
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'Thursday 15' id 'plan.day.2026-10-15'
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast nearly passed | label '?' id ''
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label '?' id ''
+XCUIAccessibilityAuditType(rawValue: 65536) | Dynamic Type font sizes are partially unsupported | label 'Wednesday 14' id 'plan.day.2026-10-14'
+XCUIAccessibilityAuditType(rawValue: 131072) | Text clipped | label 'Draft · not in use yet' id ''
+Test Case '-[OffMyPlateUITests.PlanUITests testDraftPlanPassesAccessibilityAudit]' failed (33.372 seconds).
+\t Executed 4 tests, with 1 failure (0 unexpected) in 131.739 (131.742) seconds
+\t Executed 19 tests, with 2 failures (0 unexpected) in 449.750 (449.767) seconds
+\t Executed 19 tests, with 2 failures (0 unexpected) in 449.750 (449.769) seconds
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/AppShellUITests.swift:133: error: -[OffMyPlateUITests.AppShellUITests testGateCoverPassesAccessibilityAudit] : XCTAssertTrue failed - Accessibility audit issues (2):
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast nearly passed | label 'Added by mistake? Remove Child 1' id 'safety.removeMember'
+Test Case '-[OffMyPlateUITests.AppShellUITests testGateCoverPassesAccessibilityAudit]' failed (19.249 seconds).
+\t Executed 5 tests, with 1 failure (0 unexpected) in 167.681 (167.689) seconds
+\t Executed 10 tests, with 0 failures (0 unexpected) in 191.658 (191.668) seconds
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/PlanUITests.swift:212: error: -[OffMyPlateUITests.PlanUITests testDraftPlanPassesAccessibilityAudit] : XCTAssertTrue failed - Accessibility audit issues (1):
+Test Case '-[OffMyPlateUITests.PlanUITests testDraftPlanPassesAccessibilityAudit]' failed (57.110 seconds).
+\t Executed 4 tests, with 1 failure (0 unexpected) in 143.352 (143.355) seconds
+\t Executed 19 tests, with 2 failures (0 unexpected) in 502.692 (502.716) seconds
+\t Executed 19 tests, with 2 failures (0 unexpected) in 502.692 (502.717) seconds

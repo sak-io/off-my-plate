@@ -1,0 +1,3 @@
+Package@swift-6.2.swift:5: remote dependency in a package manifest
+Package@swift-6.2.swift:6: remote dependency in a package manifest
+FAILED with 2 violation(s)

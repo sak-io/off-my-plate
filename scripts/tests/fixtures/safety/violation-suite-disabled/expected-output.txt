@@ -1,0 +1,5 @@
+Packages/Core/Tests/OMPSafetySuiteTests/BadTests.swift:5: the safety suite must not be disabled, conditional or marked as a known issue (T12)
+Packages/Core/Tests/OMPSafetySuiteTests/BadTests.swift:8: the safety suite must not be disabled
+Packages/Core/Tests/OMPSafetySuiteTests/BadTests.swift:12: the safety suite must not be disabled
+Packages/Core/Tests/OMPSafetySuiteTests/BadTests.swift:17: the safety suite must not be disabled
+lint-safety: FAILED with 4 violation(s)

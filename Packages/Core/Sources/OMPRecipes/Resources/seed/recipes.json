@@ -1,0 +1,3040 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "2026.10.13-t06",
+  "recipes": [
+    {
+      "id": "appam-vegetable-stew",
+      "title": "Appam with vegetable stew",
+      "region": "kerala",
+      "mealTypes": [
+        "breakfast",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 25,
+      "cookMinutes": 40,
+      "ingredients": [
+        {
+          "ingredientId": "rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 3,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "sugar",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "baking-soda",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "potato",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "carrot",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "french-beans",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-peas",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "onion",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "ginger",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 3,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "cinnamon",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "cloves",
+          "quantity": 4,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "green-cardamom",
+          "quantity": 3,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "black-pepper",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 2,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1.5,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "The evening before, soak the rice for about five hours. Grind it smooth with one cup of the grated coconut, the sugar and just enough water for a thick batter that still pours, then leave it covered overnight to rise.",
+        "In the morning stir half a teaspoon of the salt and the baking soda into the batter. Pour a ladleful into a hot appachatti, swirl it so it climbs the sides, cover and cook until the middle is soft and spongy and the rim is lacy and crisp. Repeat with the rest.",
+        "For the stew, blend the remaining two cups of grated coconut with a cup of warm water and squeeze it through a strainer for thick milk. Blend the pulp again with two cups of water and squeeze for thin milk.",
+        "Warm the coconut oil, add the cinnamon, cloves and cardamom, then the sliced onion, ginger and slit chillies, and soften them without browning. Add the cubed potato and carrot, the beans, the peas, the thin milk and the rest of the salt, and simmer until the vegetables are tender.",
+        "Pour in the thick milk with the pepper, heat gently without letting it boil, add the curry leaves and serve with the appam."
+      ],
+      "declaredTags": [
+        "rootVegetable",
+        "onion"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "puttu-kadala-curry",
+      "title": "Puttu with kadala curry",
+      "region": "kerala",
+      "mealTypes": [
+        "breakfast"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 20,
+      "cookMinutes": 45,
+      "ingredients": [
+        {
+          "ingredientId": "rice-flour",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 1.5,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "kala-chana",
+          "quantity": 200,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "shallots",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "ginger",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "garlic",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "coriander-powder",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "kashmiri-chilli-powder",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "fennel-seeds",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "cinnamon",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "cloves",
+          "quantity": 3,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "mustard-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "dry-red-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 2,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 2,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Soak the black chickpeas overnight, then pressure-cook them with half a teaspoon of salt and fresh water until soft. Keep the cooking water.",
+        "Sprinkle lightly salted water over the rice flour a spoonful at a time, rubbing it through your fingers until it looks like damp sand and holds together when squeezed.",
+        "Fill the puttu maker in layers: a spoonful of grated coconut, then flour, and so on, finishing with coconut. Steam for about eight minutes, until steam pushes out of the top.",
+        "Toast half a cup of the grated coconut with the fennel, cinnamon and cloves until deep brown. Take it off the heat, stir in the coriander, chilli and turmeric powders, and grind to a smooth paste with a little water.",
+        "Fry the sliced shallots, ginger, garlic and green chillies in two tablespoons of oil until golden, add the paste and the chickpeas with their water, and simmer until thick. Splutter the mustard seeds, dry chillies and curry leaves in the remaining oil, pour over the curry and serve with the puttu."
+      ],
+      "declaredTags": [
+        "wheat",
+        "gluten",
+        "mustard",
+        "rootVegetable",
+        "onion",
+        "garlic"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "puttu-pazham",
+      "title": "Puttu with banana",
+      "region": "kerala",
+      "mealTypes": [
+        "breakfast"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 10,
+      "cookMinutes": 15,
+      "ingredients": [
+        {
+          "ingredientId": "rice-flour",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "banana",
+          "quantity": 4,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "sugar",
+          "quantity": 2,
+          "unit": "tbsp",
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Stir the salt into half a cup of water and sprinkle it over the rice flour little by little, rubbing with your fingertips until the flour is evenly moist and clumps when pressed.",
+        "Layer grated coconut and flour in the puttu maker, starting and ending with coconut, and steam for about eight minutes.",
+        "Push the puttu out onto plates and serve hot with ripe bananas to mash in at the table, and a little sugar if you like."
+      ],
+      "declaredTags": [
+        "wheat",
+        "gluten"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)",
+        "notes": "Jain-friendly: no onion, garlic or root vegetables."
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "idiyappam-egg-curry",
+      "title": "Idiyappam with egg curry",
+      "region": "kerala",
+      "mealTypes": [
+        "breakfast",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 25,
+      "cookMinutes": 35,
+      "ingredients": [
+        {
+          "ingredientId": "rice-flour",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "egg",
+          "quantity": 4,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "onion",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "tomato",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "ginger",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "garlic",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "kashmiri-chilli-powder",
+          "quantity": 1.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "coriander-powder",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "fennel-seeds",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "black-pepper",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 1.5,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 2,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1.5,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Bring two cups of water to the boil with a teaspoon of salt and a few drops of oil, pour it over the rice flour and stir with a spoon. When cool enough to handle, knead into a soft, smooth dough.",
+        "Press the dough through an idiyappam press in loose circles onto greased plates, sprinkle with a little grated coconut and steam for ten minutes.",
+        "Boil the eggs for ten minutes, peel them and make a few shallow cuts in each. Blend one cup of the grated coconut with water and squeeze out the milk.",
+        "Crackle the fennel in the remaining oil, cook the sliced onions until golden, then add the ginger, garlic and chillies. Stir in the powders and pepper for a minute, add the chopped tomato and cook until soft.",
+        "Pour in the coconut milk with the rest of the salt, add the eggs and simmer for five minutes until the gravy coats a spoon. Add the curry leaves and serve with the idiyappam."
+      ],
+      "declaredTags": [
+        "egg",
+        "wheat",
+        "gluten",
+        "rootVegetable",
+        "onion",
+        "garlic"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "dosa-coconut-chammanthi",
+      "title": "Dosa with coconut chammanthi",
+      "region": "kerala",
+      "mealTypes": [
+        "breakfast"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 20,
+      "cookMinutes": 30,
+      "ingredients": [
+        {
+          "ingredientId": "idli-rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "urad-dal",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "fenugreek-seeds",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "shallots",
+          "quantity": 30,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "ginger",
+          "quantity": 5,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "tamarind",
+          "quantity": 5,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 1,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 2,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Soak the rice in one bowl and the urad dal with the fenugreek in another for about five hours. Grind each smooth with a little water, mix them with one and a half teaspoons of salt and leave covered overnight to ferment.",
+        "Heat a flat pan, pour a ladle of batter in the centre and spread it outward in a thin circle. Drizzle a few drops of oil around it and cook until the underside is golden and crisp.",
+        "For the chammanthi, grind the coconut, shallots, chillies, ginger, tamarind, curry leaves and the rest of the salt to a coarse paste with a spoon or two of water. It needs no tempering.",
+        "Serve the dosa straight from the pan with the chammanthi."
+      ],
+      "declaredTags": [
+        "rootVegetable",
+        "onion"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "idli-coconut-chutney",
+      "title": "Idli with plain coconut chutney",
+      "region": "kerala",
+      "mealTypes": [
+        "breakfast"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 20,
+      "cookMinutes": 25,
+      "ingredients": [
+        {
+          "ingredientId": "idli-rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "urad-dal",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "fenugreek-seeds",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "chana-dal",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 1,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "mustard-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "dry-red-chilli",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 2,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Soak the rice, and separately the urad dal with the fenugreek, for about five hours. Grind both to a smooth batter, mix with one and a half teaspoons of salt and leave overnight to ferment.",
+        "Spoon the batter into greased idli moulds and steam for ten to twelve minutes, until a skewer comes out clean. Rest for a few minutes before unmoulding.",
+        "Dry-roast the chana dal until golden. Grind it with the coconut, green chillies, the rest of the salt and enough water for a thick chutney.",
+        "Heat the oil, splutter the mustard seeds, add the dry chilli and curry leaves, and pour this over the chutney. Serve with the warm idli."
+      ],
+      "declaredTags": [
+        "mustard"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)",
+        "notes": "Jain-friendly: no onion, garlic or ginger in the chutney."
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "rava-upma",
+      "title": "Rava upma with vegetables",
+      "region": "kerala",
+      "mealTypes": [
+        "breakfast"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 10,
+      "cookMinutes": 20,
+      "ingredients": [
+        {
+          "ingredientId": "semolina",
+          "quantity": 1.5,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "onion",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "ginger",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "carrot",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "green-peas",
+          "quantity": 0.25,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "mustard-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "urad-dal",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 1,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 0.25,
+          "unit": "cup",
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Toast the semolina in a dry pan over low heat until it smells nutty, then tip it onto a plate.",
+        "Heat the oil, splutter the mustard seeds, add the urad dal and let it turn golden. Add the curry leaves, chopped onion, ginger and chillies and cook until the onion is soft, then add the diced carrot and the peas for two minutes.",
+        "Pour in three cups of water with the salt and bring to a rolling boil. Lower the heat and rain in the semolina with one hand while stirring with the other so no lumps form.",
+        "Cover and leave on the lowest heat for three minutes, fluff with a fork and scatter the grated coconut over the top if using."
+      ],
+      "declaredTags": [
+        "wheat",
+        "gluten",
+        "mustard",
+        "rootVegetable",
+        "onion"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "chapati-green-peas-curry",
+      "title": "Chapati with green peas curry",
+      "region": "kerala",
+      "mealTypes": [
+        "breakfast",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 30,
+      "cookMinutes": 35,
+      "ingredients": [
+        {
+          "ingredientId": "whole-wheat-flour",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "green-peas",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "onion",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "tomato",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "ginger",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "garlic",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "coriander-powder",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "kashmiri-chilli-powder",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "fennel-seeds",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "cinnamon",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "cloves",
+          "quantity": 3,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 1,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 2,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Knead the flour with a teaspoon of salt, a tablespoon of oil and enough water for a soft dough. Cover and rest it for twenty minutes.",
+        "Toast the grated coconut with the fennel, cinnamon and cloves until golden and grind to a paste with a little water.",
+        "Cook the sliced onions in the rest of the oil until soft, then add the ginger, garlic and chillies, the powders and the chopped tomato. Add the peas, the rest of the salt and a cup of water and simmer until tender.",
+        "Stir in the coconut paste and curry leaves and simmer for five more minutes.",
+        "Divide the dough into balls, roll each into a thin round and cook on a hot pan, turning once, until it puffs with brown spots. Serve with the curry."
+      ],
+      "declaredTags": [
+        "wheat",
+        "gluten",
+        "rootVegetable",
+        "onion",
+        "garlic"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "varutharacha-sambar",
+      "title": "Varutharacha sambar with matta rice",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 20,
+      "cookMinutes": 45,
+      "ingredients": [
+        {
+          "ingredientId": "matta-rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "toor-dal",
+          "quantity": 150,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "shallots",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "tomato",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "drumstick",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "brinjal",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "okra",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "pumpkin",
+          "quantity": 150,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "tamarind",
+          "quantity": 20,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "coriander-seeds",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "dry-red-chilli",
+          "quantity": 5,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "fenugreek-seeds",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "mustard-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 2,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 2,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "coriander-leaves",
+          "quantity": 5,
+          "unit": "g",
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Rinse the matta rice and boil it in plenty of water for about forty minutes until soft, then drain.",
+        "Pressure-cook the toor dal with the turmeric and two cups of water until it mashes easily. Soak the tamarind in a cup of warm water and squeeze out the pulp.",
+        "In a teaspoon of oil, roast the coriander seeds, four of the dry chillies and the fenugreek, then add the coconut and keep stirring until it is deep brown. Cool and grind to a fine paste.",
+        "Boil the chopped vegetables and most of the shallots in the tamarind water with the salt until just tender, add the dal and the coconut paste, and simmer for ten minutes.",
+        "Splutter the mustard seeds in the remaining oil, add the last dry chilli, the remaining sliced shallots and the curry leaves, pour over the sambar and finish with coriander leaves if using. Serve with the rice."
+      ],
+      "declaredTags": [
+        "mustard",
+        "onion"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)",
+        "notes": "Hing left out on purpose: compounded hing is unverified and would hide this dish from every household with a hard rule."
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "kerala-rasam",
+      "title": "Kerala rasam with rice",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 10,
+      "cookMinutes": 25,
+      "ingredients": [
+        {
+          "ingredientId": "matta-rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "toor-dal",
+          "quantity": 50,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "tomato",
+          "quantity": 3,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "tamarind",
+          "quantity": 15,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "garlic",
+          "quantity": 15,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "black-pepper",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "cumin-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "hing",
+          "unit": "pinch"
+        },
+        {
+          "ingredientId": "mustard-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "dry-red-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 2,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coriander-leaves",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1.5,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Boil the matta rice in plenty of water until soft and drain. Cook the toor dal until very soft and whisk it with two cups of water.",
+        "Pound the garlic, pepper and cumin coarsely. Soak the tamarind in a cup of warm water and squeeze out the pulp.",
+        "Simmer the tamarind water with the chopped tomatoes, turmeric, salt and the pounded spices until the raw tamarind smell is gone.",
+        "Add the dal water and heat until it froths at the top; do not let it boil hard. Turn off the heat and add the coriander leaves.",
+        "Splutter the mustard seeds in the oil with the dry chillies, curry leaves and hing, pour over the rasam and serve with the rice."
+      ],
+      "declaredTags": [
+        "wheat",
+        "gluten",
+        "mustard",
+        "garlic"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)",
+        "notes": "Contains compounded hing (unverified), so the planner skips it for households with any hard rule."
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "avial",
+      "title": "Avial with matta rice",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 25,
+      "cookMinutes": 25,
+      "ingredients": [
+        {
+          "ingredientId": "matta-rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "raw-banana",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "elephant-foot-yam",
+          "quantity": 150,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "carrot",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "drumstick",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "french-beans",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "ash-gourd",
+          "quantity": 150,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "cumin-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 3,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "curd",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 2,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1.5,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Boil the matta rice in plenty of water until soft and drain.",
+        "Cut all the vegetables into finger-length batons. Cook them with the turmeric, salt and half a cup of water, starting with the yam and banana and adding the softer ones later, until just tender.",
+        "Crush the coconut, cumin and green chillies to a coarse paste without water.",
+        "Fold the paste into the vegetables, cover and steam for five minutes, then stir in the whisked curd and take it off the heat.",
+        "Drizzle the coconut oil over the top, scatter the curry leaves, cover for a few minutes and serve with the rice."
+      ],
+      "declaredTags": [
+        "milk",
+        "rootVegetable"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "cabbage-thoran",
+      "title": "Cabbage thoran with matta rice",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 15,
+      "cookMinutes": 45,
+      "ingredients": [
+        {
+          "ingredientId": "matta-rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "cabbage",
+          "quantity": 400,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 0.75,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "shallots",
+          "quantity": 40,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "garlic",
+          "quantity": 5,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "cumin-seeds",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "mustard-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "urad-dal",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 1,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Boil the matta rice in plenty of water until soft and drain.",
+        "Shred the cabbage finely. Crush the coconut with the shallots, garlic, chillies, turmeric and cumin to a coarse mix.",
+        "Heat the oil, splutter the mustard seeds, add the urad dal and curry leaves, then the cabbage and salt. Stir-fry for five minutes.",
+        "Make a well in the centre, add the coconut mix, cover with cabbage and cook covered for three minutes. Toss everything together until dry and serve with the rice."
+      ],
+      "declaredTags": [
+        "mustard",
+        "onion",
+        "garlic"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "olan",
+      "title": "Olan with matta rice",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 15,
+      "cookMinutes": 45,
+      "ingredients": [
+        {
+          "ingredientId": "matta-rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "ash-gourd",
+          "quantity": 400,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "red-cowpeas",
+          "quantity": 75,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 4,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 2,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Soak the red cowpeas for a few hours and pressure-cook until soft but whole. Boil the matta rice in plenty of water until soft and drain.",
+        "Blend the coconut with warm water and squeeze out thick milk; blend the pulp again with more water for thin milk.",
+        "Simmer the thin slices of ash gourd and the slit chillies in the thin milk with the salt until the gourd turns translucent. Add the cowpeas.",
+        "Pour in the thick milk, warm it through without boiling, then add the coconut oil and curry leaves. Serve with the rice."
+      ],
+      "declaredTags": [],
+      "provenance": {
+        "source": "original (OffMyPlate team)",
+        "notes": "Jain-friendly: no onion, garlic or root vegetables."
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "kalan",
+      "title": "Kalan with matta rice",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 15,
+      "cookMinutes": 45,
+      "ingredients": [
+        {
+          "ingredientId": "matta-rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "raw-banana",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "curd",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "cumin-seeds",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 3,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "black-pepper",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "fenugreek-seeds",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "mustard-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "dry-red-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 2,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1.5,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Boil the matta rice in plenty of water until soft and drain.",
+        "Cook the cubed raw banana with the pepper, turmeric, salt and a cup of water until soft and most of the water has gone.",
+        "Grind the coconut, cumin and green chillies to a smooth paste. Add it to the banana with the well-whisked curd and stir over low heat until it thickens; do not let it boil.",
+        "Fry the fenugreek, mustard seeds, dry chillies and curry leaves in the oil, pour over the kalan and serve with the rice."
+      ],
+      "declaredTags": [
+        "milk",
+        "mustard"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)",
+        "notes": "Made with raw banana only (no yam), which keeps it Jain-friendly."
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "mathanga-erissery",
+      "title": "Mathanga erissery with matta rice",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 15,
+      "cookMinutes": 45,
+      "ingredients": [
+        {
+          "ingredientId": "matta-rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "pumpkin",
+          "quantity": 500,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "red-cowpeas",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 1.25,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "cumin-seeds",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "red-chilli-powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "mustard-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "dry-red-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 2,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1.5,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Soak the red cowpeas for a few hours and pressure-cook until soft. Boil the matta rice in plenty of water until soft and drain.",
+        "Cook the cubed pumpkin with the turmeric, chilli powder, salt and a little water until soft, then add the cowpeas and mash lightly.",
+        "Grind one cup of the coconut with the cumin and green chillies, stir it in and simmer for five minutes.",
+        "Splutter the mustard seeds in the oil, add the dry chillies, curry leaves and the remaining coconut, and fry until the coconut is reddish brown. Pour over the erissery and serve with the rice."
+      ],
+      "declaredTags": [
+        "mustard"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)",
+        "notes": "Jain-friendly: no onion, garlic or root vegetables."
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "vellarikka-pulissery",
+      "title": "Vellarikka pulissery with matta rice",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 15,
+      "cookMinutes": 45,
+      "ingredients": [
+        {
+          "ingredientId": "matta-rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "cucumber",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "curd",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 0.75,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "cumin-seeds",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "fenugreek-seeds",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "mustard-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "dry-red-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 2,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Boil the matta rice in plenty of water until soft and drain.",
+        "Cook the peeled, cubed cucumber with the turmeric, salt and half a cup of water until tender.",
+        "Grind the coconut, cumin and green chillies smooth, add to the cucumber and simmer for three minutes.",
+        "Lower the heat, stir in the whisked curd and warm it gently without boiling.",
+        "Fry the fenugreek, mustard seeds, dry chillies and curry leaves in the oil, pour over the pulissery and serve with the rice."
+      ],
+      "declaredTags": [
+        "milk",
+        "mustard"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)",
+        "notes": "Jain-friendly: no onion, garlic or root vegetables."
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "parippu-curry",
+      "title": "Parippu curry with rice and ghee",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 10,
+      "cookMinutes": 45,
+      "ingredients": [
+        {
+          "ingredientId": "matta-rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "moong-dal",
+          "quantity": 150,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "cumin-seeds",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "garlic",
+          "quantity": 5,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "shallots",
+          "quantity": 30,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "mustard-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "dry-red-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 1,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "ghee",
+          "quantity": 1,
+          "unit": "tbsp",
+          "optional": true
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Boil the matta rice in plenty of water until soft and drain.",
+        "Dry-roast the moong dal until it smells toasty, then cook it with the turmeric and three cups of water until soft.",
+        "Grind the coconut with the cumin, garlic and green chillies, stir into the dal with the salt and simmer for five minutes.",
+        "Fry the sliced shallots, mustard seeds, dry chillies and curry leaves in the oil and pour over the dal. Serve over the rice with a spoon of ghee if you like."
+      ],
+      "declaredTags": [
+        "milk",
+        "mustard",
+        "onion",
+        "garlic"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "mathi-curry",
+      "title": "Mathi curry with matta rice",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 20,
+      "cookMinutes": 45,
+      "ingredients": [
+        {
+          "ingredientId": "matta-rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "sardine",
+          "quantity": 500,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "malabar-tamarind",
+          "quantity": 3,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "shallots",
+          "quantity": 80,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "ginger",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "garlic",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "kashmiri-chilli-powder",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "fenugreek-seeds",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 2,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1.5,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Boil the matta rice in plenty of water until soft and drain. Clean the sardines, score them and keep them aside. Soak the kudampuli in half a cup of warm water.",
+        "Heat the oil in a clay pot, add the fenugreek and let it darken, then the sliced shallots, ginger, garlic and chillies, and cook until soft.",
+        "Lower the heat and stir in the chilli powder and turmeric with a splash of water until the oil turns red.",
+        "Add the kudampuli with its water, the salt and a cup of water, bring to a boil and slide in the sardines. Swirl the pot instead of stirring and simmer for ten minutes.",
+        "Add the curry leaves and a drizzle of coconut oil, cover and rest for an hour if you can before serving with the rice."
+      ],
+      "declaredTags": [
+        "fish",
+        "rootVegetable",
+        "onion",
+        "garlic"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "karimeen-pollichathu",
+      "title": "Karimeen pollichathu with matta rice",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 30,
+      "cookMinutes": 45,
+      "ingredients": [
+        {
+          "ingredientId": "matta-rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "pearl-spot",
+          "quantity": 4,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "kashmiri-chilli-powder",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "black-pepper",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "lemon",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "shallots",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "ginger",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "garlic",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "tomato",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 2,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 4,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1.5,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Boil the matta rice in plenty of water until soft and drain.",
+        "Clean and score the fish. Rub with half the chilli powder, the turmeric, the pepper, a teaspoon of salt and the lemon juice, and leave for twenty minutes.",
+        "Shallow-fry the fish in two tablespoons of oil for two minutes a side; it finishes cooking later.",
+        "In the rest of the oil, cook the sliced shallots, ginger, garlic and chillies until soft, add the remaining chilli powder, the chopped tomato, the rest of the salt and the curry leaves, and cook to a thick masala.",
+        "Spread masala on a softened banana leaf (or foil), lay a fish on it, cover with more masala and fold into a parcel. Cook the parcels on a covered pan over low heat for eight minutes a side and serve with the rice."
+      ],
+      "declaredTags": [
+        "fish",
+        "rootVegetable",
+        "onion",
+        "garlic"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "kappa-ayala-curry",
+      "title": "Kappa with ayala curry",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 30,
+      "cookMinutes": 45,
+      "ingredients": [
+        {
+          "ingredientId": "tapioca",
+          "quantity": 1,
+          "unit": "kg"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.75,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 4,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "shallots",
+          "quantity": 120,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "garlic",
+          "quantity": 15,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "ginger",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 3,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "mackerel",
+          "quantity": 4,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "malabar-tamarind",
+          "quantity": 3,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "kashmiri-chilli-powder",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "fenugreek-seeds",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 2,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Peel the tapioca, cut it into chunks and boil in salted water until soft. Drain well.",
+        "Crush the coconut with two green chillies, a few shallots, a clove of garlic and a pinch of the turmeric. Mash it lightly into the hot tapioca with a few curry leaves and a spoon of coconut oil.",
+        "For the curry, clean the mackerel and cut each into two or three pieces. Soak the kudampuli in warm water.",
+        "Darken the fenugreek in the rest of the oil, add the remaining shallots, garlic, ginger and chillies and cook until soft, then stir in the chilli powder and the rest of the turmeric.",
+        "Add the kudampuli with its water, the remaining salt and a cup of water, bring to a boil and add the fish. Simmer for ten to twelve minutes, add the rest of the curry leaves and serve with the kappa."
+      ],
+      "declaredTags": [
+        "fish",
+        "rootVegetable",
+        "onion",
+        "garlic"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "nadan-chicken-curry",
+      "title": "Nadan chicken curry with matta rice",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 20,
+      "cookMinutes": 50,
+      "ingredients": [
+        {
+          "ingredientId": "matta-rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "chicken",
+          "quantity": 750,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "onion",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "ginger",
+          "quantity": 15,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "garlic",
+          "quantity": 15,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 3,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "tomato",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "kashmiri-chilli-powder",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "coriander-powder",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "black-pepper",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "fennel-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "cinnamon",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "cloves",
+          "quantity": 4,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "green-cardamom",
+          "quantity": 3,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 2,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1.5,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Boil the matta rice in plenty of water until soft and drain. Blend the coconut with water and squeeze out the milk.",
+        "Heat the oil, add the fennel, cinnamon, cloves and cardamom, then the sliced onions, and cook until golden brown.",
+        "Add the ginger, garlic and chillies, then the chilli, coriander and turmeric powders, and stir on low heat until fragrant. Add the chopped tomato and cook until it melts.",
+        "Add the chicken and salt, coat it well and cook covered in its own juices for fifteen minutes.",
+        "Pour in the coconut milk with the pepper and simmer until the chicken is cooked through and the gravy is thick. Finish with curry leaves and serve with the rice."
+      ],
+      "declaredTags": [
+        "poultry",
+        "rootVegetable",
+        "onion",
+        "garlic"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "chemmeen-curry",
+      "title": "Chemmeen curry with matta rice",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": false,
+      "servings": 4,
+      "prepMinutes": 20,
+      "cookMinutes": 45,
+      "ingredients": [
+        {
+          "ingredientId": "matta-rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "prawns",
+          "quantity": 500,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "raw-mango",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "kashmiri-chilli-powder",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "shallots",
+          "quantity": 60,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "ginger",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 3,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "fenugreek-seeds",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 2,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1.5,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Boil the matta rice in plenty of water until soft and drain. Peel and devein the prawns.",
+        "Grind the coconut with the chilli powder, turmeric and two shallots to a smooth paste.",
+        "Simmer the paste with a cup and a half of water, the salt, the sliced ginger and chillies and the raw mango pieces for five minutes.",
+        "Add the prawns and cook for five to six minutes until they curl and turn pink.",
+        "Fry the fenugreek, the remaining sliced shallots and the curry leaves in the oil, pour over the curry and serve with the rice."
+      ],
+      "declaredTags": [
+        "shellfish",
+        "rootVegetable",
+        "onion"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "lemon-rice",
+      "title": "Lemon rice",
+      "region": "southIndian",
+      "mealTypes": [
+        "lunch"
+      ],
+      "lunchboxSuitable": true,
+      "servings": 4,
+      "prepMinutes": 10,
+      "cookMinutes": 25,
+      "ingredients": [
+        {
+          "ingredientId": "rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "lemon",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "mustard-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "chana-dal",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "urad-dal",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 2,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "coriander-leaves",
+          "quantity": 5,
+          "unit": "g",
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Cook the rice so the grains stay separate and spread it out to cool.",
+        "Heat the oil, splutter the mustard seeds, then fry the chana dal and urad dal until golden. Add the chillies, curry leaves and turmeric for a few seconds.",
+        "Take the pan off the heat, add the lemon juice and salt, then fold in the rice gently until evenly yellow. Add coriander leaves if using.",
+        "Pack once it has cooled to room temperature."
+      ],
+      "declaredTags": [
+        "mustard"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)",
+        "notes": "Jain-friendly and nut-free: no hing and no peanuts."
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "curd-rice",
+      "title": "Curd rice",
+      "region": "southIndian",
+      "mealTypes": [
+        "lunch"
+      ],
+      "lunchboxSuitable": true,
+      "servings": 4,
+      "prepMinutes": 10,
+      "cookMinutes": 25,
+      "ingredients": [
+        {
+          "ingredientId": "rice",
+          "quantity": 250,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "curd",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "milk",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "cucumber",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "mustard-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "urad-dal",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 1,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "pomegranate",
+          "quantity": 0.5,
+          "unit": "piece",
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Cook the rice until very soft and mash it lightly while warm.",
+        "When it has cooled, stir in the curd, the milk (it keeps the rice from turning sour by lunchtime), the grated cucumber and the salt.",
+        "Splutter the mustard seeds in the oil, add the urad dal, chopped chilli and curry leaves, and pour over the rice.",
+        "Top with pomegranate seeds if using and pack in a cool box."
+      ],
+      "declaredTags": [
+        "milk",
+        "mustard"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)",
+        "notes": "Jain-friendly: no onion, ginger or hing."
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "tomato-rice",
+      "title": "Tomato rice",
+      "region": "southIndian",
+      "mealTypes": [
+        "lunch"
+      ],
+      "lunchboxSuitable": true,
+      "servings": 4,
+      "prepMinutes": 10,
+      "cookMinutes": 30,
+      "ingredients": [
+        {
+          "ingredientId": "rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "tomato",
+          "quantity": 4,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "onion",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "ginger",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "garlic",
+          "quantity": 5,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "cumin-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "kashmiri-chilli-powder",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "coriander-powder",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 1,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coriander-leaves",
+          "quantity": 5,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1.5,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Cook the rice so the grains stay separate and let it cool.",
+        "Fry the cumin in the oil, add the sliced onion and cook until soft, then the crushed ginger and garlic, the chillies and the curry leaves.",
+        "Add the chopped tomatoes, the powders and the salt and cook until the tomatoes break down into a thick, glossy masala.",
+        "Fold in the rice and the coriander leaves and let it cool before packing."
+      ],
+      "declaredTags": [
+        "rootVegetable",
+        "onion",
+        "garlic"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "neychoru",
+      "title": "Neychoru (Kerala ghee rice)",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": true,
+      "servings": 4,
+      "prepMinutes": 15,
+      "cookMinutes": 30,
+      "ingredients": [
+        {
+          "ingredientId": "basmati-rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "ghee",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "onion",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "cinnamon",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "cloves",
+          "quantity": 4,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "green-cardamom",
+          "quantity": 4,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "bay-leaf",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "cashews",
+          "quantity": 20,
+          "unit": "g",
+          "optional": true
+        },
+        {
+          "ingredientId": "raisins",
+          "quantity": 20,
+          "unit": "g",
+          "optional": true
+        }
+      ],
+      "steps": [
+        "Rinse the rice, soak it for twenty minutes and drain well.",
+        "Fry half the thinly sliced onion in a tablespoon of ghee until crisp and brown, then fry the cashews and raisins (if using) in the same ghee and set everything aside.",
+        "Heat the rest of the ghee, add the whole spices and the remaining onion, and cook until soft. Add the rice and stir gently for two minutes.",
+        "Pour in two and a quarter cups of hot water with the salt, cover and cook on low heat until the water is absorbed. Rest for five minutes, fluff and top with the fried onion, cashews and raisins."
+      ],
+      "declaredTags": [
+        "treeNut",
+        "milk",
+        "onion"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)",
+        "notes": "Cashews and raisins are optional but still tagged: remove them from the recipe if the household avoids tree nuts."
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "chapati-egg-roast",
+      "title": "Chapati with Kerala egg roast",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": true,
+      "servings": 4,
+      "prepMinutes": 30,
+      "cookMinutes": 40,
+      "ingredients": [
+        {
+          "ingredientId": "whole-wheat-flour",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "egg",
+          "quantity": 4,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "onion",
+          "quantity": 3,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "tomato",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "ginger",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "garlic",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "kashmiri-chilli-powder",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "coriander-powder",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "black-pepper",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "fennel-seeds",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 2,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 2,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Knead the flour with a teaspoon of salt, a tablespoon of oil and enough water for a soft dough, and rest it for twenty minutes.",
+        "Hard-boil the eggs for ten minutes, peel them and make a few slits in each.",
+        "Crackle the fennel in the rest of the oil and cook the thinly sliced onions slowly with a pinch of salt until deep golden and jammy.",
+        "Add the ginger, garlic and chillies, then the powders and pepper, then the chopped tomato, and cook to a thick roast. Add the curry leaves, the rest of the salt and the eggs, and turn them until coated.",
+        "Roll and cook the chapatis on a hot pan until puffed with brown spots. Pack the chapatis with the egg roast once both have cooled."
+      ],
+      "declaredTags": [
+        "egg",
+        "wheat",
+        "gluten",
+        "rootVegetable",
+        "onion",
+        "garlic"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "chapati-vegetable-kurma",
+      "title": "Chapati with vegetable kurma",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch",
+        "dinner"
+      ],
+      "lunchboxSuitable": true,
+      "servings": 4,
+      "prepMinutes": 30,
+      "cookMinutes": 40,
+      "ingredients": [
+        {
+          "ingredientId": "whole-wheat-flour",
+          "quantity": 2,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "potato",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "carrot",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "french-beans",
+          "quantity": 100,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-peas",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "onion",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "tomato",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "ginger",
+          "quantity": 10,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "garlic",
+          "quantity": 5,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 0.75,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "fennel-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "cinnamon",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "cloves",
+          "quantity": 3,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "green-cardamom",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "coriander-powder",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 1,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 3,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 2,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Knead the flour with a teaspoon of salt, a tablespoon of oil and enough water for a soft dough, and rest it for twenty minutes.",
+        "Grind the coconut with half the fennel to a smooth paste.",
+        "Fry the rest of the fennel and the whole spices in the remaining oil, add the sliced onion, ginger, garlic and chillies and cook until soft, then the powders and the chopped tomato.",
+        "Add the diced potato and carrot, the beans, the peas, the rest of the salt and a cup of water, and simmer until tender. Stir in the coconut paste and curry leaves and simmer for five minutes.",
+        "Roll and cook the chapatis on a hot pan. Pack with the kurma once both have cooled."
+      ],
+      "declaredTags": [
+        "wheat",
+        "gluten",
+        "rootVegetable",
+        "onion",
+        "garlic"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)",
+        "notes": "Thickened with coconut only (no cashew paste), so it stays nut-free."
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "beans-thoran-rice",
+      "title": "Beans thoran with matta rice",
+      "region": "kerala",
+      "mealTypes": [
+        "lunch"
+      ],
+      "lunchboxSuitable": true,
+      "servings": 4,
+      "prepMinutes": 15,
+      "cookMinutes": 45,
+      "ingredients": [
+        {
+          "ingredientId": "matta-rice",
+          "quantity": 250,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "french-beans",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "carrot",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 0.5,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "shallots",
+          "quantity": 30,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "garlic",
+          "quantity": 5,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "turmeric-powder",
+          "quantity": 0.25,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "cumin-seeds",
+          "quantity": 0.5,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "mustard-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "urad-dal",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 1,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 1.5,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Boil the matta rice in plenty of water until soft and drain.",
+        "Chop the beans and carrot finely. Crush the coconut with the shallots, garlic, chillies, turmeric and cumin.",
+        "Splutter the mustard seeds in the oil, add the urad dal and curry leaves, then the vegetables and salt, and cook covered with a splash of water until tender.",
+        "Add the coconut mix, toss on high heat until dry and pack alongside the rice."
+      ],
+      "declaredTags": [
+        "mustard",
+        "rootVegetable",
+        "onion",
+        "garlic"
+      ],
+      "provenance": {
+        "source": "original (OffMyPlate team)"
+      },
+      "review": {
+        "status": "draft"
+      }
+    },
+    {
+      "id": "coconut-rice",
+      "title": "Coconut rice",
+      "region": "southIndian",
+      "mealTypes": [
+        "lunch"
+      ],
+      "lunchboxSuitable": true,
+      "servings": 4,
+      "prepMinutes": 10,
+      "cookMinutes": 25,
+      "ingredients": [
+        {
+          "ingredientId": "rice",
+          "quantity": 300,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "grated-coconut",
+          "quantity": 1,
+          "unit": "cup"
+        },
+        {
+          "ingredientId": "cumin-seeds",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "chana-dal",
+          "quantity": 1,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "urad-dal",
+          "quantity": 1,
+          "unit": "tsp"
+        },
+        {
+          "ingredientId": "dry-red-chilli",
+          "quantity": 2,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "green-chilli",
+          "quantity": 1,
+          "unit": "piece"
+        },
+        {
+          "ingredientId": "curry-leaves",
+          "quantity": 2,
+          "unit": "g"
+        },
+        {
+          "ingredientId": "coconut-oil",
+          "quantity": 2,
+          "unit": "tbsp"
+        },
+        {
+          "ingredientId": "salt",
+          "quantity": 1.5,
+          "unit": "tsp"
+        }
+      ],
+      "steps": [
+        "Cook the rice so the grains stay separate and spread it out to cool.",
+        "Heat the oil, let the cumin sizzle, fry the chana dal and urad dal until golden, then add the chillies and curry leaves.",
+        "Add the grated coconut and salt and stir on low heat for two minutes, just until fragrant and still white.",
+        "Fold in the rice gently and let it cool before packing."
+      ],
+      "declaredTags": [],
+      "provenance": {
+        "source": "original (OffMyPlate team)",
+        "notes": "Jain-friendly, nut-free and tempered with cumin instead of mustard, so it also suits mustard-free households."
+      },
+      "review": {
+        "status": "draft"
+      }
+    }
+  ]
+}

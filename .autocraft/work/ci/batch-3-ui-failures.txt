@@ -1,0 +1,37 @@
+\u001b[36;1m  echo \"::error::No stable Xcode 26 on this macos-15 runner image. Installed:\"\u001b[0m
+\u001b[36;1m  echo \"::error::xcodegen generate changed the working tree:\"\u001b[0m
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/AppShellUITests.swift:133: error: -[OffMyPlateUITests.AppShellUITests testGateCoverPassesAccessibilityAudit] : XCTAssertTrue failed - Accessibility audit issues (2):
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast nearly passed | label 'Added by mistake? Remove Child 1' id 'safety.removeMember'
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'Speak' id ''
+Test Case '-[OffMyPlateUITests.AppShellUITests testGateCoverPassesAccessibilityAudit]' failed (60.716 seconds).
+\t Executed 5 tests, with 1 failure (0 unexpected) in 195.124 (195.130) seconds
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/OnboardingUITests.swift:74: error: -[OffMyPlateUITests.OnboardingUITests testWhoIsEatingBoundsAndContinue] : Failed to tap \"Increment\" Button: No matches found for Elements matching predicate '\"Increment\" IN identifiers' from input {(
+Test Case '-[OffMyPlateUITests.OnboardingUITests testWhoIsEatingBoundsAndContinue]' failed (14.231 seconds).
+\t Executed 10 tests, with 1 failure (0 unexpected) in 186.230 (186.238) seconds
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/PlanUITests.swift:212: error: -[OffMyPlateUITests.PlanUITests testDraftPlanPassesAccessibilityAudit] : XCTAssertTrue failed - Accessibility audit issues (1):
+Test Case '-[OffMyPlateUITests.PlanUITests testDraftPlanPassesAccessibilityAudit]' failed (24.307 seconds).
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/PlanUITests.swift:77: error: -[OffMyPlateUITests.PlanUITests testEditingAnApprovedPlanShowsPendingChangesAndDiffSheet] : XCTAssertTrue failed - The week did not reappear
+Test Case '-[OffMyPlateUITests.PlanUITests testEditingAnApprovedPlanShowsPendingChangesAndDiffSheet]' failed (33.569 seconds).
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/PlanUITests.swift:77: error: -[OffMyPlateUITests.PlanUITests testRegenerateKeepsLockedMeals] : XCTAssertTrue failed - The week did not reappear
+Test Case '-[OffMyPlateUITests.PlanUITests testRegenerateKeepsLockedMeals]' failed (24.278 seconds).
+\t Executed 4 tests, with 3 failures (0 unexpected) in 96.100 (96.102) seconds
+\t Executed 19 tests, with 5 failures (0 unexpected) in 477.454 (477.472) seconds
+\t Executed 19 tests, with 5 failures (0 unexpected) in 477.454 (477.473) seconds
+Test Case '-[OffMyPlateUITests.AppShellUITests testGateCoverPassesAccessibilityAudit]' failed (15.981 seconds).
+\t Executed 5 tests, with 1 failure (0 unexpected) in 121.425 (121.432) seconds
+Test Case '-[OffMyPlateUITests.OnboardingUITests testWhoIsEatingBoundsAndContinue]' failed (11.557 seconds).
+\t Executed 10 tests, with 1 failure (0 unexpected) in 175.040 (175.045) seconds
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/PlanUITests.swift:212: error: -[OffMyPlateUITests.PlanUITests testDraftPlanPassesAccessibilityAudit] : XCTAssertTrue failed - Accessibility audit issues (7):
+XCUIAccessibilityAuditType(rawValue: 65536) | Dynamic Type font sizes are partially unsupported | label 'Regenerate' id 'plan.regenerate'
+XCUIAccessibilityAuditType(rawValue: 65536) | Dynamic Type font sizes are partially unsupported | label '?' id ''
+XCUIAccessibilityAuditType(rawValue: 131072) | Text clipped | label 'Draft · not in use yet' id ''
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'Thursday 15' id 'plan.day.2026-10-15'
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast nearly passed | label 'Dismiss' id 'plan.banner.dismiss'
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'Breakfast' id ''
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'Chapati with green peas curry' id ''
+Test Case '-[OffMyPlateUITests.PlanUITests testDraftPlanPassesAccessibilityAudit]' failed (14.566 seconds).
+Test Case '-[OffMyPlateUITests.PlanUITests testEditingAnApprovedPlanShowsPendingChangesAndDiffSheet]' failed (32.514 seconds).
+Test Case '-[OffMyPlateUITests.PlanUITests testRegenerateKeepsLockedMeals]' failed (24.035 seconds).
+\t Executed 4 tests, with 3 failures (0 unexpected) in 85.429 (85.431) seconds
+\t Executed 19 tests, with 5 failures (0 unexpected) in 381.894 (381.911) seconds
+\t Executed 19 tests, with 5 failures (0 unexpected) in 381.894 (381.913) seconds

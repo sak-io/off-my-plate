@@ -1,0 +1,5 @@
+Packages/Core/Sources/OMPServices/PlanningService.swift:2: SafetyClearance may be created only in Packages/Core/Sources/OMPDomain/Safety/SafetyGate.swift (ADR 0007)
+Packages/Core/Sources/OMPServices/PlanningService.swift:3: SafetyClearance may be created only in
+Packages/Core/Sources/OMPDomain/Safety/SafetyClearance+Forge.swift:1: SafetyClearance may be created only in
+Packages/Core/Tests/OMPDomainTests/GateTests.swift:1: SafetyClearance may be created only in
+lint-safety: FAILED with 4 violation(s)

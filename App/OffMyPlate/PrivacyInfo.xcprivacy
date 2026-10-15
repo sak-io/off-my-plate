@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Privacy manifest (ADR 0014, spec NFR Privacy). OffMyPlate does not track, collects
+	     no data (everything stays on the device; no network, ADR 0002) and contacts no
+	     domains. Required-reason APIs: none used (audited for T29 on 2026-10-14: no
+	     UserDefaults/AppStorage, no file timestamp reads (the inbox only reads the file SIZE),
+	     no disk-space, boot-time or active-keyboard APIs in Packages/ or App/). Any task that adds one (for example
+	     UserDefaults, file timestamps, disk space, system boot time) MUST add its
+	     NSPrivacyAccessedAPITypes entry here in the same change. -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array/>
+</dict>
+</plist>

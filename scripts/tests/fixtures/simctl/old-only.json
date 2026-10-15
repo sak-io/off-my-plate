@@ -1,0 +1,7 @@
+{
+  "devices": {
+    "com.apple.CoreSimulator.SimRuntime.iOS-17-5": [
+      {"name": "iPhone 16", "udid": "IOS17-IPHONE16", "isAvailable": true, "state": "Shutdown"}
+    ]
+  }
+}

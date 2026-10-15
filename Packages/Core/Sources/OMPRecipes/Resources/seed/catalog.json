@@ -1,0 +1,461 @@
+{
+  "schemaVersion": 1,
+  "contentVersion": "2026.10.13-t06",
+  "foodTags": [
+    {
+      "id": "peanut",
+      "labelKey": "foodTag.peanut"
+    },
+    {
+      "id": "treeNut",
+      "labelKey": "foodTag.treeNut"
+    },
+    {
+      "id": "milk",
+      "labelKey": "foodTag.milk"
+    },
+    {
+      "id": "egg",
+      "labelKey": "foodTag.egg"
+    },
+    {
+      "id": "wheat",
+      "labelKey": "foodTag.wheat"
+    },
+    {
+      "id": "gluten",
+      "labelKey": "foodTag.gluten"
+    },
+    {
+      "id": "soy",
+      "labelKey": "foodTag.soy"
+    },
+    {
+      "id": "sesame",
+      "labelKey": "foodTag.sesame"
+    },
+    {
+      "id": "mustard",
+      "labelKey": "foodTag.mustard"
+    },
+    {
+      "id": "fish",
+      "labelKey": "foodTag.fish"
+    },
+    {
+      "id": "shellfish",
+      "labelKey": "foodTag.shellfish"
+    },
+    {
+      "id": "beef",
+      "labelKey": "foodTag.beef"
+    },
+    {
+      "id": "pork",
+      "labelKey": "foodTag.pork"
+    },
+    {
+      "id": "poultry",
+      "labelKey": "foodTag.poultry"
+    },
+    {
+      "id": "otherMeat",
+      "labelKey": "foodTag.otherMeat"
+    },
+    {
+      "id": "gelatin",
+      "labelKey": "foodTag.gelatin"
+    },
+    {
+      "id": "rootVegetable",
+      "labelKey": "foodTag.rootVegetable"
+    },
+    {
+      "id": "onion",
+      "labelKey": "foodTag.onion"
+    },
+    {
+      "id": "garlic",
+      "labelKey": "foodTag.garlic"
+    },
+    {
+      "id": "mushroom",
+      "labelKey": "foodTag.mushroom"
+    }
+  ],
+  "aisles": [
+    {
+      "id": "vegetablesAndFruit",
+      "labelKey": "aisle.vegetablesAndFruit"
+    },
+    {
+      "id": "dairyAndEggs",
+      "labelKey": "aisle.dairyAndEggs"
+    },
+    {
+      "id": "grainsAndFlours",
+      "labelKey": "aisle.grainsAndFlours"
+    },
+    {
+      "id": "pulsesAndLentils",
+      "labelKey": "aisle.pulsesAndLentils"
+    },
+    {
+      "id": "spicesAndMasalas",
+      "labelKey": "aisle.spicesAndMasalas"
+    },
+    {
+      "id": "oilsAndGhee",
+      "labelKey": "aisle.oilsAndGhee"
+    },
+    {
+      "id": "meatAndFish",
+      "labelKey": "aisle.meatAndFish"
+    },
+    {
+      "id": "bakery",
+      "labelKey": "aisle.bakery"
+    },
+    {
+      "id": "other",
+      "labelKey": "aisle.other"
+    }
+  ],
+  "cuisines": [
+    {
+      "id": "northIndian",
+      "labelKey": "cuisine.northIndian"
+    },
+    {
+      "id": "southIndian",
+      "labelKey": "cuisine.southIndian"
+    },
+    {
+      "id": "kerala",
+      "labelKey": "cuisine.kerala"
+    },
+    {
+      "id": "westIndian",
+      "labelKey": "cuisine.westIndian"
+    },
+    {
+      "id": "eastIndian",
+      "labelKey": "cuisine.eastIndian"
+    }
+  ],
+  "restrictions": [
+    {
+      "id": "peanuts",
+      "labelKey": "restriction.peanuts",
+      "excludedTags": [
+        "peanut"
+      ]
+    },
+    {
+      "id": "tree-nuts",
+      "labelKey": "restriction.treeNuts",
+      "excludedTags": [
+        "treeNut"
+      ]
+    },
+    {
+      "id": "milk",
+      "labelKey": "restriction.milk",
+      "excludedTags": [
+        "milk"
+      ]
+    },
+    {
+      "id": "egg",
+      "labelKey": "restriction.egg",
+      "excludedTags": [
+        "egg"
+      ]
+    },
+    {
+      "id": "wheat-gluten",
+      "labelKey": "restriction.wheatGluten",
+      "excludedTags": [
+        "wheat",
+        "gluten"
+      ]
+    },
+    {
+      "id": "soy",
+      "labelKey": "restriction.soy",
+      "excludedTags": [
+        "soy"
+      ]
+    },
+    {
+      "id": "sesame",
+      "labelKey": "restriction.sesame",
+      "excludedTags": [
+        "sesame"
+      ]
+    },
+    {
+      "id": "mustard",
+      "labelKey": "restriction.mustard",
+      "excludedTags": [
+        "mustard"
+      ]
+    },
+    {
+      "id": "fish",
+      "labelKey": "restriction.fish",
+      "excludedTags": [
+        "fish"
+      ]
+    },
+    {
+      "id": "shellfish",
+      "labelKey": "restriction.shellfish",
+      "excludedTags": [
+        "shellfish"
+      ]
+    },
+    {
+      "id": "beef",
+      "labelKey": "restriction.beef",
+      "excludedTags": [
+        "beef"
+      ]
+    },
+    {
+      "id": "pork",
+      "labelKey": "restriction.pork",
+      "excludedTags": [
+        "pork"
+      ]
+    },
+    {
+      "id": "vegetarian",
+      "labelKey": "restriction.vegetarian",
+      "excludedTags": [
+        "egg",
+        "fish",
+        "shellfish",
+        "beef",
+        "pork",
+        "poultry",
+        "otherMeat",
+        "gelatin"
+      ]
+    },
+    {
+      "id": "jain",
+      "labelKey": "restriction.jain",
+      "excludedTags": [
+        "egg",
+        "fish",
+        "shellfish",
+        "beef",
+        "pork",
+        "poultry",
+        "otherMeat",
+        "gelatin",
+        "rootVegetable",
+        "onion",
+        "garlic",
+        "mushroom"
+      ]
+    }
+  ],
+  "restrictionKeywords": {
+    "almond": [
+      "tree-nuts"
+    ],
+    "anda": [
+      "egg"
+    ],
+    "ande": [
+      "egg"
+    ],
+    "andiparippu": [
+      "tree-nuts"
+    ],
+    "atta": [
+      "wheat-gluten"
+    ],
+    "badam": [
+      "tree-nuts"
+    ],
+    "beef": [
+      "beef"
+    ],
+    "cashew": [
+      "tree-nuts"
+    ],
+    "chemmeen": [
+      "shellfish"
+    ],
+    "crab": [
+      "shellfish"
+    ],
+    "dairy": [
+      "milk"
+    ],
+    "doodh": [
+      "milk"
+    ],
+    "dudh": [
+      "milk"
+    ],
+    "egg": [
+      "egg"
+    ],
+    "eggs": [
+      "egg"
+    ],
+    "ellu": [
+      "sesame"
+    ],
+    "fish": [
+      "fish"
+    ],
+    "gehu": [
+      "wheat-gluten"
+    ],
+    "gehun": [
+      "wheat-gluten"
+    ],
+    "gluten": [
+      "wheat-gluten"
+    ],
+    "gothambu": [
+      "wheat-gluten"
+    ],
+    "groundnut": [
+      "peanuts"
+    ],
+    "groundnuts": [
+      "peanuts"
+    ],
+    "jain": [
+      "jain"
+    ],
+    "kaduku": [
+      "mustard"
+    ],
+    "kaju": [
+      "tree-nuts"
+    ],
+    "kappalandi": [
+      "peanuts"
+    ],
+    "konju": [
+      "shellfish"
+    ],
+    "lactose": [
+      "milk"
+    ],
+    "machhi": [
+      "fish"
+    ],
+    "machhli": [
+      "fish"
+    ],
+    "machli": [
+      "fish"
+    ],
+    "maida": [
+      "wheat-gluten"
+    ],
+    "meen": [
+      "fish"
+    ],
+    "milk": [
+      "milk"
+    ],
+    "moongphali": [
+      "peanuts"
+    ],
+    "mustard": [
+      "mustard"
+    ],
+    "mutta": [
+      "egg"
+    ],
+    "nilakkadala": [
+      "peanuts"
+    ],
+    "njandu": [
+      "shellfish"
+    ],
+    "no meat": [
+      "vegetarian"
+    ],
+    "nut": [
+      "peanuts",
+      "tree-nuts"
+    ],
+    "nuts": [
+      "peanuts",
+      "tree-nuts"
+    ],
+    "paal": [
+      "milk"
+    ],
+    "peanut": [
+      "peanuts"
+    ],
+    "peanuts": [
+      "peanuts"
+    ],
+    "pistachio": [
+      "tree-nuts"
+    ],
+    "pork": [
+      "pork"
+    ],
+    "prawn": [
+      "shellfish"
+    ],
+    "prawns": [
+      "shellfish"
+    ],
+    "rai": [
+      "mustard"
+    ],
+    "sarson": [
+      "mustard"
+    ],
+    "sesame": [
+      "sesame"
+    ],
+    "shellfish": [
+      "shellfish"
+    ],
+    "shrimp": [
+      "shellfish"
+    ],
+    "soy": [
+      "soy"
+    ],
+    "soya": [
+      "soy"
+    ],
+    "til": [
+      "sesame"
+    ],
+    "tree nut": [
+      "tree-nuts"
+    ],
+    "tree nuts": [
+      "tree-nuts"
+    ],
+    "veg": [
+      "vegetarian"
+    ],
+    "vegetarian": [
+      "vegetarian"
+    ],
+    "walnut": [
+      "tree-nuts"
+    ],
+    "wheat": [
+      "wheat-gluten"
+    ]
+  }
+}

@@ -1,0 +1,284 @@
+# Apple platforms (plan section 9): everything that needs macOS and Xcode.
+#   Several jobs run in PARALLEL so wall time is the slowest one, not the sum, and one failure
+#   does not hide the others:
+#   1. swift test for Packages/Core (Apple toolchain) and Packages/Apple (OMPData, ...),
+#      each with the zero-test guard (scripts/assert-tests-ran.sh);
+#   2. XcodeGen generates App/OffMyPlate.xcodeproj from App/project.yml (ADR 0006);
+#   3. release-hygiene builds the Release configuration and fails if a UI-test hook
+#      (`OMPUITest`) is in the shipped binary (security audit M2);
+#   4. xcodebuild test (app build, share extension, UI tests) on an iPhone 16 and an iPad
+#      simulator, each with the zero-test guard (scripts/assert-xcresult-tests-ran.sh).
+# Simulator builds are unsigned (CODE_SIGNING_ALLOWED=NO); no signing material in CI.
+#
+# Xcode: the newest stable Xcode 26.x installed on the macos-15 runner image (Swift 6.2,
+# matching core-linux.yml and the owner's Xcode). The job FAILS if the image has no stable
+# Xcode 26, rather than silently testing with an older toolchain.
+name: apple-macos
+
+# Pushes: the session/agent branches and main. Local feat/* task branches are never pushed.
+on:
+  push:
+    branches: ["claude/**", "main"]
+    # Docs-only and team-bookkeeping pushes do not need a build (saves macOS minutes). If the last
+    # commit on a branch is docs-only it gets no run of its own; the previous code commit's run applies.
+    paths-ignore: ["docs/**", ".autocraft/**", "work/**", "**/*.md"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Superseded pull-request runs are cancelled; branch pushes always run to completion so
+# every commit on claude/** and main keeps a result (handoffs cite them).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  swift-tests:
+    name: Swift packages (macOS 15, Xcode 26)
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/apple-setup
+        with:
+          generate-project: "false"
+
+      - name: Test Core (fails if no Swift Testing test ran)
+        run: |
+          swift test --package-path Packages/Core 2>&1 | tee "$RUNNER_TEMP/core-tests.log"
+          scripts/assert-tests-ran.sh "$RUNNER_TEMP/core-tests.log"
+
+      - name: Test Packages/Apple (fails if no Swift Testing test ran)
+        run: |
+          swift test --package-path Packages/Apple 2>&1 | tee "$RUNNER_TEMP/apple-tests.log"
+          scripts/assert-tests-ran.sh "$RUNNER_TEMP/apple-tests.log"
+
+      - name: Self-test the CI helper scripts (python3 required here)
+        env:
+          OMP_REQUIRE_PYTHON: "1"
+        run: |
+          scripts/tests/test-select-simulator.sh
+          scripts/tests/test-assert-xcresult-tests-ran.sh
+
+  # UI tests: build ONCE, then run the XCUITest classes in parallel shards on each device. One serial
+  # job per device took 25-35 minutes (49 tests, each launching the app); shards cut the wall time to
+  # roughly build + the longest shard. scripts/ui-shard-classes.sh lists the classes per shard and
+  # --check (run in the Linux lint step and here) fails if a test class belongs to no shard.
+  ui-build:
+    name: Build UI tests (macOS 15, Xcode 26)
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
+        with:
+          persist-credentials: false
+
+      - name: Every UI test class belongs to a shard
+        run: scripts/ui-shard-classes.sh --check
+
+      - uses: ./.github/actions/apple-setup
+
+      - name: Build the app and the UI tests once (generic iOS Simulator, unsigned)
+        run: |
+          xcodebuild build-for-testing \
+            -project App/OffMyPlate.xcodeproj \
+            -scheme OffMyPlate \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO
+          ls "$RUNNER_TEMP"/DerivedData/Build/Products/*.xctestrun
+          tar -C "$RUNNER_TEMP/DerivedData/Build" -czf "$RUNNER_TEMP/ui-products.tgz" Products
+          ls -lh "$RUNNER_TEMP/ui-products.tgz"
+
+      - name: Upload the build for the test shards
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ui-products
+          path: ${{ runner.temp }}/ui-products.tgz
+          retention-days: 1
+          compression-level: 0
+
+  ui-test-iphone:
+    name: UI tests iPhone shard ${{ matrix.shard }} (macOS 15, Xcode 26)
+    needs: ui-build
+    runs-on: macos-15
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
+        with:
+          persist-credentials: false
+
+      - name: Select Xcode
+        uses: ./.github/actions/apple-setup
+        with:
+          generate-project: "false"
+
+      - name: Download the build
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ui-products
+          path: ${{ runner.temp }}/artifact
+
+      - name: Pick simulator (newest iOS 18+ runtime; no hardcoded OS versions)
+        run: |
+          xcrun simctl list runtimes
+          echo "SIM_UDID=$(scripts/select-simulator.sh iphone "iPhone 16")" >> "$GITHUB_ENV"
+
+      - name: Run this shard's UI tests (fails if no test ran)
+        run: |
+          mkdir -p "$RUNNER_TEMP/dd"
+          tar -C "$RUNNER_TEMP/dd" -xzf "$RUNNER_TEMP/artifact/ui-products.tgz"
+          xctestrun="$(ls "$RUNNER_TEMP"/dd/Products/*.xctestrun | head -n 1)"
+          only=()
+          while IFS= read -r cls; do only+=("-only-testing:OffMyPlateUITests/$cls"); done \
+            < <(scripts/ui-shard-classes.sh "${{ matrix.shard }}")
+          echo "xctestrun: $xctestrun"; printf 'shard classes: %s\n' "${only[*]}"
+          bundle="$RUNNER_TEMP/ui-iPhone-${{ matrix.shard }}.xcresult"
+          xcodebuild test-without-building \
+            -xctestrun "$xctestrun" \
+            -destination "id=$SIM_UDID" \
+            -resultBundlePath "$bundle" \
+            -parallel-testing-enabled NO \
+            "${only[@]}"
+          scripts/assert-xcresult-tests-ran.sh "$bundle"
+
+  ui-test-ipad:
+    name: UI tests iPad shard ${{ matrix.shard }} (macOS 15, Xcode 26)
+    needs: ui-build
+    # iPad is the slower, rarely-different half: GitHub runs ~5 macOS jobs at once, so running both
+    # devices on every push queued shards for 10+ minutes. iPad runs on main, on a manual dispatch, or
+    # when the head commit message contains "[ipad]" (put it on the push you intend to merge).
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[ipad]')
+    runs-on: macos-15
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
+        with:
+          persist-credentials: false
+
+      - name: Select Xcode
+        uses: ./.github/actions/apple-setup
+        with:
+          generate-project: "false"
+
+      - name: Download the build
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: ui-products
+          path: ${{ runner.temp }}/artifact
+
+      - name: Pick simulator (newest iOS 18+ runtime; no hardcoded OS versions)
+        run: |
+          xcrun simctl list runtimes
+          echo "SIM_UDID=$(scripts/select-simulator.sh ipad "iPad (A16)")" >> "$GITHUB_ENV"
+
+      - name: Run this shard's UI tests (fails if no test ran)
+        run: |
+          mkdir -p "$RUNNER_TEMP/dd"
+          tar -C "$RUNNER_TEMP/dd" -xzf "$RUNNER_TEMP/artifact/ui-products.tgz"
+          xctestrun="$(ls "$RUNNER_TEMP"/dd/Products/*.xctestrun | head -n 1)"
+          only=()
+          while IFS= read -r cls; do only+=("-only-testing:OffMyPlateUITests/$cls"); done \
+            < <(scripts/ui-shard-classes.sh "${{ matrix.shard }}")
+          echo "xctestrun: $xctestrun"; printf 'shard classes: %s\n' "${only[*]}"
+          bundle="$RUNNER_TEMP/ui-iPad-${{ matrix.shard }}.xcresult"
+          xcodebuild test-without-building \
+            -xctestrun "$xctestrun" \
+            -destination "id=$SIM_UDID" \
+            -resultBundlePath "$bundle" \
+            -parallel-testing-enabled NO \
+            "${only[@]}"
+          scripts/assert-xcresult-tests-ran.sh "$bundle"
+
+  release-hygiene:
+    name: Release build has no UI-test hooks (macOS 15, Xcode 26)
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/apple-setup
+
+      - name: Build Release for the iOS Simulator (unsigned)
+        run: |
+          xcodebuild build \
+            -project App/OffMyPlate.xcodeproj \
+            -scheme OffMyPlate \
+            -configuration Release \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedDataRelease" \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Fail if the Release app contains a UI-test or debug hook
+        shell: bash
+        run: |
+          set -euo pipefail
+          app="$RUNNER_TEMP/DerivedDataRelease/Build/Products/Release-iphonesimulator/OffMyPlate.app"
+          test -d "$app" || { echo "::error::Release app not found at $app"; exit 1; }
+          executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Info.plist")"
+          work="$RUNNER_TEMP/hygiene"
+          mkdir -p "$work"
+
+          # Swift keeps string literals of 15 bytes or fewer as immediates in machine code, so
+          # `strings` cannot see "-OMPUITestSeed" (14 B) or "-OMPUITestInbox" (15 B). The check
+          # therefore also looks for the hook TYPE names, which Swift embeds in mangled symbols
+          # and type metadata whatever the literal sizes are.
+          pattern='OMPUITest|DebugNetworkDenial|UITestSeed|UITestInbox|UITestSpeech'
+
+          # scan_file <file>: succeeds (exit 0) if the pattern is found in the file's strings.
+          # Output goes to a file first, then grep: no `strings | grep -q` SIGPIPE pitfall.
+          # Returns 0 found, 1 not found; a failing `strings` stops the whole step (exit 2),
+          # it is never read as "not found".
+          scan_file() {
+            if ! strings -a "$1" > "$work/strings.txt"; then
+              echo "::error::strings failed on $1"
+              exit 2
+            fi
+            grep -Eq "$pattern" "$work/strings.txt"
+          }
+
+          # Self-check: the same scan must detect a planted marker of 16+ bytes, otherwise a
+          # broken scan would pass silently.
+          printf 'int main(void){ static const char m[] = "OMPUITest_selfcheck_marker"; return m[0]; }\n' > "$work/marker.c"
+          clang -o "$work/marker" "$work/marker.c"
+          scan_file "$work/marker" || { echo "::error::self-check failed: the scan did not detect the planted marker"; exit 1; }
+          echo "self-check ok: planted marker detected"
+
+          # Guard against a vacuous pass: the binary must have plenty of text.
+          strings -a "$app/$executable" > "$work/exe-strings.txt"
+          test "$(wc -l < "$work/exe-strings.txt")" -gt 100 \
+            || { echo "::error::strings found almost nothing in $executable"; exit 1; }
+
+          found=0
+          while IFS= read -r -d '' file; do
+            if scan_file "$file"; then
+              echo "::error::UI-test or debug hook name found in ${file#"$app"/}:"
+              grep -Eo "$pattern" "$work/strings.txt" | sort -u | sed 's/^/  /'
+              found=1
+            fi
+          done < <(find "$app" -type f -print0)
+          exit "$found"

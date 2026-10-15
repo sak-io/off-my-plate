@@ -1,0 +1,20 @@
+##### IPHONE
+PantryUITests.testPantryListPassesAccessibilityAudit: XCTAssertTrue failed - Accessibility audit issues (3):
+    XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label '100 tbsp' id '' type 48 frame (32.0, 735.0, 60.0, 18.0) | detail: Contrast failed for SwiftUI.AccessibilityNode 
+    XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label '“masala mix”' id '' type 48 frame (32.0, 799.0, 105.33333333333331, 20.33333333333337) | detail: Contrast failed for SwiftUI.AccessibilityNode 
+    XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label '1 pcs' id '' type 48 frame (32.0, 821.3333333333334, 35.66666666666666, 18.0) | detail: Contrast failed for SwiftUI.AccessibilityNode 
+PlanUITests.testDraftPlanPassesAccessibilityAudit: XCTAssertTrue failed - Accessibility audit issues (6):
+    XCUIAccessibilityAuditType(rawValue: 65536) | Dynamic Type font sizes are partially unsupported | label 'Dismiss' id 'plan.banner.dismiss' type 9 frame (48.0, 484.3333333333333, 83.33333333333331, 44.00000000000006) | detail: User will not be able to change the font size of this SwiftUI.AccessibilityNode 
+    XCUIAccessibilityAuditType(rawValue: 65536) | Dynamic Type font sizes are partially unsupported | label 'Regenerate' id 'plan.regenerate' type 9 frame (16.0, 329.0, 361.0, 74.0) | detail: User will not be able to change the font size of this SwiftUI.AccessibilityNode 
+    XCUIAccessibilityAuditType(rawValue: 65536) | Dynamic Type font sizes are partially unsupported | label 'Wednesday 14' id 'plan.day.2026-10-14' type 48 frame (16.0, 594.3333333333333, 361.0, 52.0) | detail: User will not be able to change the font size of this SwiftUI.AccessibilityNode 
+PlanUITests.testRegenerateKeepsLockedMeals: XCTAssertTrue failed - The plan has no meal rows
+SettingsUITests.testHouseholdPassesAccessibilityAudit: XCTAssertTrue failed - Accessibility audit issues (2):
+    XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'About' id '' type 48 frame (0.0, 715.6666666666666, 393.0, 52.0) | detail: Contrast failed for SwiftUI.AccessibilityNode 
+    XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'About, privacy \u0026 medical note' id '' type 48 frame (16.0, 782.6666666666666, 361.0, 44.0) | detail: Contrast failed for SwiftUI.AccessibilityNode 
+##### IPAD
+PlanUITests.testDraftPlanPassesAccessibilityAudit: XCTAssertTrue failed - Accessibility audit issues (1):
+    XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'Regenerate' id 'plan.regenerate' type 9 frame (20.0, 302.0, 780.0, 74.0) | detail: Contrast failed for SwiftUI.AccessibilityNode 
+SettingsUITests.testAllergiesScreenAndAddSheetPassAccessibilityAudit: XCTAssertTrue failed - Accessibility audit issues (2):
+SettingsUITests.testHouseholdPassesAccessibilityAudit: XCTAssertTrue failed - Accessibility audit issues (1):
+    XCUIAccessibilityAuditType(rawValue: 65536) | Dynamic Type font sizes are partially unsupported | label 'Delete all data' id '' type 48 frame (20.0, 830.0, 780.0, 44.0) | detail: User will not be able to change the font size of this SwiftUI.AccessibilityNode 
+ShoppingUITests.testNoPlanListPassesAccessibilityAudit: XCTAssertTrue failed - Accessibility audit issues (2):

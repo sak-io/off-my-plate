@@ -1,0 +1,3 @@
+IPHONE: AppShellUITests.testDisclaimerIsReachableFromHousehold (AppShellUITests.swift:80): XCTAssertTrue failed - Household has no row for the medical disclaimer (AC-2.6)
+IPHONE: SettingsUITests.testForgetRemovesAFact (SettingsUITests.swift:162): XCTAssertEqual failed: (\"3\") is not equal to (\"2\") - The forgotten fact is still listed
+IPAD: PantryUITests.testManualAddShowsTheItemInThePantry (PantryUITests.swift:109): XCTAssertTrue failed - The form stays open after saving

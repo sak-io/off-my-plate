@@ -1,0 +1,88 @@
+# Core on Linux: the verification of record for Packages/Core (plan section 9, ADR 0005).
+# Runs lint self-tests, all lints (including lint-safety.sh), then builds and tests the Core
+# package with the official Swift 6.2 image (matches the owner's Xcode 26 toolchain), runs
+# the safety suite as its own step, and checks the seed sign-off sheet is current.
+name: core-linux
+
+# Pushes: the session/agent branches and main. Local feat/* task branches are never pushed.
+on:
+  push:
+    branches: ["claude/**", "main"]
+    # Docs-only and team-bookkeeping pushes do not need a build. Note: if the last commit on a branch
+    # is docs-only it gets no run of its own; the previous code commit's run still applies.
+    paths-ignore: ["docs/**", ".autocraft/**", "work/**", "**/*.md"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Superseded pull-request runs are cancelled; branch pushes always run to completion so
+# every commit on claude/** and main keeps a result (handoffs cite them).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  core:
+    name: Core (Linux, Swift 6.2)
+    runs-on: ubuntu-latest
+    container: swift:6.2-noble
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
+        with:
+          persist-credentials: false
+
+      - name: Toolchain
+        run: swift --version
+
+      # The swift container has no Python; the localisation lint and the task-board self-test need it
+      # (without it the board test skips and the localisation test fails with exit 127).
+      - name: Install python3
+        run: apt-get update -qq && apt-get install -y -qq python3
+
+      - name: Script self-tests and lints (planted violations must fail, then the repository)
+        run: scripts/check-core.sh --lint-only
+
+      - name: Build Core (including tests)
+        run: swift build --package-path Packages/Core --build-tests
+
+      - name: Test Core (fails if no Swift Testing test ran)
+        run: |
+          swift test --package-path Packages/Core --skip-build 2>&1 | tee "$RUNNER_TEMP/core-tests.log"
+          scripts/assert-tests-ran.sh "$RUNNER_TEMP/core-tests.log"
+
+      # The non-skippable safety suite (T12, plan section 8, ADR 0007) as its own step, so its
+      # result is visible on its own and a filter that matches nothing cannot pass: at least
+      # SAFETY_SUITE_MIN_TESTS Swift Testing tests must run (the suite has 8 @Test functions;
+      # raise the minimum when adding tests). `scripts/lint-safety.sh` forbids disabling any.
+      - name: Safety suite (OMPSafetySuiteTests only; fails if fewer tests ran than the minimum)
+        env:
+          SAFETY_SUITE_MIN_TESTS: "8"
+        run: |
+          swift test --package-path Packages/Core --skip-build --filter OMPSafetySuiteTests 2>&1 \
+            | tee "$RUNNER_TEMP/safety-suite.log"
+          scripts/assert-tests-ran.sh "$RUNNER_TEMP/safety-suite.log" "$SAFETY_SUITE_MIN_TESTS"
+
+  # The committed seed sign-off sheet must equal what the code prints (ADR 0010, G1). A separate
+  # job so a stale sheet is reported on its own and does not hide the Core results. On failure
+  # the log shows the diff; regenerating and re-reviewing the sheet is a human step.
+  seed-review:
+    name: Seed sign-off sheet is current (Linux, Swift 6.2)
+    runs-on: ubuntu-latest
+    container: swift:6.2-noble
+    timeout-minutes: 20
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
+        with:
+          persist-credentials: false
+
+      - name: docs/content/seed-review.md equals `swift run seed-review-sheet`
+        run: scripts/check-seed-review.sh

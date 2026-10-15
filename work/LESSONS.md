@@ -1,0 +1,16 @@
+# CI pitfalls already paid for (read before coding)
+- Swift 6.2 strict concurrency: typed-throws closures need explicit types; keep Sendable conformances explicit.
+- Adding an enum case in Core? grep `Packages/Apple` for exhaustive `switch` over it (OMPData DTO mappings broke macOS CI for `lockedMealNoLongerSafe`).
+- Empty fixture directories are not tracked by git - add a `.gitkeep`.
+- Floating-point quantity math: compare with tolerance; round only at display.
+- Unicode: combining marks/Cf (e.g. Prepend) break grapheme assumptions - use `TranscriptSanitiser` for voice/text input.
+- Safety lint: a new `unblock`-style call needs a reviewed exception in `scripts/lint-safety.sh`; do not work around it.
+- Every behavior change needs unit tests; the test-count asserts (`assert-tests-ran.sh`) fail a run that silently skips tests.
+- Batch CI: push several finished tasks on one `claude/ci-batch-N` branch; one CI cycle instead of one per task.
+- Docs-only changes (`*.md`, `work/**`) do not trigger CI.
+- `App/OffMyPlate/CompositionRoot.swift` is compiled only by the app target, so a wrong name there (e.g. `SeedLibrary.loadBundled` vs `SeedLoader.loadBundled`) is NOT caught by the Swift package tests; check API names against the package source before using them.
+- Accessibility audit (XCUITest) pitfalls found the hard way: avoid `ContentUnavailableView`, default `List` section headers and `.secondary` text (contrast / Dynamic Type); a bottom bar placed as a safe-area inset keeps rows scrolled under it in the accessibility tree and they fail contrast; give the app ~2 s to settle before auditing; run the audit in two passes on long lists (timeouts on iPad); system tab bar chrome raises element-less issues on iPad (owner-approved exceptions, tracked for T28).
+- A UI job that dies with "Failed to get background assertion ... Timed out" never ran a test body: it is a simulator launch flake, re-run that job once.
+- Explicit plus/minus Buttons are more testable than SwiftUI `Stepper` (its inner "Increment" button was not found by XCUITest on this runner).
+- CI shape: the UI suite is built once (`ui-build`) and run in shards (`scripts/ui-shard-classes.sh`, `--check` fails if a new test class is in no shard). GitHub runs ~5 macOS jobs at once: more parallel macOS jobs just queue. iPad shards only run on main / dispatch / `[ipad]` in the commit message.
+- The Swift Linux container has no python3 (the workflow installs it); macOS has it.

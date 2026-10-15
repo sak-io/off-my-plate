@@ -1,0 +1,11 @@
+\t Executed 5 tests, with 0 failures (0 unexpected) in 179.842 (179.847) seconds
+\t Executed 10 tests, with 0 failures (0 unexpected) in 194.438 (194.444) seconds
+/Users/runner/work/off-my-plate/off-my-plate/App/OffMyPlateUITests/PlanUITests.swift:216: error: -[OffMyPlateUITests.PlanUITests testDraftPlanPassesAccessibilityAudit] : XCTAssertTrue failed - Accessibility audit issues (4):
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'Builds your shopping list and lets you mark meals cooked.' id '' type 48 frame (21.5, 737.3333333333334, 350.0, 15.666666666666629) | Attributes: StaticText, 0x10608a9b0, {{21.5, 737.3}, {350.0, 15.7}}, label: 'Builds your shopping list and lets you mark meals cooked.'
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'Dinner' id '' type 48 frame (32.0, 736.3333333333334, 45.0, 18.0) | Attributes: StaticText, 0x1060a9930, {{32.0, 736.3}, {45.0, 18.0}}, label: 'Dinner'
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'Kerala rasam with rice' id '' type 48 frame (32.0, 756.3333333333334, 175.33333333333334, 20.333333333333258) | Attributes: StaticText, 0x1063cf1f0, {{32.0, 756.3}, {175.3, 20.3}}, label: 'Kerala rasam with rice'
+XCUIAccessibilityAuditType(rawValue: 1) | Contrast failed | label 'Quick weekday dinner' id '' type 48 frame (32.0, 778.6666666666666, 150.66666666666666, 18.0) | Attributes: StaticText, 0x10b224f80, {{32.0, 778.7}, {150.7, 18.0}}, label: 'Quick weekday dinner'
+Test Case '-[OffMyPlateUITests.PlanUITests testDraftPlanPassesAccessibilityAudit]' failed (16.973 seconds).
+\t Executed 4 tests, with 1 failure (0 unexpected) in 99.275 (99.277) seconds
+\t Executed 19 tests, with 1 failure (0 unexpected) in 473.555 (473.572) seconds
+\t Executed 19 tests, with 1 failure (0 unexpected) in 473.555 (473.576) seconds

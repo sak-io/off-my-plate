@@ -1,0 +1,2 @@
+typealias UC =
+    UserConfirmation

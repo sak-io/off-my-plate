@@ -1,0 +1,9 @@
+{
+  "branch": "feat/t26",
+  "commit": "7e25bf0",
+  "id": "T26",
+  "note": "merged via batch-4, CI green (5 jobs); audit findings waived+tracked for T28",
+  "owner": "claude-lead",
+  "state": "merged",
+  "updated_at": "2026-10-14T20:29:50Z"
+}

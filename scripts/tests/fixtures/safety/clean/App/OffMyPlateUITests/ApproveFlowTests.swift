@@ -1,0 +1,3 @@
+func testApproveFlow() {
+    _ = UserConfirmation()
+}

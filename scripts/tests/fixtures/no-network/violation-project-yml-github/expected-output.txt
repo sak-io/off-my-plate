@@ -1,0 +1,3 @@
+project.yaml:4: remote package in an XcodeGen spec
+project.yaml:6: remote package in an XcodeGen spec
+FAILED with 2 violation(s)

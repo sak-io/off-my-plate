@@ -1,0 +1,3 @@
+Packages/Core/Sources/OMPDomain/Planner/WeekPlanner.swift:3: a safety block may be cleared only in Packages/Core/Sources/OMPDomain/Plan/PlanLifecycle.swift, the OMPData mapping and tests (ADR 0008, R1)
+Packages/Apple/Sources/OMPFeatures/Plan/PlanModel.swift:1: a safety block may be cleared only in
+lint-safety: FAILED with 2 violation(s)

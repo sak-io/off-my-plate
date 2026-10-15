@@ -1,0 +1,3 @@
+- [x] Restriction and keyword definitions approved. Reviewer: A. Owner Date: 2026-10-20
+- [x] Privacy policy, data map and disclaimer wording approved. Reviewer: L. Lawyer Date: 2026-10-21
+- [x] Recipe allergen tags spot-checked by a dietitian. Reviewer: D. Diet Date: 2026-10-21

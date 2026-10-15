@@ -1,0 +1,6 @@
+name: OffMyPlate
+packages:
+  Moya:
+    github: Moya/Moya
+    from: 15.0.0
+  Kingfisher: {url: "https://github.com/onevcat/Kingfisher", from: "8.0.0"}
