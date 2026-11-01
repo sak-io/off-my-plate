@@ -1,0 +1,102 @@
+# W01 spike (docs/windows/plan.md, ADR 0016): does Core build for WebAssembly (wasm32-wasi) with the
+# Swift 6.2 Wasm SDK, and do its tests, including the non-skippable safety suite, pass under wasmtime?
+# Independent of core-linux.yml / apple-macos.yml. Results are written to the job summary and, while
+# the spike runs, echoed as annotations (SPIKE_ANNOTATE) so they can be read without a token.
+name: core-wasm
+
+on:
+  push:
+    branches: ["claude/ci-w01"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  WASM_SDK_URL: https://download.swift.org/swift-6.2-release/wasm-sdk/swift-6.2-RELEASE/swift-6.2-RELEASE_wasm.artifactbundle.tar.gz
+  # Empty while the spike discovers it: the step prints the computed sum so it can be pinned.
+  WASM_SDK_SHA256: ""
+  SPIKE_ANNOTATE: "true"
+
+jobs:
+  wasm:
+    name: Core on WebAssembly (Linux, Swift 6.2 + Wasm SDK)
+    runs-on: ubuntu-latest
+    container: swift:6.2-noble
+    timeout-minutes: 45
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Spike (install SDK + wasmtime, build, test per target, classify)
+        run: |
+          set +e
+          R="$RUNNER_TEMP/res.txt"; : > "$R"
+          note() { echo "$*" | tee -a "$R"; }
+          # tail of a log, newline-encoded so it fits in one annotation
+          tailenc() { tail -n "${2:-25}" "$1" | cut -c1-300 | head -c 3000 | sed ':a;N;$!ba;s/\n/%0A/g'; }
+          t0=$(date +%s)
+          lap() { local n; n=$(date +%s); echo "$((n-t0))s"; t0=$n; }
+
+          swift --version 2>&1 | tee -a "$R"
+          apt-get update -qq && apt-get install -y -qq xz-utils curl ca-certificates >/dev/null 2>&1
+
+          # ---- Wasm SDK
+          curl -fsSL -o "$RUNNER_TEMP/wasm-sdk.tar.gz" "$WASM_SDK_URL" 2>"$RUNNER_TEMP/dl.err" || { note "SDK DOWNLOAD FAILED: $(cat $RUNNER_TEMP/dl.err)"; }
+          SUM=$(sha256sum "$RUNNER_TEMP/wasm-sdk.tar.gz" | cut -d' ' -f1)
+          note "SDK sha256=$SUM size=$(stat -c %s "$RUNNER_TEMP/wasm-sdk.tar.gz")"
+          [ -n "$WASM_SDK_SHA256" ] && [ "$WASM_SDK_SHA256" != "$SUM" ] && note "SDK CHECKSUM MISMATCH (pinned $WASM_SDK_SHA256)"
+          swift sdk install "$WASM_SDK_URL" --checksum "${WASM_SDK_SHA256:-$SUM}" >"$RUNNER_TEMP/sdk.log" 2>&1 || note "SDK INSTALL FAILED: $(tailenc "$RUNNER_TEMP/sdk.log" 10)"
+          swift sdk list 2>&1 | tee "$RUNNER_TEMP/sdklist.log"
+          SDK=$(grep -i wasm "$RUNNER_TEMP/sdklist.log" | grep -iv embedded | head -1 | tr -d ' ')
+          note "SDK id=$SDK (all: $(tr '\n' ' ' < "$RUNNER_TEMP/sdklist.log")) install=$(lap)"
+
+          # ---- wasmtime
+          TAG=$(curl -fsSL https://api.github.com/repos/bytecodealliance/wasmtime/releases/latest | grep -m1 '"tag_name"' | sed -E 's/.*"(v[^"]+)".*/\1/')
+          note "wasmtime tag=$TAG"
+          curl -fsSL -o "$RUNNER_TEMP/wt.tar.xz" "https://github.com/bytecodealliance/wasmtime/releases/download/$TAG/wasmtime-$TAG-x86_64-linux.tar.xz" || note "WASMTIME DOWNLOAD FAILED"
+          mkdir -p "$RUNNER_TEMP/wt" && tar -xJf "$RUNNER_TEMP/wt.tar.xz" -C "$RUNNER_TEMP/wt" --strip-components=1
+          export PATH="$RUNNER_TEMP/wt:$PATH"
+          note "wasmtime: $(wasmtime --version 2>&1) $(lap)"
+
+          # ---- build (library products first, then with tests)
+          cd core
+          for p in OMPDomain OMPSafetyCheck OMPRecipes OMPServices; do
+            swift build --swift-sdk "$SDK" --product $p >"$RUNNER_TEMP/b-$p.log" 2>&1
+            rc=$?; note "BUILD $p rc=$rc $(lap)"
+            [ $rc -ne 0 ] && note "  build log: $(tailenc "$RUNNER_TEMP/b-$p.log" 30)"
+          done
+          swift build --swift-sdk "$SDK" --build-tests >"$RUNNER_TEMP/bt.log" 2>&1
+          rc=$?; note "BUILD-TESTS rc=$rc $(lap)"
+          [ $rc -ne 0 ] && note "  build-tests log: $(tailenc "$RUNNER_TEMP/bt.log" 40)"
+          ls -la .build/*/debug/*.wasm .build/*/debug/*.xctest 2>&1 | head -20 | tee -a "$R"
+          ls .build 2>&1 | tee -a "$R"
+
+          # ---- tests, per target (so one crash does not hide the others)
+          for tgt in OMPSafetySuiteTests OMPDomainTests OMPSafetyCheckTests OMPRecipesTests OMPServicesTests; do
+            swift test --swift-sdk "$SDK" --skip-build --filter $tgt >"$RUNNER_TEMP/t-$tgt.log" 2>&1
+            rc=$?; note "TEST $tgt rc=$rc $(lap)"
+            grep -aE "Test run with|Executed .* tests" "$RUNNER_TEMP/t-$tgt.log" | head -3 | sed 's/^/  /' | tee -a "$R"
+            grep -aE "✘|Issue recorded|error:|Fatal|crash|trap|unreachable" "$RUNNER_TEMP/t-$tgt.log" | cut -c1-220 | sort | uniq -c | sort -rn | head -25 | sed 's/^/  F: /' | tee -a "$R"
+            [ $rc -ne 0 ] && note "  tail: $(tailenc "$RUNNER_TEMP/t-$tgt.log" 25)"
+          done
+
+          # ---- whole-package run for the record (same command as native CI)
+          swift test --swift-sdk "$SDK" --skip-build >"$RUNNER_TEMP/t-all.log" 2>&1
+          note "TEST ALL rc=$? $(lap)"
+          grep -aE "Test run with" "$RUNNER_TEMP/t-all.log" | head -3 | tee -a "$R"
+          grep -aE "^. Test .* failed|✘ Test" "$RUNNER_TEMP/t-all.log" | cut -c1-200 | sort -u | head -60 | tee -a "$R"
+
+          note "wasm size: $(du -sh .build/*/debug 2>/dev/null | tr '\n' ' ')"
+          { echo '## core-wasm spike'; echo '```'; cat "$R"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$SPIKE_ANNOTATE" = "true" ]; then
+            while IFS= read -r line; do echo "::error::${line:0:900}"; done < <(cut -c1-900 "$R" | head -60)
+            exit 1
+          fi
+          ! grep -qE "FAILED|rc=[1-9]" "$R"
