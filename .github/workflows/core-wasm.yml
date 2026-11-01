@@ -96,7 +96,11 @@ jobs:
           note "wasm size: $(du -sh .build/*/debug 2>/dev/null | tr '\n' ' ')"
           { echo '## core-wasm spike'; echo '```'; cat "$R"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           if [ "$SPIKE_ANNOTATE" = "true" ]; then
-            while IFS= read -r line; do echo "::error::${line:0:900}"; done < <(cut -c1-900 "$R" | head -60)
+            # GitHub keeps at most 10 error annotations per step: pack the result file into <=10 chunks.
+            cut -c1-400 "$R" | head -c 40000 | split -C 3800 -d - "$RUNNER_TEMP/chunk."
+            for f in "$RUNNER_TEMP"/chunk.*; do
+              echo "::error::$(sed ':a;N;$!ba;s/\n/%0A/g' "$f")"
+            done | head -10
             exit 1
           fi
           ! grep -qE "FAILED|rc=[1-9]" "$R"
