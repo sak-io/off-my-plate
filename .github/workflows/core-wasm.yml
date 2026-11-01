@@ -100,7 +100,7 @@ jobs:
           X="$RUNNER_TEMP/tests.cwasm"
           wt() { wasmtime run --allow-precompiled --dir=. "$X" "$@"; }
           for tgt in OMPDomainTests OMPSafetySuiteTests; do
-            wt --filter $tgt >"$RUNNER_TEMP/t-$tgt.log" 2>&1
+            wt --testing-library swift-testing --filter $tgt >"$RUNNER_TEMP/t-$tgt.log" 2>&1
             rc=$?; note "TEST(whole target) $tgt rc=$rc $(lap)"
             grep -aE "Test run with" "$RUNNER_TEMP/t-$tgt.log" | head -3 | sed 's/^/  /' | tee -a "$R"
             if [ $rc -ne 0 ]; then note "  head: $(head -n 14 "$RUNNER_TEMP/t-$tgt.log" | cut -c1-260 | head -c 2500 | sed ':a;N;$!ba;s/\n/%0A/g')"; fi
@@ -110,7 +110,7 @@ jobs:
           cat > "$RUNNER_TEMP/one.sh" <<'ONE'
           id="$1"
           pat="^$(printf '%s' "$id" | sed -E 's/[][().*+?^$|\\{}]/\\&/g')\$"
-          out=$(wasmtime run --allow-precompiled --dir=. "$X" --filter "$pat" 2>&1); rc=$?
+          out=$(wasmtime run --allow-precompiled --dir=. "$X" --testing-library swift-testing --filter "$pat" 2>&1); rc=$?
           sum=$(printf '%s' "$out" | grep -aE "Test run with" | head -1 | grep -aoE "with [0-9]+ tests? .*passed|failed" | head -1)
           reason=$(printf '%s' "$out" | grep -aE "Fatal error|error:|Issue recorded|trap|panic|Unexpectedly|failed" | grep -av "^ *[0-9]*: " | head -1 | cut -c1-200)
           echo "RC=$rc :: $id :: ${sum:-nosummary} :: $reason"
