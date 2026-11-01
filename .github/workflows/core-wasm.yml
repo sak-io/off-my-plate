@@ -136,7 +136,8 @@ jobs:
           grep -v '^RC=0' "$RUNNER_TEMP/per.txt" | awk -F' :: ' '{print $1" :: "substr($4,1,150)}' | sort | uniq -c | sort -rn | head -12 | tee -a "$R"
           note "FAILED tests (target.suite/test):"
           grep -v '^RC=0' "$RUNNER_TEMP/per.txt" | awk -F' :: ' '{print $2}' | sed -E 's|/.*||' | sort | uniq -c | tr '\n' ';' | tee -a "$R"; echo >> "$R"
-          grep -v '^RC=0' "$RUNNER_TEMP/per.txt" | grep -v "Bundled\|BundledSeed" | cut -c1-330 | sort | head -45 | tee -a "$R"
+          note "NON-SEED failures:"
+          grep -v '^RC=0' "$RUNNER_TEMP/per.txt" | grep -av "Code=260\|catalog.jso\|NSCocoaErrorDomain" | cut -c1-360 | sort | head -40 | tee -a "$R"
 
 
           # ---- Foundation / runtime probe: a scratch package outside core/ (nothing in core is changed)
@@ -204,7 +205,6 @@ jobs:
           probe("String(format:)") { String(format: "%.2f %5d %@", 3.14159, 42, "x") }
           probe("UUID/Date") { "\(UUID().uuidString.count) \(Date().timeIntervalSince1970 > 1_700_000_000)" }
           probe("NSLock") { let l = NSLock(); l.lock(); l.unlock(); return "ok" }
-          probe("Thread.isMainThread") { "\(Thread.isMainThread)" }
           actor Counter { var n = 0; func inc() { n += 1 } }
           let c = Counter()
           await withTaskGroup(of: Void.self) { g in for _ in 0..<100 { g.addTask { await c.inc() } } }

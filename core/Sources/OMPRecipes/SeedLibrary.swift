@@ -158,9 +158,13 @@ public enum SeedLoader {
 
     private static func bundledURL(_ file: SeedFile) -> URL? {
         let bundle = Bundle.module
+        #if !os(WASI)
+        // W01 spike: on WASI `Bundle.url(forResource:withExtension:subdirectory:)` returns a path one
+        // character short ("catalog.jso"), so WASI goes straight to the explicit path below.
         if let url = bundle.url(forResource: file.resourceName, withExtension: "json", subdirectory: "seed") {
             return url
         }
+        #endif
         // Fallback for bundle layouts where the lookup above misses a copied directory.
         guard let base = bundle.resourceURL else { return nil }
         let url = base.appendingPathComponent("seed", isDirectory: true)
