@@ -24,6 +24,11 @@ on:
     paths-ignore: ["docs/**", ".autocraft/**", "work/**", "**/*.md"]
   pull_request:
   workflow_dispatch:
+    inputs:
+      build_ipa:
+        description: "Only build the unsigned .ipa for sideloading onto your own iPad/iPhone (docs/release/ipad-sideload.md); skips the tests"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -41,6 +46,7 @@ defaults:
 jobs:
   swift-tests:
     name: Swift packages (macOS 15, Xcode 26)
+    if: ${{ !inputs.build_ipa }}
     runs-on: macos-15
     timeout-minutes: 30
     steps:
@@ -76,6 +82,7 @@ jobs:
   # --check (run in the Linux lint step and here) fails if a test class belongs to no shard.
   ui-build:
     name: Build UI tests (macOS 15, Xcode 26)
+    if: ${{ !inputs.build_ipa }}
     runs-on: macos-15
     timeout-minutes: 30
     steps:
@@ -211,8 +218,61 @@ jobs:
             "${only[@]}"
           scripts/assert-xcresult-tests-ran.sh "$bundle"
 
+  # Opt-in: an UNSIGNED device build you can re-sign with your own free Apple ID using Sideloadly or
+  # AltStore (docs/release/ipad-sideload.md). Run it from the Actions tab: "Run workflow", tick
+  # build_ipa. Never runs on pushes. No signing material is involved.
+  ipa:
+    name: Unsigned .ipa for sideloading (macOS 15, Xcode 26)
+    if: ${{ inputs.build_ipa }}
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0 (the v4 tag; pinned by commit SHA)
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/apple-setup
+
+      - name: Build Release for iOS devices (unsigned)
+        run: |
+          xcodebuild build \
+            -project platforms/ios/App/OffMyPlate.xcodeproj \
+            -scheme OffMyPlate \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+
+      - name: Package the .ipa and check it has no UI-test hooks
+        shell: bash
+        run: |
+          set -euo pipefail
+          app="$RUNNER_TEMP/DerivedData/Build/Products/Release-iphoneos/OffMyPlate.app"
+          test -d "$app" || { echo "::error::device app not found at $app"; exit 1; }
+          executable="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$app/Info.plist")"
+          strings -a "$app/$executable" > "$RUNNER_TEMP/exe-strings.txt"
+          if grep -Eq 'OMPUITest|DebugNetworkDenial|UITestSeed|UITestInbox|UITestSpeech' "$RUNNER_TEMP/exe-strings.txt"; then
+            echo "::error::a UI-test hook name is in the Release binary"; exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/ipa/Payload"
+          cp -R "$app" "$RUNNER_TEMP/ipa/Payload/"
+          (cd "$RUNNER_TEMP/ipa" && zip -qry OffMyPlate-unsigned.ipa Payload)
+          ls -lh "$RUNNER_TEMP/ipa/OffMyPlate-unsigned.ipa"
+          ls "$app/PlugIns" || true
+
+      - name: Upload the .ipa
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: OffMyPlate-unsigned-ipa
+          path: ${{ runner.temp }}/ipa/OffMyPlate-unsigned.ipa
+          retention-days: 7
+          compression-level: 0
+
   release-hygiene:
     name: Release build has no UI-test hooks (macOS 15, Xcode 26)
+    if: ${{ !inputs.build_ipa }}
     runs-on: macos-15
     timeout-minutes: 30
     steps:

@@ -42,9 +42,9 @@ Build the core for Wasm in CI and run the unit and safety suites under a Wasm ru
 
 Rough size: about the size of the iPhone app layer (T19-T29), but verified on fast Linux CI.
 
-## Decisions needed from the owner
-1. **Approve the approach** (Wasm core + offline web app) over a native Windows app. Native costs more and needs a signing certificate.
-2. **Web dependencies:** allow dev-time npm tools (bundler, test runner, axe-core) with the shipped app having zero runtime dependencies? (Recommended.) Or hand-written, tool-free.
-3. **Hosting:** GitHub Pages (free, needs the repo public, already is) or a zip you open locally.
-4. **Voice on web:** off (recommended), or opt-in with a clear warning.
+## Owner decisions (approved 2026-11, "approve all")
+1. **Approach approved:** Swift core compiled to WebAssembly + an offline web app (PWA), not a native Windows app.
+2. **Web dependencies:** dev-time npm tools are allowed (bundler, test runner, axe-core). The shipped app has **zero runtime dependencies**.
+3. **Hosting:** GitHub Pages (static, built in CI) plus a downloadable zip. Nothing is published until the release task (W12) and the owner says go.
+4. **Voice on the web:** off. Typing and chips only.
 5. Same open product decisions as v1 still apply (recipe/allergen sign-off, Malayalam keywords, etc.).

@@ -1,7 +1,7 @@
 # Status
 
 **Phase:** Kickoff, step 3 (build) - see `work/BOARD.md`
-**Branch:** `claude/build-v1`
+**Branch:** `claude/integration` (long-lived; the owner merges it into `main` by pull request)
 
 ## Owner decisions at kickoff (2026-10-12)
 
@@ -13,12 +13,12 @@
 5. **Team:** lean (starter + architect + qa-engineer) plus ux-designer. GitHub handle for `--owner`: to be confirmed.
 
 ## Live status (2026-10-14)
-**All 30 tasks are built and merged on `claude/build-v1`; CI green** (Linux Core, Swift packages, Release-hygiene, iPhone and iPad UI shards). Source of truth for task state is `work/BOARD.md`; protocol in `AGENTS.md`.
+**All 30 tasks are built and merged (v1 is in `main`); CI green** (Linux Core, Swift packages, Release-hygiene, iPhone and iPad UI shards). Source of truth for task state is `work/BOARD.md`; protocol in `AGENTS.md`.
 
 **v1 is feature-complete but NOT release-ready.** Release needs the owner items below (device checks, sign-offs, privacy decision, TestFlight upload). `scripts/release-readiness.sh` fails until the content sign-offs exist.
 
-## Windows version (proposed, awaiting owner approval)
-Plan: `docs/windows/plan.md`, ADR `docs/adr/0016-windows-via-wasm-core-and-offline-web-app.md`, tasks W01-W12 on the board. Nothing built yet; W01 (a spike on whether the core builds and passes its tests on WebAssembly) is the gate.
+## Windows version (approved 2026-11, starting with the W01 feasibility spike)
+Plan: `docs/windows/plan.md`, ADR `docs/adr/0016-windows-via-wasm-core-and-offline-web-app.md`, tasks W01-W12 on the board. W01 (a spike on whether the core builds and passes its tests on WebAssembly) is the gate; if it fails, the plan is re-made before any UI work. Hosting (GitHub Pages + zip) is decided but nothing is published before W12.
 
 ## Owner sign-offs and decisions needed
 1. **G1 recipe / allergen sign-off and R4/G4 restriction definitions** - `docs/content/seed-review.md`, `docs/content/restriction-signoff.md` (script `scripts/release-readiness.sh` fails until signed). A dietitian spot-check and a privacy review are App-Store-only items.

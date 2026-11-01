@@ -1,6 +1,6 @@
 # ADR 0016: Windows (and any desktop) via the Swift core compiled to WebAssembly plus an offline web app
 
-Status: **Proposed** (owner decision needed; see `docs/windows/plan.md`).
+Status: **Accepted** (owner approved 2026-11; see `docs/windows/plan.md`). W01 is the feasibility gate.
 
 ## Context
 OffMyPlate v1 is an iOS/iPadOS app (SwiftUI, SwiftData, iOS 18). None of that runs on Windows. The owner asked for a real Windows version. The product's value is its safety-critical, deterministic core (`Packages/Core`: gate, planner, independent validator, lifecycle, services) and its 500-household safety suite. A second implementation of that logic in another language would double the safety surface and let the two drift apart.

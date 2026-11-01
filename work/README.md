@@ -6,6 +6,6 @@
 - `config.json` - integration branch, lease length.
 - `CONTEXT.md` repo map; `LESSONS.md` CI pitfalls.
 
-Claim = a git push of your status file to `claude/build-v1`; the first push wins, a rejected push means pick another task. Tiers: **S** safety path (full independent review), **N** normal (one light review when CI is green). Dependencies in `in_review` count as "ready on batch": build on the batch branch with `claim --on-batch`.
+Claim = a git push of your status file to `claude/integration`; the first push wins, a rejected push means pick another task. Tiers: **S** safety path (full independent review), **N** normal (one light review when CI is green). Dependencies in `in_review` count as "ready on batch": build on the batch branch with `claim --on-batch`.
 
 Manual (no Python): edit the JSON by hand with the same fields and run nothing else; the integrator regenerates BOARD.md.
