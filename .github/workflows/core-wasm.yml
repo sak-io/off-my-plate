@@ -104,11 +104,9 @@ jobs:
             wt --testing-library swift-testing --filter $tgt >"$RUNNER_TEMP/t-$tgt.log" 2>&1
             rc=$?; note "TEST(whole target) $tgt rc=$rc $(lap)"
             grep -aE "Test run with" "$RUNNER_TEMP/t-$tgt.log" | head -3 | sed 's/^/  /' | tee -a "$R"
-            if [ $rc -ne 0 ]; then note "  crash: $(grep -aE "Fatal|rror|trap|wasm|Bundle|panic" "$RUNNER_TEMP/t-$tgt.log" | grep -av "^ *[0-9]*: " | head -n 6 | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g') STARTED/ENDED: $(grep -ac "started" "$RUNNER_TEMP/t-$tgt.log")/$(grep -aEc "^. Test .* (passed|failed)" "$RUNNER_TEMP/t-$tgt.log") last: $(grep -a "Test \"" "$RUNNER_TEMP/t-$tgt.log" | tail -n 2 | cut -c1-200 | tr '\n' '|')"; fi
           done
 
-          ls -R "$BD/Core_OMPRecipes.resources" 2>&1 | head -12 | tee -a "$R"
-          grep -a "recorded an issue" "$RUNNER_TEMP/t-OMPSafetySuiteTests.log" | sed -E 's/.*recorded an issue at //' | cut -c1-700 | sort -u | head -3 | sed 's/^/ISSUE: /' | tee -a "$R"
+          grep -a "recorded an issue" "$RUNNER_TEMP/t-OMPSafetySuiteTests.log" | sed -E 's/.*recorded an issue at //' | cut -c1-420 | sort -u | head -1 | sed 's/^/ISSUE: /' | tee -a "$R"
 
           # ---- every test of the other targets on its own, in parallel, to classify crashes vs passes
           cat > "$RUNNER_TEMP/one.sh" <<'ONE'
@@ -135,9 +133,89 @@ jobs:
             note "$tgt: pass=$(grep "^RC=0 :: $tgt\." "$RUNNER_TEMP/per.txt" | wc -l) fail=$(grep -v "^RC=0" "$RUNNER_TEMP/per.txt" | grep -c " :: $tgt\.")"
           done
           note "FAIL reasons:"
-          grep -v '^RC=0' "$RUNNER_TEMP/per.txt" | awk -F' :: ' '{print $1" :: "substr($4,1,150)}' | sort | uniq -c | sort -rn | head -15 | tee -a "$R"
+          grep -v '^RC=0' "$RUNNER_TEMP/per.txt" | awk -F' :: ' '{print $1" :: "substr($4,1,150)}' | sort | uniq -c | sort -rn | head -12 | tee -a "$R"
           note "FAILED tests (target.suite/test):"
-          grep -v '^RC=0' "$RUNNER_TEMP/per.txt" | awk -F' :: ' '{print $2}' | sed -E 's/\(\)$//' | sort | head -150 | tr '\n' ' ' | tee -a "$R"; echo >> "$R"
+          grep -v '^RC=0' "$RUNNER_TEMP/per.txt" | awk -F' :: ' '{print $2}' | sed -E 's|/.*||' | sort | uniq -c | tr '\n' ';' | tee -a "$R"; echo >> "$R"
+          grep -v '^RC=0' "$RUNNER_TEMP/per.txt" | grep -v "Bundled\|BundledSeed" | cut -c1-330 | sort | head -45 | tee -a "$R"
+
+
+          # ---- Foundation / runtime probe: a scratch package outside core/ (nothing in core is changed)
+          mkdir -p "$RUNNER_TEMP/probe/Sources/probe"
+          cat > "$RUNNER_TEMP/probe/Package.swift" <<'PKG'
+          // swift-tools-version: 6.0
+          import PackageDescription
+          let package = Package(name: "probe", targets: [.executableTarget(name: "probe")], swiftLanguageModes: [.v5])
+          PKG
+          cat > "$RUNNER_TEMP/probe/Sources/probe/main.swift" <<'SRC'
+          import Foundation
+          func p(_ s: String) { print(s) }
+          func probe(_ name: String, _ f: () throws -> String) { do { p("\(name): \(try f())") } catch { p("\(name): THROWS \(String("\(error)".prefix(260)))") } }
+          let base = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "."
+          let file = base + "/Core_OMPRecipes.resources/seed/catalog.json"
+          probe("fm.contents") { "\(FileManager.default.contents(atPath: file)?.count ?? -1)" }
+          probe("fm.fileExists") { "\(FileManager.default.fileExists(atPath: file))" }
+          probe("Data(contentsOf:fileURL)") { "\(try Data(contentsOf: URL(fileURLWithPath: file)).count)" }
+          probe("String(contentsOfFile)") { "\(try String(contentsOfFile: file, encoding: .utf8).count)" }
+          probe("url.path roundtrip") { URL(fileURLWithPath: file).path.suffix(14).description }
+          probe("Bundle(path:).url(forResource)") {
+              let b = Bundle(path: base + "/Core_OMPRecipes.resources")
+              let u = b?.url(forResource: "catalog", withExtension: "json", subdirectory: "seed")
+              return "bundle=\(b != nil) url=\(u?.path.suffix(22) ?? "nil") resourceURL=\(b?.resourceURL?.path.suffix(24) ?? "nil")"
+          }
+          probe("Bundle(path:).url -> Data") {
+              let b = Bundle(path: base + "/Core_OMPRecipes.resources")
+              let u = b?.url(forResource: "catalog", withExtension: "json", subdirectory: "seed")
+              return "\(try Data(contentsOf: u!).count)"
+          }
+          probe("MemoryLayout<Int>.size / Int.max") { "\(MemoryLayout<Int>.size) \(Int.max)" }
+          probe("TimeZone(Asia/Kolkata)") { "\(TimeZone(identifier: "Asia/Kolkata")?.secondsFromGMT(for: Date(timeIntervalSince1970: 1_700_000_000)) ?? -1)" }
+          probe("TimeZone(America/Los_Angeles)") { "\(TimeZone(identifier: "America/Los_Angeles")?.secondsFromGMT(for: Date(timeIntervalSince1970: 1_700_000_000)) ?? -1)" }
+          probe("TimeZone.current") { TimeZone.current.identifier }
+          probe("Locale.current") { Locale.current.identifier }
+          probe("Calendar gregorian fields UTC") {
+              var c = Calendar(identifier: .gregorian); c.timeZone = TimeZone(secondsFromGMT: 0)!
+              let d = Date(timeIntervalSince1970: 1_700_000_000)
+              let x = c.dateComponents([.year,.month,.day,.weekday,.hour], from: d)
+              let n = c.date(byAdding: .day, value: 7, to: d)!
+              return "\(x.year!)-\(x.month!)-\(x.day!) wd\(x.weekday!) h\(x.hour!) +7d=\(Int(n.timeIntervalSince1970)) startOfDay=\(Int(c.startOfDay(for: d).timeIntervalSince1970)) firstWeekday=\(c.firstWeekday)"
+          }
+          probe("ISO8601DateFormatter") { ISO8601DateFormatter().string(from: Date(timeIntervalSince1970: 1_700_000_000)) }
+          probe("DateFormatter POSIX") {
+              let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.timeZone = TimeZone(secondsFromGMT: 0); f.dateFormat = "yyyy-MM-dd'T'HH:mm"
+              return f.string(from: Date(timeIntervalSince1970: 1_700_000_000))
+          }
+          probe("JSONEncoder sortedKeys") {
+              let e = JSONEncoder(); e.outputFormatting = [.sortedKeys]
+              return String(decoding: try e.encode(["b": 1, "a": 2]), as: UTF8.self)
+          }
+          probe("JSONEncoder [.sortedKeys,.prettyPrinted,.withoutEscapingSlashes]") {
+              let e = JSONEncoder(); e.outputFormatting = [.sortedKeys, .prettyPrinted, .withoutEscapingSlashes]
+              return String(decoding: try e.encode(["b": "x/y", "a": "2"]), as: UTF8.self).replacingOccurrences(of: "\n", with: "~")
+          }
+          probe("JSONDecoder iso8601 Date") {
+              struct S: Codable { var d: Date }
+              let dec = JSONDecoder(); dec.dateDecodingStrategy = .iso8601
+              return "\(Int(try dec.decode(S.self, from: Data("{\"d\":\"2023-11-14T22:13:20Z\"}".utf8)).d.timeIntervalSince1970))"
+          }
+          probe("String ops") {
+              let s = "İstanbul Crème Brûlée ½ cup"
+              return "\(s.lowercased()) | \(s.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: nil)) | \(s.precomposedStringWithCanonicalMapping.count) | \(s.range(of: "creme", options: [.caseInsensitive, .diacriticInsensitive]) != nil)"
+          }
+          probe("String(format:)") { String(format: "%.2f %5d %@", 3.14159, 42, "x") }
+          probe("UUID/Date") { "\(UUID().uuidString.count) \(Date().timeIntervalSince1970 > 1_700_000_000)" }
+          probe("NSLock") { let l = NSLock(); l.lock(); l.unlock(); return "ok" }
+          probe("Thread.isMainThread") { "\(Thread.isMainThread)" }
+          actor Counter { var n = 0; func inc() { n += 1 } }
+          let c = Counter()
+          await withTaskGroup(of: Void.self) { g in for _ in 0..<100 { g.addTask { await c.inc() } } }
+          p("actor+taskgroup: \(await c.n)")
+          p("Task.sleep: \(await { () -> String in do { try await Task.sleep(nanoseconds: 1_000_000); return "ok" } catch { return "THROWS \(error)" } }())")
+          SRC
+          sed -i 's/^          //' "$RUNNER_TEMP/probe/Package.swift" "$RUNNER_TEMP/probe/Sources/probe/main.swift"
+          (cd "$RUNNER_TEMP/probe" && swift build --swift-sdk "$SDK" >"$RUNNER_TEMP/probe-build.log" 2>&1; echo "PROBE BUILD rc=$?"; tail -n 12 "$RUNNER_TEMP/probe-build.log" | grep -a "error" | head -8) 2>&1 | tee -a "$R"
+          PW=$(ls "$RUNNER_TEMP"/probe/.build/wasm32-unknown-wasip1/debug/probe.wasm 2>/dev/null)
+          wasmtime run --dir=. --dir "$BD" "$PW" "$BD" >"$RUNNER_TEMP/probe-run.log" 2>&1; note "PROBE RUN rc=$?"
+          cut -c1-330 "$RUNNER_TEMP/probe-run.log" | head -45 | tee -a "$R"
 
           note "wasm size: $(du -sh .build/*/debug 2>/dev/null | tr '\n' ' ')"
           { echo '## core-wasm spike'; echo '```'; cat "$R"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
