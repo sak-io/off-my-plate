@@ -98,7 +98,8 @@ jobs:
           # AOT-compile once so the per-test runs below do not re-compile 100 MB of wasm each time.
           wasmtime compile "$X" -o "$RUNNER_TEMP/tests.cwasm" 2>"$RUNNER_TEMP/cc.log"; note "COMPILE rc=$? $(lap) $(stat -c %s "$RUNNER_TEMP/tests.cwasm") bytes"
           X="$RUNNER_TEMP/tests.cwasm"
-          wt() { wasmtime run --allow-precompiled --dir=. "$X" "$@"; }
+          BD="$PWD/.build/wasm32-unknown-wasip1/debug"; export BD; ls -d "$BD"/*.resources 2>&1 | tee -a "$R"
+          wt() { wasmtime run --allow-precompiled --dir=. --dir "$BD" "$X" "$@"; }
           for tgt in OMPDomainTests OMPSafetySuiteTests; do
             wt --testing-library swift-testing --filter $tgt >"$RUNNER_TEMP/t-$tgt.log" 2>&1
             rc=$?; note "TEST(whole target) $tgt rc=$rc $(lap)"
@@ -109,14 +110,20 @@ jobs:
           # ---- every test of the other targets on its own, in parallel, to classify crashes vs passes
           cat > "$RUNNER_TEMP/one.sh" <<'ONE'
           id="$1"
-          pat="${id//(/\\(}"; pat="^${pat//)/\\)}\$"
-          out=$(wasmtime run --allow-precompiled --dir=. "$X" --testing-library swift-testing --filter "$pat" 2>&1); rc=$?
+          esc="${id//(/\\(}"; esc="${esc//)/\\)}"
+          nomod="${esc#*.}"
+          variant=0
+          for pat in "^${esc}\$" "${esc}" "${nomod}" "${esc%\\(\\)}"; do
+            out=$(wasmtime run --allow-precompiled --dir=. --dir "$BD" "$X" --testing-library swift-testing --filter "$pat" 2>&1); rc=$?
+            [ $rc -ne 69 ] && break
+            variant=$((variant+1))
+          done
           sum=$(printf '%s' "$out" | grep -aE "Test run with" | head -1 | grep -aoE "with [0-9]+ tests? .*passed|failed" | head -1)
           reason=$(printf '%s' "$out" | grep -aE "Fatal error|error:|Issue recorded|trap|panic|Unexpectedly|failed|No tests|Bundle" | grep -av "^ *[0-9]*: " | head -1 | cut -c1-200); [ -z "$reason" ] && reason="first: $(printf '%s' "$out" | head -n 3 | tr '\n' '|' | cut -c1-200)"
-          echo "RC=$rc :: $id :: ${sum:-nosummary} :: $reason"
+          echo "RC=$rc :: $id :: v$variant ${sum:-nosummary} :: $reason"
           ONE
           sed -i 's/^          //' "$RUNNER_TEMP/one.sh"
-          export X
+          export X BD
           grep -E "^(OMPSafetySuiteTests|OMPSafetyCheckTests|OMPRecipesTests|OMPServicesTests)\." "$RUNNER_TEMP/list.log" > "$RUNNER_TEMP/ids.txt"
           note "per-test ids: $(wc -l < "$RUNNER_TEMP/ids.txt")"
           tr '\n' '\0' < "$RUNNER_TEMP/ids.txt" | xargs -0 -P 4 -n 1 bash "$RUNNER_TEMP/one.sh" > "$RUNNER_TEMP/per.txt" 2>&1
@@ -125,7 +132,7 @@ jobs:
             note "$tgt: pass=$(grep "^RC=0 :: $tgt\." "$RUNNER_TEMP/per.txt" | wc -l) fail=$(grep -v "^RC=0" "$RUNNER_TEMP/per.txt" | grep -c " :: $tgt\.")"
           done
           note "FAIL reasons:"
-          grep -v '^RC=0' "$RUNNER_TEMP/per.txt" | awk -F' :: ' '{print $1" :: "$4}' | sort | uniq -c | sort -rn | head -15 | tee -a "$R"
+          grep -v '^RC=0' "$RUNNER_TEMP/per.txt" | awk -F' :: ' '{print $1" :: "substr($4,1,150)}' | sort | uniq -c | sort -rn | head -15 | tee -a "$R"
           note "FAILED tests (target.suite/test):"
           grep -v '^RC=0' "$RUNNER_TEMP/per.txt" | awk -F' :: ' '{print $2}' | sed -E 's/\(\)$//' | sort | head -150 | tr '\n' ' ' | tee -a "$R"; echo >> "$R"
 
