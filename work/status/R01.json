@@ -4,7 +4,8 @@
   "heartbeat_at": "2026-11-01T18:57:06Z",
   "id": "R01",
   "lease_hours": 6,
+  "note": "CI green (all 11 jobs); awaiting owner merge",
   "owner": "claude-lead",
-  "state": "claimed",
-  "updated_at": "2026-11-01T18:57:06Z"
+  "state": "in_review",
+  "updated_at": "2026-11-01T22:47:23Z"
 }
