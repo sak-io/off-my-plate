@@ -1,0 +1,10 @@
+{
+  "branch": "claude/repo-layout",
+  "claimed_at": "2026-11-01T18:57:06Z",
+  "heartbeat_at": "2026-11-01T18:57:06Z",
+  "id": "R01",
+  "lease_hours": 6,
+  "owner": "claude-lead",
+  "state": "claimed",
+  "updated_at": "2026-11-01T18:57:06Z"
+}
