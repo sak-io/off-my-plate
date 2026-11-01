@@ -17,17 +17,22 @@ defaults:
     shell: bash
 
 env:
-  WASM_SDK_URL: https://download.swift.org/swift-6.2-release/wasm-sdk/swift-6.2-RELEASE/swift-6.2-RELEASE_wasm.artifactbundle.tar.gz
   # Empty while the spike discovers it: the step prints the computed sum so it can be pinned.
   WASM_SDK_SHA256: ""
   SPIKE_ANNOTATE: "true"
 
 jobs:
   wasm:
-    name: Core on WebAssembly (Linux, Swift 6.2 + Wasm SDK)
+    name: Core on WebAssembly (Linux, Swift ${{ matrix.swift }} + Wasm SDK)
     runs-on: ubuntu-latest
-    container: swift:6.2-noble
+    container: swift:${{ matrix.swift }}-noble
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        # The Wasm SDK must be built by exactly the toolchain that uses it ("module compiled with Swift 6.2
+        # cannot be imported by the Swift 6.2.4 compiler"), so the image tag and the SDK URL move together.
+        swift: ["6.2.4", "6.2.0"]
     steps:
       - name: Check out
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -35,8 +40,12 @@ jobs:
           persist-credentials: false
 
       - name: Spike (install SDK + wasmtime, build, test per target, classify)
+        env:
+          SWIFT_VER: ${{ matrix.swift }}
         run: |
           set +e
+          if [ "$SWIFT_VER" = "6.2.0" ]; then V=6.2; else V=$SWIFT_VER; fi
+          WASM_SDK_URL="https://download.swift.org/swift-$V-release/wasm-sdk/swift-$V-RELEASE/swift-$V-RELEASE_wasm.artifactbundle.tar.gz"
           R="$RUNNER_TEMP/res.txt"; : > "$R"
           note() { echo "$*" | tee -a "$R"; }
           # tail of a log, newline-encoded so it fits in one annotation
