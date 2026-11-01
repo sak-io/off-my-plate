@@ -19,7 +19,7 @@ defaults:
 env:
   # Empty while the spike discovers it: the step prints the computed sum so it can be pinned.
   WASM_SDK_SHA256: ""
-  SPIKE_ANNOTATE: "true"
+  SPIKE_ANNOTATE: "false"
 
 jobs:
   wasm:
