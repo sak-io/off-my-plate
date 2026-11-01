@@ -17,6 +17,9 @@
 
 **v1 is feature-complete but NOT release-ready.** Release needs the owner items below (device checks, sign-offs, privacy decision, TestFlight upload). `scripts/release-readiness.sh` fails until the content sign-offs exist.
 
+## Windows version (proposed, awaiting owner approval)
+Plan: `docs/windows/plan.md`, ADR `docs/adr/0016-windows-via-wasm-core-and-offline-web-app.md`, tasks W01-W12 on the board. Nothing built yet; W01 (a spike on whether the core builds and passes its tests on WebAssembly) is the gate.
+
 ## Owner sign-offs and decisions needed
 1. **G1 recipe / allergen sign-off and R4/G4 restriction definitions** - `docs/content/seed-review.md`, `docs/content/restriction-signoff.md` (script `scripts/release-readiness.sh` fails until signed). A dietitian spot-check and a privacy review are App-Store-only items.
 2. **Backups (decision):** the SwiftData store and the share inbox are included in iCloud/iTunes backups today, so "Delete all data" cannot reach copies already in a backup. Option A: exclude both (`isExcludedFromBackup`; data lost on restore to a new phone). Option B: keep and disclose in the privacy policy. See `docs/release/data-map.md`.
