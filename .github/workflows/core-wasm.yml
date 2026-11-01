@@ -121,6 +121,7 @@ jobs:
           done
           sum=$(printf '%s' "$out" | grep -aE "Test run with" | head -1 | grep -aoE "with [0-9]+ tests? .*passed|failed" | head -1)
           reason=$(printf '%s' "$out" | grep -aE "Fatal error|wasm trap|demangle|unreachable|out of bounds|recorded an issue" | grep -av "^ *[0-9]*: " | head -1 | cut -c1-330); [ -z "$reason" ] && reason=$(printf '%s' "$out" | grep -aE "Fatal error|error:|Issue recorded|trap|panic|Unexpectedly|failed|No tests|Bundle" | grep -av "^ *[0-9]*: " | head -1 | cut -c1-200); [ -z "$reason" ] && reason="first: $(printf '%s' "$out" | head -n 3 | tr '\n' '|' | cut -c1-200)"
+          [ $rc -ne 0 ] && printf '%s\n' "$out" > "$RUNNER_TEMP/fail-$(printf '%s' "$id" | tr -c 'A-Za-z0-9' _).log"
           echo "RC=$rc :: $id :: v$variant ${sum:-nosummary} :: $reason"
           ONE
           sed -i 's/^          //' "$RUNNER_TEMP/one.sh"
@@ -137,6 +138,9 @@ jobs:
           note "FAILED tests (target.suite/test):"
           grep -v '^RC=0' "$RUNNER_TEMP/per.txt" | awk -F' :: ' '{print $2}' | sed -E 's|/.*||' | sort | uniq -c | tr '\n' ';' | tee -a "$R"; echo >> "$R"
           note "NON-SEED failures:"
+          for f in "$RUNNER_TEMP"/fail-OMPServicesTests*.log; do
+            echo "-- $(basename "$f")"; grep -aE "Fatal|rror|trap|wasm backtrace|demangle|recorded an issue|panic|unreachable" "$f" | grep -av "^ *[0-9]*: " | head -n 3 | cut -c1-420
+          done | tee -a "$R"
           grep -v '^RC=0' "$RUNNER_TEMP/per.txt" | grep -av "Code=260\|catalog.jso\|NSCocoaErrorDomain" | cut -c1-360 | sort | head -40 | tee -a "$R"
 
 
