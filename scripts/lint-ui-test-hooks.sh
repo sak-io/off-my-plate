@@ -2,10 +2,10 @@
 # lint-ui-test-hooks.sh: UI-test launch hooks must not exist in Release builds (security audit M2).
 #
 # Fails when the text `OMPUITest` (the prefix of the `-OMPUITestSeed|Inbox|Speech` launch
-# arguments) appears in a Swift file under Packages/ or App/ outside a plain `#if DEBUG` region
+# arguments) appears in a Swift file under core/ or platforms/ outside a plain `#if DEBUG` region
 # (the `#else` / `#elseif` branch of it does not count; `#if !DEBUG` does not count; a nested
 # `#if` inside a DEBUG region does). Test code is not scanned, because it is never linked into
-# the app: any directory named `Tests`, `*Tests` (App/OffMyPlateUITests) and SwiftPM manifests
+# the app: any directory named `Tests`, `*Tests` (platforms/ios/App/OffMyPlateUITests) and SwiftPM manifests
 # (Package*.swift). Whole-line // comments are ignored (they never reach the binary).
 # This is a cheap Linux check; the macOS CI job `release-hygiene` proves it on the built Release
 # binary with `strings`.
@@ -24,11 +24,11 @@ fi
 root="$(cd "$root" && pwd)"
 
 scan_dirs=()
-for d in Packages App; do
+for d in core platforms; do
   [[ -d "$root/$d" ]] && scan_dirs+=("$root/$d")
 done
 if [[ ${#scan_dirs[@]} -eq 0 ]]; then
-  echo "lint-ui-test-hooks: nothing to scan (no Packages/ or App/ under '$root')" >&2
+  echo "lint-ui-test-hooks: nothing to scan (no core/ or platforms/ under '$root')" >&2
   exit 2
 fi
 

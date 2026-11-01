@@ -8,9 +8,9 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 make_tree() { # dir, swift body, catalog strings (JSON object body)
-  mkdir -p "$1/Packages/Apple/Sources/OMPUI" "$1/App/OffMyPlate"
-  printf '%s\n' "$2" > "$1/Packages/Apple/Sources/OMPUI/Copy.swift"
-  printf '{"sourceLanguage":"en","strings":{%s},"version":"1.0"}\n' "$3" > "$1/App/OffMyPlate/Localizable.xcstrings"
+  mkdir -p "$1/platforms/ios/Apple/Sources/OMPUI" "$1/platforms/ios/App/OffMyPlate"
+  printf '%s\n' "$2" > "$1/platforms/ios/Apple/Sources/OMPUI/Copy.swift"
+  printf '{"sourceLanguage":"en","strings":{%s},"version":"1.0"}\n' "$3" > "$1/platforms/ios/App/OffMyPlate/Localizable.xcstrings"
 }
 entry() { printf '"%s":{"localizations":{"en":{"stringUnit":{"state":"translated","value":"%s"}}}}' "$1" "$2"; }
 

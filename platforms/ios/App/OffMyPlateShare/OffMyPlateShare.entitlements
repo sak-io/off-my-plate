@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<!-- App Group shared by the app and the share extension (inbox handoff, ADR 0011).
-	     The value comes from OMP_APP_GROUP_ID in App/Config/Base.xcconfig (R6 default
+	     The value comes from OMP_APP_GROUP_ID in platforms/ios/App/Config/Base.xcconfig (R6 default
 	     group.app.offmyplate), overridable in the git-ignored Local.xcconfig. -->
 	<key>com.apple.security.application-groups</key>
 	<array>

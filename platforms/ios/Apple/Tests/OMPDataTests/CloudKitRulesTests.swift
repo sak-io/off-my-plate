@@ -15,7 +15,7 @@ struct CloudKitRulesTests {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()  // OMPDataTests
             .deletingLastPathComponent()  // Tests
-            .deletingLastPathComponent()  // Packages/Apple
+            .deletingLastPathComponent()  // platforms/ios/Apple
             .appendingPathComponent("Sources/OMPData", isDirectory: true)
     }
 

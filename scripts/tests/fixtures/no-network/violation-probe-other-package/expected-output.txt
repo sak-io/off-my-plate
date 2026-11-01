@@ -1,1 +1,1 @@
-Packages/X/App/OffMyPlate/DebugNetworkDenial.swift:2
+platforms/other/App/OffMyPlate/DebugNetworkDenial.swift:2

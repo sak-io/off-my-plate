@@ -1,9 +1,9 @@
 # Apple platforms (plan section 9): everything that needs macOS and Xcode.
 #   Several jobs run in PARALLEL so wall time is the slowest one, not the sum, and one failure
 #   does not hide the others:
-#   1. swift test for Packages/Core (Apple toolchain) and Packages/Apple (OMPData, ...),
+#   1. swift test for core (Apple toolchain) and platforms/ios/Apple (OMPData, ...),
 #      each with the zero-test guard (scripts/assert-tests-ran.sh);
-#   2. XcodeGen generates App/OffMyPlate.xcodeproj from App/project.yml (ADR 0006);
+#   2. XcodeGen generates platforms/ios/App/OffMyPlate.xcodeproj from platforms/ios/App/project.yml (ADR 0006);
 #   3. release-hygiene builds the Release configuration and fails if a UI-test hook
 #      (`OMPUITest`) is in the shipped binary (security audit M2);
 #   4. xcodebuild test (app build, share extension, UI tests) on an iPhone 16 and an iPad
@@ -55,12 +55,12 @@ jobs:
 
       - name: Test Core (fails if no Swift Testing test ran)
         run: |
-          swift test --package-path Packages/Core 2>&1 | tee "$RUNNER_TEMP/core-tests.log"
+          swift test --package-path core 2>&1 | tee "$RUNNER_TEMP/core-tests.log"
           scripts/assert-tests-ran.sh "$RUNNER_TEMP/core-tests.log"
 
-      - name: Test Packages/Apple (fails if no Swift Testing test ran)
+      - name: Test platforms/ios/Apple (fails if no Swift Testing test ran)
         run: |
-          swift test --package-path Packages/Apple 2>&1 | tee "$RUNNER_TEMP/apple-tests.log"
+          swift test --package-path platforms/ios/Apple 2>&1 | tee "$RUNNER_TEMP/apple-tests.log"
           scripts/assert-tests-ran.sh "$RUNNER_TEMP/apple-tests.log"
 
       - name: Self-test the CI helper scripts (python3 required here)
@@ -92,7 +92,7 @@ jobs:
       - name: Build the app and the UI tests once (generic iOS Simulator, unsigned)
         run: |
           xcodebuild build-for-testing \
-            -project App/OffMyPlate.xcodeproj \
+            -project platforms/ios/App/OffMyPlate.xcodeproj \
             -scheme OffMyPlate \
             -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" \
@@ -226,7 +226,7 @@ jobs:
       - name: Build Release for the iOS Simulator (unsigned)
         run: |
           xcodebuild build \
-            -project App/OffMyPlate.xcodeproj \
+            -project platforms/ios/App/OffMyPlate.xcodeproj \
             -scheme OffMyPlate \
             -configuration Release \
             -destination 'generic/platform=iOS Simulator' \

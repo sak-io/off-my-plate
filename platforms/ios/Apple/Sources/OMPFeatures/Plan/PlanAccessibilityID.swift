@@ -1,4 +1,4 @@
-/// Accessibility identifiers of the Plan screens. The UI tests (`App/OffMyPlateUITests`) repeat
+/// Accessibility identifiers of the Plan screens. The UI tests (`platforms/ios/App/OffMyPlateUITests`) repeat
 /// these strings; per-meal ones end with the planned meal's raw id.
 extension AccessibilityID {
     static let planStatus = "plan.status"

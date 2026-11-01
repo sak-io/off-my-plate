@@ -1,5 +1,5 @@
 /// Accessibility identifiers of the onboarding and safety screens (task T22). The UI tests in
-/// `App/OffMyPlateUITests/OnboardingUITests.swift` run out of process and repeat these strings.
+/// `platforms/ios/App/OffMyPlateUITests/OnboardingUITests.swift` run out of process and repeat these strings.
 extension AccessibilityID {
     static let whoRoot = "onboarding.who"
     static let whoAdults = "onboarding.adults"

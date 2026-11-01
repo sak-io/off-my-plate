@@ -11,28 +11,32 @@ the v1 spec is `docs/specs/offmyplate-v1.md` and the architecture `docs/architec
 
 ## Developing
 
-### Layout (ADR 0004)
-- `Packages/Core`: portable Swift package (Foundation only, zero dependencies; builds on Linux
-  and Apple platforms). Targets `OMPDomain`, `OMPSafetyCheck`, `OMPRecipes`, `OMPServices`.
-- `Packages/Apple`: Apple-only package (iOS 18 / macOS 15), depends on `../Core` by path.
-  Targets `OMPData` (SwiftData), `OMPCapture` (speech), `OMPUI` (design system),
-  `OMPFeatures` (screens and view models).
-- `App/`: the XcodeGen spec `project.yml` (ADR 0006) for the `OffMyPlate` app (universal,
-  iOS/iPadOS 18), the `OffMyPlateShare` share extension and the `OffMyPlateUITests` target.
-  The `.xcodeproj` is generated and git-ignored.
-- `scripts/`: checks and lints. `.github/workflows/`: CI.
+### Layout (ADR 0004, ADR 0017)
+```
+core/              shared Swift core used by every platform (Foundation only, zero dependencies;
+                   builds on Linux and Apple platforms): OMPDomain, OMPSafetyCheck, OMPRecipes, OMPServices
+platforms/
+  ios/App/         iPhone/iPad: XcodeGen project.yml (ADR 0006), app, share extension, UI tests
+  ios/Apple/       Apple-only Swift package (iOS 18 / macOS 15): OMPData (SwiftData), OMPCapture
+                   (speech), OMPUI (design system), OMPFeatures (screens); depends on ../../../core
+  web/             Windows/macOS/Linux in a browser (proposed, docs/windows/plan.md)
+  linux/           Raspberry Pi / Linux native (planned, docs/platforms/linux-and-raspberry-pi.md)
+scripts/           checks and lints (they scan core/ and platforms/);  .github/workflows/  CI
+```
+`platforms/README.md` has the rules between the folders; `docs/architecture/repo-layout.md` maps the
+old paths (used by older documents) to the new ones. The `.xcodeproj` is generated and git-ignored.
 
 ### Requirements
 - Core: Swift 6.2 (Xcode 26 on a Mac, or the `swift:6.2-noble` image on Linux).
 - Lints: `bash` plus standard `grep`/`sed`; no Swift needed.
 - App: Xcode 26 and XcodeGen (`brew install xcodegen`; the version the project is developed
-  with is in `App/.xcodegen-version`, the minimum in `project.yml`).
+  with is in `platforms/ios/App/.xcodegen-version`, the minimum in `project.yml`).
 
 ### Running the app (Mac)
 ```sh
-cp App/Config/Local.xcconfig.example App/Config/Local.xcconfig   # once; set DEVELOPMENT_TEAM
-(cd App && xcodegen generate)                                   # after every project.yml change
-open App/OffMyPlate.xcodeproj                                   # scheme OffMyPlate
+cp platforms/ios/App/Config/Local.xcconfig.example platforms/ios/App/Config/Local.xcconfig   # once; set DEVELOPMENT_TEAM
+(cd platforms/ios/App && xcodegen generate)                                  # after every project.yml change
+open platforms/ios/App/OffMyPlate.xcodeproj                                   # scheme OffMyPlate
 ```
 `Local.xcconfig` is git-ignored. It holds your signing team and, if the R6 defaults
 (`app.offmyplate.OffMyPlate`, `group.app.offmyplate`) are taken, your own bundle-ID prefix
@@ -42,14 +46,14 @@ and App Group. Never commit it.
 ```sh
 scripts/check-core.sh              # script self-tests, lints, swift build, swift test (Core)
 scripts/check-core.sh --lint-only  # self-tests and lints only, for machines without Swift
-swift test --package-path Packages/Core
+swift test --package-path core
 ```
 
 ### Lints (run in CI on every push)
 | Script | Fails when |
 |---|---|
 | `scripts/lint-core-imports.sh` | Core imports anything but Foundation or its own modules (tests may also import `Testing`), including Swift 6 `public`/`internal`/... imports; Core uses `NSLocalizedString`, `String(localized:)`, `NSPredicate`, any Foundation `*Formatter`, `.formatted(`, or `Calendar`/`Locale`/`TimeZone` `.current`; Core declares a package dependency (ADR 0005) |
-| `scripts/lint-no-network.sh` | any Swift file in `Packages/` or `App/` imports a network/web/cloud/analytics framework or uses a networking API such as `URLSession` or `URLRequest`; any remote dependency in a package manifest (`url:`/`id:`) or XcodeGen spec (`url:`/`github:`) (ADR 0002, AC-13.2) |
+| `scripts/lint-no-network.sh` | any Swift file under `core/` or `platforms/` imports a network/web/cloud/analytics framework or uses a networking API such as `URLSession` or `URLRequest`; any remote dependency in a package manifest (`url:`/`id:`) or XcodeGen spec (`url:`/`github:`) (ADR 0002, AC-13.2) |
 
 Each lint is proven to fail on planted violations: `scripts/tests/test-lints.sh` runs it
 against `scripts/tests/fixtures/<lint>/clean` (must pass) and every `violation-*` fixture
@@ -68,7 +72,7 @@ blocked (common in cloud sessions). CI is the verification of record either way.
 - `core-linux.yml`: `swift:6.2-noble` container; script self-tests, lints, `swift build`,
   `swift test` for Core (plus the zero-test guard).
 - `apple-macos.yml`: `macos-15` runner with the newest stable Xcode 26 (the job fails if there
-  is none). Jobs run in parallel: `swift test` for Core and `Packages/Apple`; a Release build
+  is none). Jobs run in parallel: `swift test` for Core and `platforms/ios/Apple`; a Release build
   that must contain no UI-test hooks; and the UI tests, built once and run in shards
   (`scripts/ui-shard-classes.sh`; `--check` fails if a test class is in no shard) on an iPhone 16
   simulator on every push. The iPad simulator shards run on `main`, on manual dispatch, or when

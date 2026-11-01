@@ -6,7 +6,7 @@ import OMPDomain
 /// T23 hand-off for the ux-designer to number.
 ///
 /// The core builds no user-facing strings (ADR 0005): reasons, slots and change kinds are mapped
-/// to text here. Each string is mirrored in `App/OffMyPlate/Localizable.xcstrings`.
+/// to text here. Each string is mirrored in `platforms/ios/App/OffMyPlate/Localizable.xcstrings`.
 enum PlanCopy {
     // MARK: Header and status
 

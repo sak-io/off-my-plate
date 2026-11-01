@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lint-core-imports.sh: keep Packages/Core portable (ADR 0004, ADR 0005).
+# lint-core-imports.sh: keep core portable (ADR 0004, ADR 0005).
 #
 # Fails when:
 #   1. a file under Sources/ imports anything other than Foundation or a sibling Core
@@ -23,13 +23,13 @@
 # Fail-safe by design: this is text matching, not a parser, so a banned name inside a
 # string literal may be reported (a false positive); it is never silently skipped.
 #
-# Usage: scripts/lint-core-imports.sh [CORE_PACKAGE_DIR]   (default: Packages/Core)
+# Usage: scripts/lint-core-imports.sh [CORE_PACKAGE_DIR]   (default: core)
 # Exit:  0 clean, 1 violations found, 2 usage error.
 # Portable: bash 3.2+, POSIX grep/sed (works on Linux CI and macOS).
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-core_dir="${1:-$repo_root/Packages/Core}"
+core_dir="${1:-$repo_root/core}"
 
 if [[ ! -d "$core_dir/Sources" || ! -f "$core_dir/Package.swift" ]]; then
   echo "lint-core-imports: '$core_dir' is not a Swift package with a Sources/ directory" >&2

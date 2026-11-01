@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # lint-no-network.sh: no network code ships in v1 (ADR 0002, AC-13.2, ADR 0014).
 #
-# Scans every Swift file, Package.swift and XcodeGen project.yml under Packages/ and App/
+# Scans every Swift file, Package.swift and XcodeGen project.yml under core/ and platforms/
 # (sources AND tests) and fails when it finds:
 #   1. an import (with any attributes, Swift 6 access level or import kind; also after a
 #      `;` or a closed /* */ comment on the same line) of a
@@ -40,11 +40,11 @@ fi
 root="$(cd "$root" && pwd)"
 
 scan_dirs=()
-for d in Packages App; do
+for d in core platforms; do
   [[ -d "$root/$d" ]] && scan_dirs+=("$root/$d")
 done
 if [[ ${#scan_dirs[@]} -eq 0 ]]; then
-  echo "lint-no-network: nothing to scan (no Packages/ or App/ under '$root')" >&2
+  echo "lint-no-network: nothing to scan (no core/ or platforms/ under '$root')" >&2
   exit 2
 fi
 
@@ -98,7 +98,7 @@ symbol_re="(^|[^A-Za-z0-9_])($symbols)"
 # One reviewed exception (T28, AC-13.2): the DEBUG-only network-denial probe must name
 # `URLRequest` because `URLProtocol.canInit(with:)` takes one. That single file is exempt from
 # the URLRequest symbol ONLY (every other symbol is still banned there); no other file is.
-probe_rel="App/OffMyPlate/DebugNetworkDenial.swift"
+probe_rel="platforms/ios/App/OffMyPlate/DebugNetworkDenial.swift"
 symbols_probe='URLSession|NSURLSession|NSURLRequest|NSMutableURLRequest|NSURLConnection|NWConnection|NWListener|NWBrowser|NWPathMonitor|NWEndpoint|CFSocket|CFStreamCreatePairWithSocket|getStreamsToHost|WKWebView|SFSafariViewController|ASWebAuthenticationSession'
 symbol_probe_re="(^|[^A-Za-z0-9_])($symbols_probe|WebSocket)|https?://"
 # First pass: every file but the probe. Second pass: the probe, without URLRequest.
@@ -110,14 +110,14 @@ if [[ -f "$root/$probe_rel" ]]; then
   scan "$symbol_probe_re" "networking API is not allowed (ADR 0002, AC-13.2)" '*.swift'
   only_file=""
   # The probe must be Debug-only: wrapped in #if DEBUG ... #endif, and every use of its symbols in
-  # App/OffMyPlate must sit inside #if DEBUG too, so it can never reach a Release build.
+  # platforms/ios/App/OffMyPlate must sit inside #if DEBUG too, so it can never reach a Release build.
   probe="$root/$probe_rel"
   first="$(grep -vE '^[[:space:]]*(//.*)?$' "$probe" | head -n 1 | sed -E 's/[[:space:]]+$//')"
   last="$(grep -vE '^[[:space:]]*(//.*)?$' "$probe" | tail -n 1 | sed -E 's/[[:space:]]+$//')"
   if [[ "$first" != "#if DEBUG" || "$last" != "#endif" ]]; then
     report "$probe:1: the network-denial probe must be wrapped in #if DEBUG ... #endif"
   fi
-  for user in "$root"/App/OffMyPlate/*.swift; do
+  for user in "$root"/platforms/ios/App/OffMyPlate/*.swift; do
     [[ "$user" == "$probe" ]] && continue
     awk -v f="$user" '
       /^[[:space:]]*#if[[:space:]]+DEBUG[[:space:]]*$/ { d++; st[d]=1; next }

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """check-localization.py: every String(localized:defaultValue:) key used in the Swift sources
-exists in App/OffMyPlate/Localizable.xcstrings (T28, AC-15 / localisation completeness).
+exists in platforms/ios/App/OffMyPlate/Localizable.xcstrings (T28, AC-15 / localisation completeness).
 
 Checks (exit 1 on any):
   - a key used in code but missing from the catalog;
@@ -15,7 +15,7 @@ Usage: scripts/check-localization.py [--root DIR] [--fix]
   --fix   add the missing entries (English source = the defaultValue; keys stay sorted, the file
           keeps the Xcode layout). Interpolation types are GUESSED (%lld for counts, else %@):
           review the generated values.
-Needs only python3 (no Swift toolchain). Sources: Packages/Apple/Sources and App, tests excluded.
+Needs only python3 (no Swift toolchain). Sources: platforms/ios/Apple/Sources and App, tests excluded.
 """
 import argparse
 import json
@@ -23,8 +23,8 @@ import os
 import re
 import sys
 
-CATALOG = "App/OffMyPlate/Localizable.xcstrings"
-SOURCE_DIRS = ["Packages/Apple/Sources", "App"]
+CATALOG = "platforms/ios/App/OffMyPlate/Localizable.xcstrings"
+SOURCE_DIRS = ["platforms/ios/Apple/Sources", "App"]
 SKIP_DIR_PARTS = {"OffMyPlateUITests", ".build", "DerivedData"}
 INT_HINT = re.compile(r"(count|index|number|total|minutes|days|\bn\b|\bi\b|Int|lld)", re.I)
 SPEC = re.compile(r"%(?:\d+\$)?[-+ #0]*\d*(?:\.\d+)?(?:l|ll|h|hh|q|z|t|j)?[@dDiuUxXoOfeEgGcCsSp]")

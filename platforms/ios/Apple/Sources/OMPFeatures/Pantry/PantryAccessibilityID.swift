@@ -1,5 +1,5 @@
 /// Accessibility identifiers of the Pantry screens and the cooked sheet. The UI tests
-/// (`App/OffMyPlateUITests/PantryUITests.swift`) repeat these strings; per-item ones end with the
+/// (`platforms/ios/App/OffMyPlateUITests/PantryUITests.swift`) repeat these strings; per-item ones end with the
 /// pantry item's raw id (or the ingredient's id on the cooked sheet).
 extension AccessibilityID {
     static let pantryList = "pantry.list"

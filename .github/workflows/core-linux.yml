@@ -1,4 +1,4 @@
-# Core on Linux: the verification of record for Packages/Core (plan section 9, ADR 0005).
+# Core on Linux: the verification of record for core (plan section 9, ADR 0005).
 # Runs lint self-tests, all lints (including lint-safety.sh), then builds and tests the Core
 # package with the official Swift 6.2 image (matches the owner's Xcode 26 toolchain), runs
 # the safety suite as its own step, and checks the seed sign-off sheet is current.
@@ -51,11 +51,11 @@ jobs:
         run: scripts/check-core.sh --lint-only
 
       - name: Build Core (including tests)
-        run: swift build --package-path Packages/Core --build-tests
+        run: swift build --package-path core --build-tests
 
       - name: Test Core (fails if no Swift Testing test ran)
         run: |
-          swift test --package-path Packages/Core --skip-build 2>&1 | tee "$RUNNER_TEMP/core-tests.log"
+          swift test --package-path core --skip-build 2>&1 | tee "$RUNNER_TEMP/core-tests.log"
           scripts/assert-tests-ran.sh "$RUNNER_TEMP/core-tests.log"
 
       # The non-skippable safety suite (T12, plan section 8, ADR 0007) as its own step, so its
@@ -66,7 +66,7 @@ jobs:
         env:
           SAFETY_SUITE_MIN_TESTS: "8"
         run: |
-          swift test --package-path Packages/Core --skip-build --filter OMPSafetySuiteTests 2>&1 \
+          swift test --package-path core --skip-build --filter OMPSafetySuiteTests 2>&1 \
             | tee "$RUNNER_TEMP/safety-suite.log"
           scripts/assert-tests-ran.sh "$RUNNER_TEMP/safety-suite.log" "$SAFETY_SUITE_MIN_TESTS"
 

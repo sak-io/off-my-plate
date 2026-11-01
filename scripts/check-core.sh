@@ -5,8 +5,8 @@
 #      fixtures and fails on planted violations; the zero-test guard; the bootstrap
 #      script exercised with fake curl/gpg/docker
 #   2. every scripts/lint-*.sh against the repository
-#   3. swift build (including tests) of Packages/Core
-#   4. swift test of Packages/Core, then scripts/assert-tests-ran.sh on its output
+#   3. swift build (including tests) of core
+#   4. swift test of core, then scripts/assert-tests-ran.sh on its output
 #      (a run in which no Swift Testing test ran is a failure)
 #   5. the safety suite on its own (OMPSafetySuiteTests, at least SAFETY_SUITE_MIN_TESTS
 #      tests, default 8), as CI runs it
@@ -19,7 +19,7 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-core_dir="$repo_root/Packages/Core"
+core_dir="$repo_root/core"
 
 lint_only=false
 case "${1:-}" in
@@ -60,10 +60,10 @@ fi
 step "swift --version"
 swift --version
 
-step "swift build (Packages/Core, including tests)"
+step "swift build (core, including tests)"
 swift build --package-path "$core_dir" --build-tests
 
-step "swift test (Packages/Core)"
+step "swift test (core)"
 test_log="$(mktemp)"
 trap 'rm -f "$test_log"' EXIT
 swift test --package-path "$core_dir" --skip-build 2>&1 | tee "$test_log"

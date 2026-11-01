@@ -1,5 +1,5 @@
 /// Accessibility identifiers of the Household tab and the learning screens (task T27). The UI
-/// tests in `App/OffMyPlateUITests/SettingsUITests.swift` run out of process and repeat these
+/// tests in `platforms/ios/App/OffMyPlateUITests/SettingsUITests.swift` run out of process and repeat these
 /// strings.
 extension AccessibilityID {
     static let householdPerson = "household.person."  // + index

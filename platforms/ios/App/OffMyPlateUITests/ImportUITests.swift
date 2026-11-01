@@ -4,7 +4,7 @@ import XCTest
 /// launches and shows toast C-111. The real App Group is not available in CI simulators
 /// (unsigned builds), so the Debug app takes `-OMPUITestInbox twoItems`, which drops an inbox
 /// file with two items into a temporary folder and drains that (see `UITestInbox` in
-/// App/OffMyPlate/CompositionRoot.swift). The merge itself is covered by `ImportServiceTests`
+/// platforms/ios/App/OffMyPlate/CompositionRoot.swift). The merge itself is covered by `ImportServiceTests`
 /// (Core) and `ImportDrainTests` (OMPFeatures); the Share Extension screen cannot be driven
 /// from here (a separate process), its model is covered by `OMPShareTests`.
 ///

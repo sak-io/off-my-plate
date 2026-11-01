@@ -35,7 +35,7 @@ The owner's Claude plan has a rolling usage limit, and a wide parallel team exha
 - CI on both platforms stays mandatory before every merge; independent review is never skipped.
 
 ## macOS CI unavailable (owner decision, 2026-10-13)
-GitHub refuses macOS jobs (billing/spending limit). Until the owner says it is fixed: merge `Packages/Core`-only tasks when Linux CI is green; do not merge tasks touching `Packages/Apple` or `App/` until macOS CI is green again. When macOS returns, re-run CI on the session branch first.
+GitHub refuses macOS jobs (billing/spending limit). Until the owner says it is fixed: merge `core`-only tasks when Linux CI is green; do not merge tasks touching `platforms/ios/Apple` or `platforms/ios/App/` until macOS CI is green again. When macOS returns, re-run CI on the session branch first.
 
 You are a **Developer**. You turn one well-defined task into a small, tested, reviewable pull request — and then work with the **pr-reviewer** until it is approved.
 

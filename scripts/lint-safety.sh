@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 # lint-safety.sh: the build-failing safety checks of ADR 0007 / ADR 0008 (T12).
 #
-# Scans every Swift file under Packages/ and App/ of ROOT_DIR (paths below are relative to
+# Scans every Swift file under core/ and platforms/ of ROOT_DIR (paths below are relative to
 # it) and fails when:
-#   1. a public/package/open function under Packages/Core/Sources/OMPDomain/Planner/ has no
+#   1. a public/package/open function under core/Sources/OMPDomain/Planner/ has no
 #      `SafetyClearance` parameter (non-optional), unless it is a listed non-entry-point
 #      helper (PLANNER_HELPERS below) that cannot produce or edit a plan;
 #   2. `SafetyClearance(` (or `SafetyClearance.init(`) or `extension SafetyClearance` appears
-#      outside Packages/Core/Sources/OMPDomain/Safety/SafetyGate.swift;
+#      outside core/Sources/OMPDomain/Safety/SafetyGate.swift;
 #   3. `ValidationReport(` (or `.init(`, or `.init(planId:`) or `extension ValidationReport`
-#      appears outside Packages/Core/Sources/OMPSafetyCheck/ and tests (the extension is also
+#      appears outside core/Sources/OMPSafetyCheck/ and tests (the extension is also
 #      allowed in its own file, Safety/ValidationReport.swift);
 #   4. `PlanApproval(`, a `status = .approved` assignment, `status: .approved` (initialiser
 #      argument) or `blockedBySafety = false` appears outside
-#      Packages/Core/Sources/OMPDomain/Plan/PlanLifecycle.swift, the OMPData mapping files
-#      (Packages/Apple/Sources/OMPData/Mapping/) and tests. One reviewed exception:
+#      core/Sources/OMPDomain/Plan/PlanLifecycle.swift, the OMPData mapping files
+#      (platforms/ios/Apple/Sources/OMPData/Mapping/) and tests. One reviewed exception:
 #      `blockedBySafety = false` in Planner/WeekPlanner+Editing.swift (a meal whose recipe the
 #      planner replaced from the hard filter is no longer the meal that was blocked; the
 #      result is a draft that is validated again before display) and, likewise, in
@@ -22,14 +22,14 @@
 #      re-plan no longer has the recipe that was blocked; the plan is validated again before it
 #      is saved);
 #   5. `UserConfirmation(` (or `.init(`, or `confirmation: .init(`) appears outside tests and
-#      the two exact approval files Packages/Apple/Sources/OMPFeatures/Plan/ApprovalWeekBar.swift
+#      the two exact approval files platforms/ios/Apple/Sources/OMPFeatures/Plan/ApprovalWeekBar.swift
 #      and .../Plan/ApprovalSheet.swift (not a glob: a new file needs a reviewed change here);
 #      and any alias of the type (`typealias X = UserConfirmation`, `= UserConfirmation.self`,
 #      `UserConfirmation.init` without a call, `extension UserConfirmation`) outside tests;
-#   6. the safety suite (Packages/Core/Tests/OMPSafetySuiteTests/) contains `.disabled`,
+#   6. the safety suite (core/Tests/OMPSafetySuiteTests/) contains `.disabled`,
 #      `withKnownIssue`, `.enabled(` or `#if`: nothing in it may be skipped, expected to
 #      fail or compiled out.
-# Tests are files under Packages/<package>/Tests/ or App/<target>Tests/.
+# Tests are files under core/Tests/, platforms/<platform>/<package>/Tests/ or platforms/<platform>/App/<target>Tests/.
 # Whole-line comments (//, ///, /*, *) are ignored. There is deliberately no inline "allow"
 # escape hatch: change this script in a reviewed PR if a real need appears.
 #
@@ -51,11 +51,11 @@ fi
 root="$(cd "$root" && pwd)"
 
 scan_dirs=()
-for d in Packages App; do
+for d in core platforms; do
   [[ -d "$root/$d" ]] && scan_dirs+=("$root/$d")
 done
 if [[ ${#scan_dirs[@]} -eq 0 ]]; then
-  echo "lint-safety: nothing to scan (no Packages/ or App/ under '$root')" >&2
+  echo "lint-safety: nothing to scan (no core/ or platforms/ under '$root')" >&2
   exit 2
 fi
 
@@ -65,12 +65,12 @@ report() {
   violations=$((violations + 1))
 }
 
-planner_dir="Packages/Core/Sources/OMPDomain/Planner"
-gate_file="Packages/Core/Sources/OMPDomain/Safety/SafetyGate.swift"
-report_file="Packages/Core/Sources/OMPDomain/Safety/ValidationReport.swift"
-lifecycle_file="Packages/Core/Sources/OMPDomain/Plan/PlanLifecycle.swift"
+planner_dir="core/Sources/OMPDomain/Planner"
+gate_file="core/Sources/OMPDomain/Safety/SafetyGate.swift"
+report_file="core/Sources/OMPDomain/Safety/ValidationReport.swift"
+lifecycle_file="core/Sources/OMPDomain/Plan/PlanLifecycle.swift"
 planner_editing_file="$planner_dir/WeekPlanner+Editing.swift"
-suite_dir="Packages/Core/Tests/OMPSafetySuiteTests/"
+suite_dir="core/Tests/OMPSafetySuiteTests/"
 
 # Public planner functions that are not entry points: they cannot produce or edit a plan
 # (pure helpers for dates, slots, scoring, lookups and seeds). "file-relative-to-Planner:name".
@@ -92,7 +92,7 @@ closed_comment='/\*([^*]|\*+[^*/])*\*+/'
 comment_re="^[[:space:]]*(//|\\*|/\\*([^*]|\\*+[^*/])*\\**\$|(${closed_comment}[[:space:]]*)+\$)"
 
 is_test() { # relative path
-  [[ "$1" =~ ^Packages/[^/]+/Tests/ || "$1" =~ ^App/[^/]*Tests/ ]]
+  [[ "$1" =~ ^core/Tests/ || "$1" =~ ^platforms/[^/]+/[^/]+/Tests/ || "$1" =~ ^platforms/[^/]+/App/[^/]*Tests/ ]]
 }
 
 # scan <regex> <message> <allowed-predicate>: reports every non-comment match in a Swift
@@ -125,26 +125,26 @@ scan "(^|$w)SafetyClearance[[:space:]]*(\\.init)?[[:space:]]*\\(|(^|$w)extension
 
 # 3. ValidationReport is built only by the validator (and tests).
 report_allowed() {
-  [[ "$1" == Packages/Core/Sources/OMPSafetyCheck/* ]] || is_test "$1"
+  [[ "$1" == core/Sources/OMPSafetyCheck/* ]] || is_test "$1"
 }
 scan "(^|$w)ValidationReport[[:space:]]*(\\.init)?[[:space:]]*\\(|\\.init\\([[:space:]]*planId[[:space:]]*:" \
-  "ValidationReport may be created only in Packages/Core/Sources/OMPSafetyCheck/ and tests (ADR 0007)" report_allowed
+  "ValidationReport may be created only in core/Sources/OMPSafetyCheck/ and tests (ADR 0007)" report_allowed
 report_extension_allowed() {
   report_allowed "$1" || [[ "$1" == "$report_file" ]]
 }
 scan "(^|$w)extension[[:space:]]+ValidationReport($w|\$)" \
-  "ValidationReport may be extended only in its own file, Packages/Core/Sources/OMPSafetyCheck/ and tests (ADR 0007)" \
+  "ValidationReport may be extended only in its own file, core/Sources/OMPSafetyCheck/ and tests (ADR 0007)" \
   report_extension_allowed
 
 # 4. Approval state is written only by the lifecycle, the persistence mapping and tests.
 approval_allowed() {
-  [[ "$1" == "$lifecycle_file" || "$1" == Packages/Apple/Sources/OMPData/Mapping/* ]] || is_test "$1"
+  [[ "$1" == "$lifecycle_file" || "$1" == platforms/ios/Apple/Sources/OMPData/Mapping/* ]] || is_test "$1"
 }
 scan "(^|$w)PlanApproval[[:space:]]*(\\.init)?[[:space:]]*\\(" \
   "PlanApproval may be created only in $lifecycle_file, the OMPData mapping and tests (ADR 0008)" approval_allowed
 scan "(^|$w)status[[:space:]]*=[[:space:]]*(PlanStatus)?\\.approved($w|\$)|(^|$w)status[[:space:]]*:[[:space:]]*(PlanStatus)?\\.approved($w|\$)" \
   "a plan may be marked approved only in $lifecycle_file, the OMPData mapping and tests (ADR 0008)" approval_allowed
-planning_engine_file="Packages/Core/Sources/OMPServices/PlanningEngine.swift"
+planning_engine_file="core/Sources/OMPServices/PlanningEngine.swift"
 unblock_allowed() {
   approval_allowed "$1" || [[ "$1" == "$planner_editing_file" || "$1" == "$planning_engine_file" ]]
 }
@@ -153,7 +153,7 @@ scan "(^|$w)blockedBySafety[[:space:]]*=[[:space:]]*false($w|\$)" \
 
 # 5. UserConfirmation is created only by the two approval buttons (and tests). Exact paths:
 #    CODEOWNERS covers the same two files.
-approval_ui_files="Packages/Apple/Sources/OMPFeatures/Plan/ApprovalWeekBar.swift Packages/Apple/Sources/OMPFeatures/Plan/ApprovalSheet.swift"
+approval_ui_files="platforms/ios/Apple/Sources/OMPFeatures/Plan/ApprovalWeekBar.swift platforms/ios/Apple/Sources/OMPFeatures/Plan/ApprovalSheet.swift"
 confirmation_allowed() {
   is_test "$1" && return 0
   local f

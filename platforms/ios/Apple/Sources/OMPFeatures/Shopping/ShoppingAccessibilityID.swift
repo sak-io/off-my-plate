@@ -1,4 +1,4 @@
-/// Accessibility identifiers of the List tab. The UI tests (`App/OffMyPlateUITests`) repeat
+/// Accessibility identifiers of the List tab. The UI tests (`platforms/ios/App/OffMyPlateUITests`) repeat
 /// these strings; per-item ones end with the shopping item's raw id.
 extension AccessibilityID {
     static let shoppingList = "shopping.list"

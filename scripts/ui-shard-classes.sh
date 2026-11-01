@@ -3,7 +3,7 @@
 #
 # Usage:  scripts/ui-shard-classes.sh <1|2|3>   print the classes of that shard, one per line
 #         scripts/ui-shard-classes.sh --check   fail unless EVERY test class under
-#                                               App/OffMyPlateUITests is in exactly one shard
+#                                               platforms/ios/App/OffMyPlateUITests is in exactly one shard
 #
 # The shards are balanced by measured run time (batch 4: Settings ~7 min, the rest ~4-9 min).
 # A test class missing here would silently never run in CI, hence --check (also run by
@@ -22,7 +22,7 @@ case "${1:-}" in
   --check)
     declared="$(printf '%s\n' $shard1 $shard2 $shard3 | sort)"
     dups="$(printf '%s\n' "$declared" | uniq -d)"
-    found="$(grep -rhoE '^(final )?class [A-Za-z0-9_]+: XCTestCase' "$root/App/OffMyPlateUITests" \
+    found="$(grep -rhoE '^(final )?class [A-Za-z0-9_]+: XCTestCase' "$root/platforms/ios/App/OffMyPlateUITests" \
       | sed -E 's/^(final )?class ([A-Za-z0-9_]+):.*/\2/' | sort -u)"
     status=0
     if [[ -n "$dups" ]]; then echo "ui-shard-classes: listed in more than one shard: $dups" >&2; status=1; fi

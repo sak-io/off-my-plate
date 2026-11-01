@@ -14,8 +14,8 @@ For App Store Connect, App Privacy section. Source: `docs/release/data-map.md`, 
 | Export compliance | `ITSAppUsesNonExemptEncryption` = false (set in Info.plist; no custom cryptography, SHA-256 hashing only) |
 
 ## Privacy manifests
-- `App/OffMyPlate/PrivacyInfo.xcprivacy` and `App/OffMyPlateShare/PrivacyInfo.xcprivacy`: no tracking, no collected data, no required-reason APIs used (audited 2026-10-14). Whoever adds `UserDefaults`, file timestamps, disk-space or boot-time APIs must add the matching `NSPrivacyAccessedAPITypes` entry (for example `UserDefaults` with reason `CA92.1`) in the same change.
-- Purpose strings (UX copy C-136, C-137) are in `App/OffMyPlate/Info.plist`: microphone and speech recognition. They say speech stays on the device, matching ADR 0012. The Share Extension needs no purpose strings (text only, no sensor access).
+- `platforms/ios/App/OffMyPlate/PrivacyInfo.xcprivacy` and `platforms/ios/App/OffMyPlateShare/PrivacyInfo.xcprivacy`: no tracking, no collected data, no required-reason APIs used (audited 2026-10-14). Whoever adds `UserDefaults`, file timestamps, disk-space or boot-time APIs must add the matching `NSPrivacyAccessedAPITypes` entry (for example `UserDefaults` with reason `CA92.1`) in the same change.
+- Purpose strings (UX copy C-136, C-137) are in `platforms/ios/App/OffMyPlate/Info.plist`: microphone and speech recognition. They say speech stays on the device, matching ADR 0012. The Share Extension needs no purpose strings (text only, no sensor access).
 
 ## Owner-only
 Entering these answers in App Store Connect and the final G4 approval are owner steps.

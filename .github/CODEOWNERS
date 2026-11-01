@@ -4,11 +4,11 @@
 /scripts/lint-safety.sh @sak-io
 /scripts/tests/test-lints.sh @sak-io
 /scripts/tests/fixtures/safety/ @sak-io
-/Packages/Apple/Sources/OMPFeatures/Plan/ApprovalWeekBar.swift @sak-io
-/Packages/Apple/Sources/OMPFeatures/Plan/ApprovalSheet.swift @sak-io
-/Packages/Core/Sources/OMPSafetyCheck/ @sak-io
-/Packages/Core/Sources/OMPDomain/Safety/ @sak-io
-/Packages/Core/Sources/OMPDomain/Plan/PlanLifecycle.swift @sak-io
+/platforms/ios/Apple/Sources/OMPFeatures/Plan/ApprovalWeekBar.swift @sak-io
+/platforms/ios/Apple/Sources/OMPFeatures/Plan/ApprovalSheet.swift @sak-io
+/core/Sources/OMPSafetyCheck/ @sak-io
+/core/Sources/OMPDomain/Safety/ @sak-io
+/core/Sources/OMPDomain/Plan/PlanLifecycle.swift @sak-io
 /scripts/lint-*.sh @sak-io
 /.github/workflows/ @sak-io
 /.github/actions/ @sak-io

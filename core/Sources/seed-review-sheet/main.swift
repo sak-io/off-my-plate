@@ -1,7 +1,7 @@
 // seed-review-sheet: prints the markdown sign-off sheet for the bundled seed library
 // (ADR 0010, G1). Exits 1 and lists every issue when the seed content is invalid.
 //
-// Usage: swift run --package-path Packages/Core seed-review-sheet [OUTPUT.md]
+// Usage: swift run --package-path core seed-review-sheet [OUTPUT.md]
 //   With OUTPUT.md the sheet is written there; otherwise it goes to standard output.
 import Foundation
 import OMPRecipes

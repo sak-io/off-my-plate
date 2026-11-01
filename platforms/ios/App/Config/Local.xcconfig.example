@@ -1,5 +1,5 @@
-// Copy to App/Config/Local.xcconfig (git-ignored) and fill in. Never commit the copy.
-// Then run: (cd App && xcodegen generate) and open App/OffMyPlate.xcodeproj.
+// Copy to platforms/ios/App/Config/Local.xcconfig (git-ignored) and fill in. Never commit the copy.
+// Then run: (cd App && xcodegen generate) and open platforms/ios/App/OffMyPlate.xcodeproj.
 
 // Your Apple Developer Team ID (Xcode > Settings > Accounts, or developer.apple.com).
 DEVELOPMENT_TEAM = ABCDE12345

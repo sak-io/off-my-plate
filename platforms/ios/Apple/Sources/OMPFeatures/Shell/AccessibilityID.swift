@@ -1,4 +1,4 @@
-/// Accessibility identifiers the UI tests query (`App/OffMyPlateUITests`). The UI tests run
+/// Accessibility identifiers the UI tests query (`platforms/ios/App/OffMyPlateUITests`). The UI tests run
 /// out of process and cannot import this module, so they repeat these strings.
 enum AccessibilityID {
     static let gateCover = "gate.cover"

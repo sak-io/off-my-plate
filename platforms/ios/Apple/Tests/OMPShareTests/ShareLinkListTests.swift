@@ -10,9 +10,9 @@ struct ShareLinkListTests {
     private static let forbidden = ["OMPServices", "OMPData", "OMPFeatures", "OMPCapture", "OMPSafetyCheck"]
 
     private func repoFile(_ relative: String) throws -> String {
-        // .../Packages/Apple/Tests/OMPShareTests/<this file> -> repository root.
+        // .../platforms/ios/Apple/Tests/OMPShareTests/<this file> -> repository root.
         var url = URL(fileURLWithPath: #filePath)
-        for _ in 0..<5 { url.deleteLastPathComponent() }
+        for _ in 0..<6 { url.deleteLastPathComponent() }
         return try String(contentsOf: url.appendingPathComponent(relative), encoding: .utf8)
     }
 
@@ -34,7 +34,7 @@ struct ShareLinkListTests {
 
     @Test("the extension target in project.yml excludes the services, data and feature modules")
     func projectYML() throws {
-        let yml = try repoFile("App/project.yml")
+        let yml = try repoFile("platforms/ios/App/project.yml")
         let lines = try block(of: yml, startingWith: "  OffMyPlateShare:")
         #expect(!lines.isEmpty)
         let dependencies = try block(of: lines.joined(separator: "\n"), startingWith: "    dependencies:").joined(separator: "\n")
@@ -48,7 +48,7 @@ struct ShareLinkListTests {
 
     @Test("the OMPShare package target depends only on OMPUI and OMPDomain")
     func packageTarget() throws {
-        let manifest = try repoFile("Packages/Apple/Package.swift")
+        let manifest = try repoFile("platforms/ios/Apple/Package.swift")
         let all = manifest.components(separatedBy: "\n")
         let start = try #require(all.firstIndex { $0 == "            name: \"OMPShare\"," })
         // Up to the closing "        )," of the .target(...) call.

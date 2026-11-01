@@ -35,7 +35,7 @@ if [[ -z "$generated" ]]; then
   tmp_dir="$(mktemp -d)"
   trap 'rm -rf "$tmp_dir"' EXIT
   generated="$tmp_dir/seed-review.md"
-  if ! swift run --package-path "$repo_root/Packages/Core" seed-review-sheet "$generated" >&2; then
+  if ! swift run --package-path "$repo_root/core" seed-review-sheet "$generated" >&2; then
     echo "check-seed-review: 'swift run seed-review-sheet' failed" >&2
     exit 2
   fi
@@ -58,7 +58,7 @@ fi
 
 To fix: regenerate the sheet, review the change with the owner (it is the seed sign-off
 sheet, ADR 0010), and commit it:
-  swift run --package-path Packages/Core seed-review-sheet "$PWD/docs/content/seed-review.md"
+  swift run --package-path core seed-review-sheet "$PWD/docs/content/seed-review.md"
 HOW
 } >&2
 exit 1

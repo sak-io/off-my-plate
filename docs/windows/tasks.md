@@ -16,7 +16,7 @@
 - **Tests:** facade-level tests that mirror the service tests; gate cannot be bypassed through any export; a non-confirm message never approves.
 
 ### W04 [web] Web app skeleton: TypeScript build, local storage, PWA shell, Delete all data. Linux
-- **Goal:** `Web/` project (TypeScript, no runtime dependencies; dev-time bundler and test tools only), loads the Wasm core, persists snapshots in IndexedDB, service worker for offline, app shell with the four tabs, Content-Security-Policy with `connect-src 'none'`, Delete all data clears storage and caches. Design tokens from `docs/design/design-system.md`.
+- **Goal:** `platforms/web/` project (TypeScript, no runtime dependencies; dev-time bundler and test tools only), loads the Wasm core, persists snapshots in IndexedDB, service worker for offline, app shell with the four tabs, Content-Security-Policy with `connect-src 'none'`, Delete all data clears storage and caches. Design tokens from `docs/design/design-system.md`.
 - **Depends on:** W03. **ACs:** AC-13.1, AC-13.2, AC-16.2.
 - **Tests:** browser test (Playwright on Linux) that the app loads offline after first visit and that Delete all data empties storage.
 
