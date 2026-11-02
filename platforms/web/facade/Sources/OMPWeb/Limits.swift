@@ -11,6 +11,13 @@ enum Limits {
     static let maxAbsences = 500
     static let maxTextCharacters = 20_000
     static let maxNameCharacters = 200
+    /// Same bound the services apply to a pantry or shopping amount.
+    static let maxAmount: Double = 1_000_000_000
+    static let maxSearchResults = 20
+    static let maxCookAmounts = 200
+    /// Pasted text or file bytes for a Notes import (the parser itself reads at most 64 KiB of it).
+    static let maxImportBytes = 256 * 1024
+    static let maxBase64Characters = (maxImportBytes / 3 + 1) * 4
     static let maxRevision = 1_000_000
     static let maxIDCounter = 1_000_000_000
     static let earliestNow = Date(timeIntervalSince1970: 946_684_800)  // 2000-01-01T00:00:00Z

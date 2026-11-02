@@ -1,0 +1,90 @@
+# OffMyPlate web facade transcript (W13): pantry, Mark cooked, shopping, Notes import, learning, delete all.
+# Replayed natively and under wasmtime; both must equal transcript-w13.golden.jsonl byte for byte.
+{"op":"household.create","args":{"adults":2,"children":0},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"safety.confirmNobody","args":{"pendingItemCount":0},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"plan.generate","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+@capture p result.plan.id
+@capture meal0 result.plan.meals.0.id
+{"op":"cook.propose","args":{"planId":"{{p}}","mealId":"{{meal0}}"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect error mark_cooked
+{"op":"plan.approvalPreview","args":{"planId":"{{p}}"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+@capture shown result.plan.contentHash
+{"op":"plan.approve","args":{"planId":"{{p}}","shownContentHash":"{{shown}}","gesture":"confirm-button"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"pantry.search","args":{"query":"onion","limit":3},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+@capture onion result.candidates.0.ingredientId
+{"op":"pantry.add","args":{"name":"Rice","quantity":2,"unit":"kg","location":"shelf"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+@capture rice result.item.item.id
+{"op":"pantry.add","args":{"name":"mystery tin","quantity":1,"unit":"piece","location":"shelf"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+@capture tin result.item.item.id
+{"op":"pantry.add","args":{"name":"Rice","quantity":1e30,"unit":"kg","location":"shelf"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect error invalid_input
+{"op":"pantry.update","args":{"itemId":"{{rice}}","name":"Rice","quantity":3,"unit":"kg","location":"shelf"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"pantry.reconfirm","args":{"itemId":"{{rice}}"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"pantry.resolve","args":{"itemId":"{{tin}}","ingredientId":"{{onion}}"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"pantry.list","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"pantry.delete","args":{"itemId":"{{tin}}"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"pantry.delete","args":{"itemId":"{{tin}}"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect error pantry_item_not_found
+{"op":"cook.propose","args":{"planId":"{{p}}","mealId":"{{meal0}}"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"cook.mark","args":{"planId":"{{p}}","mealId":"{{meal0}}"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"cook.mark","args":{"planId":"{{p}}","mealId":"{{meal0}}"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect error mark_cooked
+{"op":"shopping.refresh","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"shopping.add","args":{"name":"Bananas","quantity":6,"unit":"piece"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+@capture banana result.item.id
+{"op":"shopping.check","args":{"itemId":"{{banana}}","checked":true},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"shopping.shareText","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"shopping.boughtEverything","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"shopping.list","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"import.parseText","args":{"text":"2 kg onions\n- [x] milk\nCall the plumber tomorrow"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"import.parseFile","args":{"base64":"MiBrZyBvbmlvbnMKbWlsawo="},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"import.parseFile","args":{"base64":"iVAARw=="},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect error not_text
+{"op":"import.confirm","args":{"destination":"shoppingList","items":[{"name":"onion","ingredientId":"{{onion}}"}]},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"import.confirm","args":{"destination":"shoppingList","items":[{"name":"onion","ingredientId":"{{onion}}"}]},"ctx":{"now":"2026-11-10T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"import.confirm","args":{"destination":"shoppingList","items":[{"name":"onion","ingredientId":"{{onion}}"}]},"ctx":{"now":"2026-11-11T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"learning.refresh","args":{},"ctx":{"now":"2026-11-12T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+@capture fact result.facts.0.id
+{"op":"learning.forget","args":{"factId":"{{fact}}"},"ctx":{"now":"2026-11-12T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"learning.list","args":{},"ctx":{"now":"2026-11-12T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"learning.confirm","args":{"factId":"{{fact}}"},"ctx":{"now":"2026-11-12T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect error fact_not_open
+{"op":"state.export","args":{},"ctx":{"now":"2026-11-12T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"data.prune","args":{},"ctx":{"now":"2026-11-12T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"data.deleteAll","args":{"confirmed":false},"ctx":{"now":"2026-11-12T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect error confirmation_required
+{"op":"data.deleteAll","args":{"confirmed":true},"ctx":{"now":"2026-11-12T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"state.export","args":{},"ctx":{"now":"2026-11-12T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok

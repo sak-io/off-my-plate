@@ -27,6 +27,7 @@ struct FacadeError: Error, Sendable, Equatable {
         if let facade = error as? FacadeError { return facade }
         if let refusal = error as? GateRefusal { return gate(refusal) }
         if let service = error as? ServiceError { return from(service) }
+        if error is InboxImportError { return .invalid("The import is not valid.") }
         if error is DecodingError { return .badRequest("The request arguments are malformed.") }
         return FacadeError("internal_error", "The request could not be completed.")
     }
@@ -77,7 +78,21 @@ struct FacadeError: Error, Sendable, Equatable {
             }
         case .safetyTransition: return FacadeError("safety_transition", "That safety change is not allowed now.")
         case .householdSize: return FacadeError("household_size", "The household size is out of range.")
-        case .markCooked: return FacadeError("mark_cooked", "Mark cooked is not available for that meal.")
+        case .markCooked(let refusal):
+            let reason: String
+            switch refusal {
+            case .planNotApproved: reason = "planNotApproved"
+            case .blockedBySafety: reason = "blockedBySafety"
+            case .alreadyCooked: reason = "alreadyCooked"
+            case .mealNotFound: reason = "mealNotFound"
+            default: reason = "unavailable"
+            }
+            return FacadeError(
+                "mark_cooked", "Mark cooked is not available for that meal.", details: .object(["reason": .string(reason)]))
+        case .pantryItemNotFound: return FacadeError("pantry_item_not_found", "No such pantry item.")
+        case .shoppingItemNotFound: return FacadeError("shopping_item_not_found", "No such shopping item.")
+        case .factNotFound: return FacadeError("fact_not_found", "No such fact.")
+        case .unknownIngredient: return FacadeError("unknown_ingredient", "That ingredient is not in the taxonomy.")
         case .invalidInput(let text): return FacadeError("invalid_input", text)
         default: return FacadeError("service_error", "The request was refused.")
         }
