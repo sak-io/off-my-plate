@@ -58,7 +58,7 @@ jobs:
           apt-get update -qq && apt-get install -y -qq xz-utils curl ca-certificates >/dev/null
           swift --version
           URL="https://download.swift.org/swift-$SWIFT_VER-release/wasm-sdk/swift-$SWIFT_VER-RELEASE/swift-$SWIFT_VER-RELEASE_wasm.artifactbundle.tar.gz"
-          swift sdk install "$URL" --checksum "$WASM_SDK_SHA256"
+          scripts/wasm/annotated.sh sdk swift sdk install "$URL" --checksum "$WASM_SDK_SHA256"
           echo "WASM_SDK=$(swift sdk list | grep -i wasm | grep -iv embedded | head -1 | tr -d ' ')" >> "$GITHUB_ENV"
           curl -fsSL -o "$RUNNER_TEMP/wt.tar.xz" "https://github.com/bytecodealliance/wasmtime/releases/download/$WASMTIME_VERSION/wasmtime-$WASMTIME_VERSION-x86_64-linux.tar.xz"
           mkdir -p "$RUNNER_TEMP/wt" && tar -xJf "$RUNNER_TEMP/wt.tar.xz" -C "$RUNNER_TEMP/wt" --strip-components=1
@@ -70,7 +70,7 @@ jobs:
           echo "SDK $WASM_SDK"
           cd core
           for p in OMPDomain OMPSafetyCheck OMPRecipes OMPServices; do
-            swift build --swift-sdk "$WASM_SDK" --product $p
+            ../scripts/wasm/annotated.sh "build-$p" swift build --swift-sdk "$WASM_SDK" --product $p
           done
 
       - name: Build tests (debug and release)
@@ -78,8 +78,8 @@ jobs:
           set -euo pipefail
           cd core
           # Release needs -enable-testing for @testable imports. Different configurations, so both builds are kept.
-          swift build --swift-sdk "$WASM_SDK" --build-tests $WASM_LINK
-          swift build --swift-sdk "$WASM_SDK" --build-tests -c release -Xswiftc -enable-testing $WASM_LINK
+          ../scripts/wasm/annotated.sh build-debug swift build --swift-sdk "$WASM_SDK" --build-tests $WASM_LINK
+          ../scripts/wasm/annotated.sh build-release swift build --swift-sdk "$WASM_SDK" --build-tests -c release -Xswiftc -enable-testing $WASM_LINK
           ls -la .build/wasm32-unknown-wasip1/*/CorePackageTests.xctest
 
       # No `--dir` for the build directory: Wasm must not need Bundle.module (the seed is embedded, W02).
