@@ -161,6 +161,10 @@ struct ShoppingServiceTests {
         #expect(ShoppingShareText.amount(2.0) == "2")
         #expect(ShoppingShareText.amount(0.05) == "0.05")
         #expect(ShoppingShareText.amount(.nan) == "0")
+        // Larger than Int32.max hundredths: must not trap on wasm32 (W02 audit).
+        #expect(ShoppingShareText.amount(30_000_000) == "30000000")
+        #expect(ShoppingShareText.amount(1e9) == "1000000000")
+        #expect(ShoppingShareText.amount(5e12) == "1000000000")
     }
 
     @Test("the service shares the approved plan's list under its date range")

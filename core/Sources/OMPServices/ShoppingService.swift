@@ -224,7 +224,8 @@ public enum ShoppingShareText {
     /// At most two decimals, no trailing zeros: 500, 1.5, 0.25. Rounded here only for display.
     static func amount(_ value: Double) -> String {
         guard value.isFinite, value > 0 else { return "0" }
-        let hundredths = Int((min(value, 1e9) * 100).rounded())
+        // Int64, not Int: 1e9 * 100 does not fit the 32-bit Int of wasm32 (W02 audit).
+        let hundredths = Int64((min(value, 1e9) * 100).rounded())
         let whole = hundredths / 100
         let fraction = hundredths % 100
         if fraction == 0 { return String(whole) }

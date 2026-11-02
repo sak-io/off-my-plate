@@ -1,4 +1,4 @@
-# TEMPORARY (W02): crash diagnosis for the 5 Wasm aborts. Deleted before W02 ends.
+# TEMPORARY (W02): generates the golden week-plan JSON natively and prints it as annotations. Deleted before W02 ends.
 name: core-wasm-diag
 on:
   push:
@@ -9,25 +9,24 @@ defaults:
   run:
     shell: bash
 jobs:
-  diag:
+  golden:
     runs-on: ubuntu-latest
     container: swift:6.2.4-noble
-    timeout-minutes: 50
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - name: Diagnose
+      - name: Generate
         run: |
-          set +e
-          bash scripts/wasm/diag.sh
-          true
+          OMP_GOLDEN_OUT="$RUNNER_TEMP/golden.json" swift test --package-path core --filter weekPlanMatchesGolden 2>&1 | tail -5
+          wc -c "$RUNNER_TEMP/golden.json"
+          gzip -9c "$RUNNER_TEMP/golden.json" | base64 -w 3000 | split -l 1 -d - "$RUNNER_TEMP/chunk."
+          ls "$RUNNER_TEMP"/chunk.* | wc -l
+          sha256sum "$RUNNER_TEMP/golden.json"
       - name: Annotations 1
         if: always()
         run: bash scripts/wasm/emit.sh 1 10
       - name: Annotations 2
         if: always()
         run: bash scripts/wasm/emit.sh 11 20
-      - name: Annotations 3
-        if: always()
-        run: bash scripts/wasm/emit.sh 21 30
