@@ -5,10 +5,10 @@ import Testing
     @Test func nowMustBeInAPlausibleRange() async {
         let c = Client()
         for now in ["1999-12-31T23:59:59Z", "2100-01-01T00:00:00Z", "0001-01-01T00:00:00Z", "9999-12-31T23:59:59Z"] {
-            #expect((await c.call("meta.version", now: now)).code == "bad_context", now)
+            #expect((await c.call("meta.version", now: now)).code == "bad_context", "\(now)")
         }
         for now in ["2000-01-01T00:00:00Z", "2099-12-31T23:59:59Z", "2026-11-02T04:30:00.750Z"] {
-            #expect((await c.call("meta.version", now: now)).ok, now)
+            #expect((await c.call("meta.version", now: now)).ok, "\(now)")
         }
     }
 
@@ -32,7 +32,7 @@ import Testing
         for (now, expectedStart) in [("2026-03-08T09:59:00Z", "2026-03-08"), ("2026-03-09T06:59:00Z", "2026-03-08"), ("2026-03-09T07:00:00Z", "2026-03-09")] {
             let c = Client()
             await c.onboard(adults: 1, children: 0, now: now, zone: zone)
-            #expect((await c.call("plan.generate", now: now, zone: zone)).string("plan.weekStart") == expectedStart, now)
+            #expect((await c.call("plan.generate", now: now, zone: zone)).string("plan.weekStart") == expectedStart, "\(now)")
         }
     }
 }
