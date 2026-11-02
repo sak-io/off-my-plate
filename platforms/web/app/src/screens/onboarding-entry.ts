@@ -18,7 +18,7 @@ export interface EntryConfig {
   onChange(): void;
 }
 
-export function buildEntry(cfg: EntryConfig): { root: HTMLElement; focusInput(): void } {
+export function buildEntry(cfg: EntryConfig): { root: HTMLElement; focusInput(): void; pending(): string } {
   const catalogIds = Object.keys(CHIP_LABELS);
   const chipRow = el("div", { class: "chips", role: "group" });
   chipRow.setAttribute("aria-label", "Common things to avoid");
@@ -132,10 +132,12 @@ export function buildEntry(cfg: EntryConfig): { root: HTMLElement; focusInput():
   }
   input.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); void submitText(); } };
   addBtn.onclick = () => void submitText();
+  // Typed-but-not-added text is an unsaved answer: callers must treat it as pending (see pending()).
+  input.oninput = () => cfg.onChange();
 
   const form = el("div", { class: "text-row" }, label, input, addBtn);
   const root = el("div", { class: "entry" }, chipRow, form, status, listTitle, list);
   attrs(list, { "aria-labelledby": "avoid-title" });
   paint();
-  return { root, focusInput: () => input.focus() };
+  return { root, focusInput: () => input.focus(), pending: () => input.value.trim() };
 }

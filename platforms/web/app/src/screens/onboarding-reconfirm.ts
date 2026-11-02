@@ -59,16 +59,25 @@ export function reconfirmCard(host: Host, household: HouseholdJson, memberIds: s
     const add = el("button", { type: "button", id: "reconfirm-add", textContent: "Review additions" });
     add.disabled = true;
     add.onclick = () => {
-      const rows = summarise(items, members).map((r) => `${r.who}: ${r.what}`).join("; ");
+      // Freeze exactly what is shown: the summary and the save use this snapshot, never the live list.
+      const frozen: Item[] = items.map((i) => ({ ...i }));
+      const rows = summarise(frozen, members).map((r) => `${r.who}: ${r.what}`).join("; ");
       const save = el("button", { type: "button", id: "reconfirm-save", class: "primary", textContent: "Yes, save this" });
       const back = el("button", { type: "button", textContent: "Change" });
       const box = el("div", { class: "dialog", role: "alertdialog" }, el("p", { id: "ra-q", textContent: `Check this is right. ${rows}` }), save, back);
       attrs(box, { "aria-describedby": "ra-q", "aria-modal": "true" });
-      back.onclick = () => { box.remove(); add.focus(); };
+      const lock = (on: boolean) => { entry.root.inert = on; add.inert = on; yes.inert = on; };
+      lock(true);
+      back.onclick = () => { box.remove(); lock(false); add.focus(); };
+      let pending: Item[] = frozen;
       save.onclick = async () => {
-        for (const item of toApiItems(items, members.map((m) => m.id))) {
+        let wire;
+        try { wire = toApiItems(pending, members.map((m) => m.id)); } catch { box.remove(); lock(false); return; }
+        save.disabled = true;
+        for (const item of wire) {
           const r = await host.op("safety.addRule", { item });
-          if (!r.ok) { msg.textContent = "Something went wrong saving that. Your other information is safe. Please try again."; return; }
+          if (!r.ok) { msg.textContent = "Something went wrong saving that. Your other information is safe. Please try again."; save.disabled = false; return; }
+          pending = pending.slice(1);          // retry-safe: what was saved is not sent again
         }
         await host.refresh();
       };

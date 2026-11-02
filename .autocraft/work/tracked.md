@@ -83,3 +83,7 @@
 - Persisted-op decision uses a READ_ONLY suffix regex; a future write op with a read-style name would silently not persist (prefer explicit allow-list).
 - Snapshot saves are not serialized: an in-flight save could recreate IndexedDB after Delete all data (W11 privacy: serialize saves + block after delete).
 - Hosting must not put a restrictive CSP header on sw.js (W12).
+
+## W05 (follow-ups)
+- AC-1.4: cuisine chips (S-03) are not stored; the facade needs an op (e.g. `learning.recordCuisines`) that records them as `stated` soft facts, then S-03 must call it. Follow-up facade task.
+- AC-3.4: the age-group-change re-confirmation (child <-> teen/adult) must fire right after `household.setAgeBand` - HARD requirement for W09 (reuse the W05 "Still correct?" logic in `onboarding-reconfirm.ts`).

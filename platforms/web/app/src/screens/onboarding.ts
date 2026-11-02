@@ -57,7 +57,9 @@ function installGuards(): void {
 export async function gateScreen(host: Host, house: Reply): Promise<boolean> {
   if (!house.ok) { S.blocking = true; return drawFatal(host); }   // fail closed: no shell without a readable gate
   const household: HouseholdJson | undefined = house.result.household;
-  const gate = house.result.gate as { status: string; reason?: string; memberIds?: string[] };
+  const gate = house.result.gate as { status: string; reason?: string; memberIds?: string[] } | undefined;
+  // Whitelist: anything but the three known statuses keeps the question on screen (fail closed).
+  if (!gate || !["noHousehold", "open", "refused"].includes(gate.status)) { S.blocking = true; return drawFatal(host); }
   const members = activeMembers(household);
   const blocking = gate.status === "noHousehold" || (gate.status === "refused" && gate.reason === "safetyUnanswered");
   if (!blocking && S.step === undefined) { S.blocking = false; S.coverTotal = 0; S.drawn = ""; return false; }
@@ -179,16 +181,19 @@ function drawSafety(host: Host, members: MemberJson[], about: MemberJson | undef
   });
   const sync = () => {
     const has = S.items.length > 0, bad = unresolved(S.items).length > 0;
-    nobody.disabled = has || S.busy;
-    if (has) nobody.setAttribute("aria-describedby", "nobody-hint"); else nobody.removeAttribute("aria-describedby");
-    nobodyHint.hidden = !has;
+    const typed = entry.pending() !== "";      // text in the field that was not added is an unsaved answer
+    nobody.disabled = has || typed || S.busy;
+    if (has || typed) nobody.setAttribute("aria-describedby", "nobody-hint"); else nobody.removeAttribute("aria-describedby");
+    nobodyHint.hidden = !(has || typed);
+    nobodyHint.textContent = has ? "You've added things to avoid. Remove them to choose \u201CNo, nobody\u201D." : "You've typed something. Add it, or clear the field, to choose \u201CNo, nobody\u201D.";
     cont.hidden = !has;
-    cont.disabled = bad || S.busy;
-    contHint.hidden = !(has && bad);
-    if (cont.disabled && bad) cont.setAttribute("aria-describedby", "continue-hint"); else cont.removeAttribute("aria-describedby");
+    cont.disabled = bad || typed || S.busy;
+    contHint.hidden = !(has && (bad || typed));
+    contHint.textContent = bad ? "Sort out the item above to continue." : "Add the text you typed, or clear the field, to continue.";
+    if (cont.disabled && (bad || typed)) cont.setAttribute("aria-describedby", "continue-hint"); else cont.removeAttribute("aria-describedby");
   };
   nobody.onclick = async () => {
-    if (S.items.length > 0 || S.busy) return;
+    if (S.items.length > 0 || entry.pending() !== "" || S.busy) return;
     S.busy = true; sync();
     const r = cover ? await host.op("safety.confirmMember", { memberId: about!.id, items: [] })
       : await host.op("safety.confirmNobody", { pendingItemCount: S.items.length });
@@ -197,7 +202,7 @@ function drawSafety(host: Host, members: MemberJson[], about: MemberJson | undef
     S.error = ""; if (!cover) S.step = "cuisines";
     await redraw(host);
   };
-  cont.onclick = () => { if (unresolved(S.items).length > 0) return; S.review = true; S.error = ""; void redraw(host); };
+  cont.onclick = () => { if (unresolved(S.items).length > 0 || entry.pending() !== "") return; S.review = true; S.error = ""; void redraw(host); };
 
   const kids: (Node | string)[] = [];
   if (!cover) {
@@ -250,6 +255,9 @@ function drawReview(host: Host, scopeMembers: MemberJson[], about: MemberJson | 
   for (const r of rows) list.append(el("dt", { textContent: r.who }), el("dd", { textContent: r.what }));
   const save = el("button", { type: "button", id: "save-yes", class: "primary", textContent: "Yes, save this" });
   const change = el("button", { type: "button", id: "save-change", textContent: "Change" });
+  // A double-tap on Continue must not also hit Save: the button wakes up a moment after the screen appears.
+  save.disabled = true;
+  setTimeout(() => { save.disabled = S.busy; }, 500);
   change.onclick = () => { S.review = false; S.error = ""; void redraw(host); };
   save.onclick = async () => {
     if (S.busy) return;

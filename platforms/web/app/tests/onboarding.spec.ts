@@ -380,8 +380,61 @@ test("the 'Still correct?' re-check card appears when the 180 days are over (AC-
   await expect(page.getByRole("tab", { name: "Plan" })).toBeVisible();       // may be ignored: the app is usable
   await expect(page.locator("#reconfirm")).toContainText("Still correct?");
   await expect(page.locator("#reconfirm")).toContainText("Nobody has anything to avoid");
-  await page.locator("#reconfirm-yes").click();
+  // Make changes: what the check dialog shows is exactly what is saved, even if the list is changed behind it.
+  await page.locator("#reconfirm-edit").click();
+  await addChip(page, "peanuts");
+  await page.locator("#reconfirm-add").click();
+  await expect(page.locator("#ra-q")).toContainText("Peanuts");
+  expect(await page.evaluate(() => (document.querySelector("#reconfirm .entry") as any).inert)).toBe(true);   // page behind is inert
+  await page.evaluate(() => (document.querySelector('[data-chip="soy"]') as HTMLButtonElement).click());      // forced edit behind the dialog
+  await page.locator("#reconfirm-save").click();
+  await expect(page.locator("#reconfirm-save")).toHaveCount(0, { timeout: 30_000 });
+  const saved = await snapshotHousehold(page);
+  expect(saved!.rules.map((r) => r.restriction)).toEqual(["peanuts"]);                                          // never soy
+  if (await page.locator("#reconfirm-yes").count()) await page.locator("#reconfirm-yes").click();
   await expect(page.locator("#reconfirm")).toHaveCount(0);
+});
+
+test("'No, nobody' and Continue are blocked while typed text has not been added (AC-2.4)", async ({ browser }) => {
+  const page = await fresh(browser);
+  await toSafety(page, 1, 0);
+  await page.locator("#avoid-text").fill("peanuts");                       // typed, not added
+  await expect(page.locator("#nobody")).toBeDisabled();
+  await expect(page.locator("#nobody-hint")).toContainText("You've typed something");
+  await page.evaluate(() => (document.querySelector("#nobody") as HTMLButtonElement).click());
+  await screen(page, "safety");
+  let h = await snapshotHousehold(page);
+  expect(h!.members.every((m) => m.safetyStatus === "unasked")).toBe(true);
+  await addChip(page, "soy");                                                // an item exists, text still pending
+  await expect(page.locator("#safety-continue")).toBeDisabled();
+  await expect(page.locator("#continue-hint")).toContainText("Add the text you typed");
+  await page.locator("#avoid-add").click();                                  // now parsed into the list
+  await expect(page.locator("#avoid-list li")).toHaveCount(2);
+  await expect(page.locator("#safety-continue")).toBeEnabled();
+  await page.locator("#avoid-text").fill("x");
+  await page.locator("#avoid-text").fill("");                                // cleared: no pending text
+  await expect(page.locator("#safety-continue")).toBeEnabled();
+  h = await snapshotHousehold(page);
+  expect(h!.rules).toEqual([]);
+});
+
+test("an unreadable stored snapshot fails closed: the question flow, never the app", async ({ browser }) => {
+  const page = await fresh(browser);
+  await toSafety(page, 1, 0);
+  await page.evaluate(() => new Promise<void>((resolve, reject) => {
+    const req = indexedDB.open("omp", 1);
+    req.onsuccess = () => {
+      const t = req.result.transaction("kv", "readwrite");
+      t.objectStore("kv").put({ savedAt: "x", snapshot: { format: "garbage" } }, "snapshot");
+      t.oncomplete = () => { req.result.close(); resolve(); };
+      t.onerror = () => reject(t.error);
+    };
+  }));
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-ready", "true", { timeout: 30_000 });
+  await expect(page.locator("html")).toHaveAttribute("data-restore", /unreadable/);
+  await screen(page, "size");
+  await noShell(page);
 });
 
 test("accessibility: axe finds no violations on every onboarding screen", async ({ browser }) => {
