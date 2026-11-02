@@ -4,7 +4,8 @@
   "heartbeat_at": "2026-11-02T00:17:24Z",
   "id": "W02",
   "lease_hours": 6,
+  "note": "CI green (core-linux, core-wasm); review round 1 fixed",
   "owner": "claude-lead-w02",
-  "state": "claimed",
-  "updated_at": "2026-11-02T00:17:24Z"
+  "state": "in_review",
+  "updated_at": "2026-11-02T01:20:16Z"
 }
