@@ -77,7 +77,7 @@ jobs:
           echo "::notice::GOLDEN-LENGTH ${#b64}"
           i=0
           while [ -n "$b64" ]; do
-            i=$((i + 1)); echo "::notice::GOLDEN-B64-$i ${b64:0:30000}"; b64="${b64:30000}"
+            i=$((i + 1)); echo "::notice::GOLDEN-B64-$i ${b64:0:3800}"; b64="${b64:3800}"
           done
 
       - name: Install Wasm SDK (pinned checksum) and wasmtime
