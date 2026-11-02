@@ -1,0 +1,21 @@
+# Day boundaries in America/Los_Angeles around the 2026-11-01 daylight-saving change (the same replay runs natively and on Wasm).
+# Expected week starts: 2026-11-01, 2026-11-01 (23:30 PST is still Nov 1), 2026-11-02.
+{"op":"household.create","args":{"adults":1,"children":0},"ctx":{"now":"2026-11-01T07:00:00Z","timeZone":"America/Los_Angeles","locale":"en-US"}}
+@expect ok
+{"op":"safety.confirmNobody","args":{"pendingItemCount":0},"ctx":{"now":"2026-11-01T07:00:00Z","timeZone":"America/Los_Angeles","locale":"en-US"}}
+@expect ok
+{"op":"plan.generate","args":{},"ctx":{"now":"2026-11-01T07:30:00Z","timeZone":"America/Los_Angeles","locale":"en-US"}}
+@expect ok
+@capture p result.plan.id
+{"op":"plan.discard","args":{"planId":"{{p}}"},"ctx":{"now":"2026-11-01T07:30:00Z","timeZone":"America/Los_Angeles","locale":"en-US"}}
+@expect ok
+{"op":"plan.generate","args":{},"ctx":{"now":"2026-11-02T07:30:00Z","timeZone":"America/Los_Angeles","locale":"en-US"}}
+@expect ok
+@capture p result.plan.id
+{"op":"plan.discard","args":{"planId":"{{p}}"},"ctx":{"now":"2026-11-02T07:30:00Z","timeZone":"America/Los_Angeles","locale":"en-US"}}
+@expect ok
+{"op":"plan.generate","args":{},"ctx":{"now":"2026-11-02T08:00:00Z","timeZone":"America/Los_Angeles","locale":"en-US"}}
+@expect ok
+@capture p result.plan.id
+{"op":"plan.discard","args":{"planId":"{{p}}"},"ctx":{"now":"2026-11-02T08:00:00Z","timeZone":"America/Los_Angeles","locale":"en-US"}}
+@expect ok

@@ -1,0 +1,1 @@
+platforms/web/facade/Sources/OMPWeb/ApprovalBridge2.swift:3: UserConfirmation may be created only in the approval sheet

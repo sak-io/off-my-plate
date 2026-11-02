@@ -1,0 +1,80 @@
+# OffMyPlate web facade transcript (W03): household, safety, plan, edit, approval, state round trip.
+# Directives: @capture NAME PATH stores a value of the previous response; @expect checks it. See TranscriptRunner.
+{"op":"meta.version","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"household.get","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"household.create","args":{"adults":2,"children":1},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+@capture m1 result.household.members.0.id
+@capture m3 result.household.members.2.id
+{"op":"plan.generate","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect error gate_refused
+{"op":"safety.catalog","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+@capture r1 result.restrictions.0.id
+{"op":"safety.parse","args":{"text":"no peanuts for Meera, zzzfood"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"safety.confirm","args":{"items":[{"restriction":"{{r1}}","scope":{"kind":"member","memberId":"{{m3}}"}},{"unresolvedText":"zzzfood"}]},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect error unresolved_items
+{"op":"safety.confirmNobody","args":{"pendingItemCount":1},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect error nobody_not_allowed
+{"op":"plan.generate","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect error gate_refused
+{"op":"safety.confirm","args":{"items":[{"restriction":"{{r1}}","scope":{"kind":"member","memberId":"{{m3}}"}}]},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"household.setName","args":{"memberId":"{{m1}}","name":"Asha"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"gate.status","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"plan.generate","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+@capture p result.plan.id
+@capture series result.plan.seriesId
+@capture meal0 result.plan.meals.0.id
+@capture meal1 result.plan.meals.1.id
+{"op":"plan.alternatives","args":{"planId":"{{p}}","mealId":"{{meal0}}","limit":3},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+@capture alt result.alternatives.0.recipeId
+{"op":"plan.swap","args":{"planId":"{{p}}","mealId":"{{meal0}}","recipeId":"{{alt}}"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"plan.swap","args":{"planId":"{{p}}","mealId":"{{meal0}}","recipeId":"no-such-recipe"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect error recipe_not_offered
+{"op":"plan.approve","args":{"planId":"{{p}}","shownContentHash":"0000","gesture":"confirm-button"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect error stale_preview
+{"op":"plan.approvalPreview","args":{"planId":"{{p}}"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+@capture shown result.plan.contentHash
+{"op":"plan.lock","args":{"planId":"{{p}}","mealId":"{{meal1}}"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"plan.approve","args":{"planId":"{{p}}","shownContentHash":"{{shown}}","gesture":"confirm-button"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect error stale_preview
+{"op":"plan.approvalPreview","args":{"planId":"{{p}}"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+@capture shown result.plan.contentHash
+{"op":"plan.approve","args":{"planId":"{{p}}","shownContentHash":"{{shown}}","gesture":"voice"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect error approval_gesture_required
+{"op":"plan.approve","args":{"planId":"{{p}}","shownContentHash":"{{shown}}","gesture":"confirm-button"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"plan.current","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"plan.unlock","args":{"planId":"{{p}}","mealId":"{{meal1}}"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+@capture rev result.plan.id
+{"op":"plan.pendingDiff","args":{"seriesId":"{{series}}"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"plan.discard","args":{"planId":"{{rev}}"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"state.export","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+@capture snap result.snapshot
+{"op":"state.import","args":{"snapshot":{{snap}}},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"state.export","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"plan.current","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"household.addMember","args":{"role":"adult"},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect ok
+{"op":"plan.generate","args":{},"ctx":{"now":"2026-11-02T04:30:00Z","timeZone":"Asia/Kolkata","locale":"en-IN"}}
+@expect error gate_refused
