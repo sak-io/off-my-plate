@@ -148,7 +148,7 @@ jobs:
           cd core
           X=.build/wasm32-unknown-wasip1/debug/CorePackageTests.xctest
           out=""
-          for kb in 1024 512 256; do
+          for kb in 3072 2048 1536 1024; do
             swift build --swift-sdk "$WASM_SDK" --build-tests -Xlinker -z -Xlinker stack-size=$((kb * 1024)) -Xlinker --stack-first -Xlinker --global-base=4194304 >/dev/null 2>&1 || { out="$out ${kb}KiB:link-failed"; continue; }
             if wasmtime run --dir=. "$X" --testing-library swift-testing --filter "LargeHouseholdStressTests|GoldenWeekPlanTests" >"$RUNNER_TEMP/probe.log" 2>&1; then out="$out ${kb}KiB:pass"; else out="$out ${kb}KiB:FAIL"; fi
           done
