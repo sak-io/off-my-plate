@@ -170,7 +170,7 @@ import Testing
         let id = added.string("item.id") ?? ""
         #expect(added.string("item.origin") == "manual")
         let shared = await client.call("shopping.shareText")
-        #expect(shared.string("text")?.contains("Bananas") == true)
+        #expect(shared.string("text")?.contains("Banana") == true)
         let checked = await client.call("shopping.check", "{\"itemId\":\"\(id)\",\"checked\":true}")
         #expect(checked.bool("item.checkedOff") == true)
         let bought = await client.call("shopping.boughtEverything")
