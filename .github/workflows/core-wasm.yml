@@ -26,7 +26,7 @@ env:
   # Link flags for every Wasm executable/test product (also W03's module): a 4 MiB stack, placed FIRST in linear
   # memory so an overflow traps instead of silently overwriting the heap and data. The default stack is far too small
   # for debug builds and caused the W01 "aborts" (docs/windows/w02-report.md, section 1).
-  WASM_LINK: "-Xlinker -z -Xlinker stack-size=4194304 -Xlinker --stack-first"
+  WASM_LINK: "-Xlinker -z -Xlinker stack-size=4194304 -Xlinker --stack-first -Xlinker --global-base=4194304"
   # Tests that cannot pass under wasmtime's WASI sandbox because they exercise the real file system
   # (DirectoryInboxStorage is native-only; the web app uses an in-memory/IndexedDB store behind InboxStorage).
   # Each is a Swift Testing id regex. Nothing else may be skipped.
