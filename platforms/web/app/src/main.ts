@@ -3,7 +3,7 @@ import { Core, makeCtx, type Reply } from "./core.js";
 import { loadCore, registerWorker, type LoadStats } from "./engine.js";
 import { deleteEverything, loadSnapshot, saveSnapshot } from "./store.js";
 
-const READ_ONLY = /^(meta|state)\.|\.(get|current|status|catalog|parse|recheck|alternatives|working|approved|pendingDiff|approvalPreview)$/;
+import { classify } from "./ops.js";
 
 class App {
   core!: Core;
@@ -14,8 +14,10 @@ class App {
 
   /** All core access goes through here: explicit ctx, then persist after a state-changing op. */
   async op(name: string, args?: Record<string, any>): Promise<Reply> {
+    const kind = classify(name);
+    if (kind === "unknown") throw new Error(`op ${name} is not classified in ops.ts`);
     const reply = this.core.call(name, args, makeCtx());
-    if (reply.ok && !READ_ONLY.test(name)) {
+    if (reply.ok && kind === "persisted") {
       const exp = this.core.call("state.export", {}, makeCtx());
       if (exp.ok) await saveSnapshot(exp.result.snapshot);
     }
@@ -119,6 +121,9 @@ function confirmDelete(panel: HTMLElement): void {
   yes.onclick = async () => {
     await deleteEverything();
     app.core = await Core.instantiate(app.bytes);   // drop the in-memory state too
+    // Self-check that nothing survived in memory (asserted by the browser test).
+    const after = app.core.call("household.get", {}, makeCtx());
+    document.documentElement.dataset.memory = after.ok && after.result.household == null ? "empty" : "not-empty";
     app.note = "";
     root.replaceChildren(el("main", { id: "deleted" }, el("h1", { textContent: "Everything was deleted" }),
       el("p", { textContent: "Reload this page while online to start again." })));
