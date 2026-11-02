@@ -264,6 +264,7 @@ test("keyboard only: chips with Space, text with Enter, answer with Enter", asyn
   await page.locator("#safety-continue").focus();
   await page.keyboard.press("Enter");
   await screen(page, "review");
+  await expect(page.locator("#save-yes")).toBeEnabled();      // wakes up shortly after the screen appears (double-tap guard)
   await page.locator("#save-yes").focus();
   await page.keyboard.press("Enter");
   await screen(page, "cuisines");
