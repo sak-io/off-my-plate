@@ -23,6 +23,8 @@ env:
   # sha256 of swift-6.2.4-RELEASE_wasm.artifactbundle.tar.gz (computed in W01). `swift sdk install --checksum` fails on a mismatch.
   WASM_SDK_SHA256: "32fdb8772d73bb174f77b5c59bc88a0d55003d75712832129394d3465158fb43"
   WASMTIME_VERSION: "v50.0.1"
+  # sha256 of wasmtime-v50.0.1-x86_64-linux.tar.xz (a downloaded executable: verified before use).
+  WASMTIME_SHA256: "685466455dd42a14774a86c36c8f2e45cbb9bd6d92a850139315df60a75498a5"
   # Link flags for every Wasm executable/test product (also W03's module): a 4 MiB stack, placed FIRST in linear
   # memory so an overflow traps instead of silently overwriting the heap and data. The default stack is far too small
   # for debug builds and caused the W01 "aborts" (docs/windows/w02-report.md, section 1).
@@ -61,6 +63,7 @@ jobs:
           scripts/wasm/annotated.sh sdk swift sdk install "$URL" --checksum "$WASM_SDK_SHA256"
           echo "WASM_SDK=$(swift sdk list | grep -i wasm | grep -iv embedded | head -1 | tr -d ' ')" >> "$GITHUB_ENV"
           curl -fsSL -o "$RUNNER_TEMP/wt.tar.xz" "https://github.com/bytecodealliance/wasmtime/releases/download/$WASMTIME_VERSION/wasmtime-$WASMTIME_VERSION-x86_64-linux.tar.xz"
+          echo "$WASMTIME_SHA256  $RUNNER_TEMP/wt.tar.xz" | sha256sum -c -
           mkdir -p "$RUNNER_TEMP/wt" && tar -xJf "$RUNNER_TEMP/wt.tar.xz" -C "$RUNNER_TEMP/wt" --strip-components=1
           echo "$RUNNER_TEMP/wt" >> "$GITHUB_PATH"
 
@@ -96,21 +99,60 @@ jobs:
             exit 1
           fi
 
-      - name: All other core tests (debug build; fails on any failure outside the documented file-system exclusions)
+      - name: Golden week plan and large-household stress on Wasm (must run, not just pass)
         run: |
           cd core
           X=.build/wasm32-unknown-wasip1/debug/CorePackageTests.xctest
+          set +e
+          wasmtime run -W max-wasm-stack=8388608 --dir=. "$X" --testing-library swift-testing --filter GoldenWeekPlanTests 2>&1 | tee "$RUNNER_TEMP/golden.log"
+          rc=${PIPESTATUS[0]}
+          wasmtime run -W max-wasm-stack=8388608 --dir=. "$X" --testing-library swift-testing --filter LargeHouseholdStressTests 2>&1 | tee "$RUNNER_TEMP/stress.log"
+          rc2=${PIPESTATUS[0]}
+          set -e
+          if [ $rc -ne 0 ] || [ $rc2 -ne 0 ] || ! ../scripts/assert-tests-ran.sh "$RUNNER_TEMP/golden.log" 2 \
+             || ! ../scripts/assert-tests-ran.sh "$RUNNER_TEMP/stress.log" 1 \
+             || ! grep -aq "GOLDEN-OK bytes=" "$RUNNER_TEMP/golden.log" || ! grep -aq "STRESS-OK" "$RUNNER_TEMP/stress.log"; then
+            echo "::error::Wasm golden/stress FAILED rc=$rc/$rc2 :: $( (grep -ahE 'Fatal|trap|✘|recorded an issue|first difference' "$RUNNER_TEMP/golden.log" "$RUNNER_TEMP/stress.log" | head -8) | cut -c1-400 | sed ':a;N;$!ba;s/\n/%0A/g')"
+            exit 1
+          fi
+
+      - name: All other core tests (debug build; exact count; fails on any failure outside the documented file-system exclusions)
+        run: |
+          cd core
+          X=.build/wasm32-unknown-wasip1/debug/CorePackageTests.xctest
+          wasmtime run --dir=. "$X" --testing-library swift-testing --list-tests > "$RUNNER_TEMP/list.log" 2>&1
+          total=$(grep -acE '^[A-Za-z0-9]+Tests\.' "$RUNNER_TEMP/list.log")
+          safety=$(grep -acE '^OMPSafetySuiteTests\.' "$RUNNER_TEMP/list.log")
+          nskip=0
           skips=(--skip OMPSafetySuiteTests)
-          for s in $WASM_SKIP_FS; do skips+=(--skip "$s"); done
+          for s in $WASM_SKIP_FS; do
+            n=$(grep -acE "$s" "$RUNNER_TEMP/list.log"); nskip=$((nskip + n)); skips+=(--skip "$s")
+          done
+          expected=$((total - safety - nskip))
+          echo "listed=$total safety=$safety excluded-fs=$nskip expected=$expected"
           set +e
           wasmtime run -W max-wasm-stack=8388608 --dir=. "$X" --testing-library swift-testing "${skips[@]}" 2>&1 | tee "$RUNNER_TEMP/rest.log"
           rc=${PIPESTATUS[0]}
           set -e
-          # 620 tests exist; 8 safety + 3 excluded are not run here.
-          if [ $rc -ne 0 ] || ! ../scripts/assert-tests-ran.sh "$RUNNER_TEMP/rest.log" 600; then
-            echo "::error::Wasm tests FAILED rc=$rc :: $(grep -aE 'Fatal|trap|✘|recorded an issue|failed' "$RUNNER_TEMP/rest.log" | head -8 | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')"
+          ran=$(sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g' "$RUNNER_TEMP/rest.log" | grep -aoE 'Test run with [0-9]+ tests?' | grep -oE '[0-9]+' | awk '{s+=$1} END{print s+0}')
+          echo "::notice::wasm rest: listed=$total safety=$safety excluded=$nskip expected=$expected ran=$ran"
+          if [ "$nskip" -ne 3 ] || [ $rc -ne 0 ] || [ "$ran" != "$expected" ]; then
+            echo "::error::Wasm tests FAILED rc=$rc ran=$ran expected=$expected excluded=$nskip :: $(grep -aE 'Fatal|trap|✘|recorded an issue|failed' "$RUNNER_TEMP/rest.log" | head -8 | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')"
             exit 1
           fi
+
+      # Informational: how much stack margin do the stress and golden tests have in a debug build? Relinks the
+      # debug test product with smaller stacks (global-base stays 4 MiB). A failure here is a margin finding, not a gate.
+      - name: Stack margin probe (informational)
+        run: |
+          cd core
+          X=.build/wasm32-unknown-wasip1/debug/CorePackageTests.xctest
+          out=""
+          for kb in 1024 512 256; do
+            swift build --swift-sdk "$WASM_SDK" --build-tests -Xlinker -z -Xlinker stack-size=$((kb * 1024)) -Xlinker --stack-first -Xlinker --global-base=4194304 >/dev/null 2>&1 || { out="$out ${kb}KiB:link-failed"; continue; }
+            if wasmtime run --dir=. "$X" --testing-library swift-testing --filter "LargeHouseholdStressTests|GoldenWeekPlanTests" >"$RUNNER_TEMP/probe.log" 2>&1; then out="$out ${kb}KiB:pass"; else out="$out ${kb}KiB:FAIL"; fi
+          done
+          echo "::notice::stack margin (debug, stress+golden):$out (4096KiB configured)"
 
       - name: Summary
         if: always()
@@ -119,6 +161,7 @@ jobs:
             echo '## core-wasm'
             echo "safety (release): $(grep -ah 'Test run with' "$RUNNER_TEMP/safety.log" 2>/dev/null | tail -1)"
             echo "rest (debug): $(grep -ah 'Test run with' "$RUNNER_TEMP/rest.log" 2>/dev/null | tail -1)"
+            echo "golden: $(grep -ah 'GOLDEN-OK' "$RUNNER_TEMP/golden.log" 2>/dev/null | tail -1) stress: $(grep -ah 'STRESS-OK' "$RUNNER_TEMP/stress.log" 2>/dev/null | tail -1)"
             echo "excluded (file system): $WASM_SKIP_FS"
           } >> "$GITHUB_STEP_SUMMARY"
-          echo "::notice::safety (release): $(grep -ah 'Test run with' "$RUNNER_TEMP/safety.log" 2>/dev/null | tail -1) | rest (debug): $(grep -ah 'Test run with' "$RUNNER_TEMP/rest.log" 2>/dev/null | tail -1) | golden ran: $(grep -ac 'weekPlanMatchesGolden' "$RUNNER_TEMP/rest.log")"
+          echo "::notice::safety (release): $(grep -ah 'Test run with' "$RUNNER_TEMP/safety.log" 2>/dev/null | tail -1) | rest (debug): $(grep -ah 'Test run with' "$RUNNER_TEMP/rest.log" 2>/dev/null | tail -1) | $(grep -ah 'GOLDEN-OK' "$RUNNER_TEMP/golden.log" 2>/dev/null | tail -1) | $(grep -ah 'STRESS-OK' "$RUNNER_TEMP/stress.log" 2>/dev/null | tail -1)"

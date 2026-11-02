@@ -44,6 +44,7 @@ struct GoldenWeekPlanTests {
         #expect(!expected.isEmpty, "golden fixture is empty")
         // Compare as a Bool first and describe only the first difference, so a failure stays readable.
         let same = actual == expected
+        if same { print("GOLDEN-OK bytes=\(actual.utf8.count)") }
         #expect(same, Comment(rawValue: Self.firstDifference(actual, expected)))
     }
 

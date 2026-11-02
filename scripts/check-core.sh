@@ -41,6 +41,12 @@ for lint in "$repo_root"/scripts/lint-*.sh; do
   "$lint"
 done
 
+step "embedded seed matches Resources/seed (gen-seed-embedded.py --check)"
+python3 "$repo_root/scripts/gen-seed-embedded.py" --check || {
+  echo "check-core: SeedEmbedded.generated.swift is stale; run: python3 scripts/gen-seed-embedded.py" >&2
+  exit 1
+}
+
 if [[ "$lint_only" == true ]]; then
   printf '\ncheck-core: lints OK (Swift build and tests skipped: --lint-only)\n'
   exit 0

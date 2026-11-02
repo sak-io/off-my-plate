@@ -4,9 +4,11 @@
 The generated file carries the seed as base64 so a build without a resource bundle (WebAssembly)
 can load it with SeedLoader.load(SeedFiles). Usage: gen-seed-embedded.py [--check]
 --check exits 1 if the committed file differs from what the JSON would generate."""
-import base64, pathlib, sys
+import base64, os, pathlib, sys
 
-root = pathlib.Path(__file__).resolve().parent.parent / "core" / "Sources" / "OMPRecipes"
+# OMP_RECIPES_DIR overrides the OMPRecipes source directory (used by the self-test on a temp copy).
+root = pathlib.Path(os.environ.get("OMP_RECIPES_DIR") or
+                    pathlib.Path(__file__).resolve().parent.parent / "core" / "Sources" / "OMPRecipes")
 out = root / "SeedEmbedded.generated.swift"
 
 def block(name: str) -> str:
