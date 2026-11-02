@@ -1,0 +1,33 @@
+# TEMPORARY (W02): crash diagnosis for the 5 Wasm aborts. Deleted before W02 ends.
+name: core-wasm-diag
+on:
+  push:
+    branches: ["claude/ci-w*"]
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    container: swift:6.2.4-noble
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Diagnose
+        run: |
+          set +e
+          bash scripts/wasm/diag.sh
+          true
+      - name: Annotations 1
+        if: always()
+        run: bash scripts/wasm/emit.sh 1 10
+      - name: Annotations 2
+        if: always()
+        run: bash scripts/wasm/emit.sh 11 20
+      - name: Annotations 3
+        if: always()
+        run: bash scripts/wasm/emit.sh 21 30
