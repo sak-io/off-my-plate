@@ -102,7 +102,7 @@ jobs:
           m=$(cat metrics/metrics.json 2>/dev/null | tr -d '\n ' || true)
           echo "::notice::METRICS $m"
           if [ $rc -ne 0 ]; then
-            echo "::error::playwright FAILED rc=$rc :: $(grep -aE '✘|Error|expect|Received|Expected|Timeout|›' "$RUNNER_TEMP/pw.log" | head -24 | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')"
+            echo "::error::playwright FAILED rc=$rc :: $(grep -aE '✘|Error|expect|Received|Expected|Timeout|›' "$RUNNER_TEMP/pw.log" | head -40 | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')"
             exit 1
           fi
       - name: Upload test results
