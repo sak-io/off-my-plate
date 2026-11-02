@@ -1,7 +1,10 @@
-# W01 spike (docs/windows/plan.md, ADR 0016): does Core build for WebAssembly (wasm32-wasi) with the
-# Swift 6.2 Wasm SDK, and do its tests, including the non-skippable safety suite, pass under wasmtime?
-# Independent of core-linux.yml / apple-macos.yml. Results are written to the job summary and, while
-# the spike runs, echoed as annotations (SPIKE_ANNOTATE) so they can be read without a token.
+# Core on WebAssembly (wasm32-wasi), docs/windows/plan.md, ADR 0016. W01 proved the build; W02 makes it a gate:
+#   - the Wasm SDK is pinned by checksum and must come from the same release as the compiler image;
+#   - the non-skippable safety suite runs in a RELEASE build as its own step;
+#   - every other core test target runs (debug build) and the job FAILS on any failing test, except the
+#     documented file-system exclusions below (no .disabled / withKnownIssue anywhere: lint-safety.sh forbids it);
+#   - the golden week plan (GoldenWeekPlanTests) is compared with the same fixture natively (core-linux) and here.
+# Independent of core-linux.yml / apple-macos.yml. Failures are echoed as annotations so they are readable without a token.
 name: core-wasm
 
 on:
@@ -17,21 +20,31 @@ defaults:
     shell: bash
 
 env:
-  # Empty while the spike discovers it: the step prints the computed sum so it can be pinned.
-  WASM_SDK_SHA256: ""
-  SPIKE_ANNOTATE: "false"
+  # sha256 of swift-6.2.4-RELEASE_wasm.artifactbundle.tar.gz (computed in W01). `swift sdk install --checksum` fails on a mismatch.
+  WASM_SDK_SHA256: "32fdb8772d73bb174f77b5c59bc88a0d55003d75712832129394d3465158fb43"
+  WASMTIME_VERSION: "v50.0.1"
+  # sha256 of wasmtime-v50.0.1-x86_64-linux.tar.xz (a downloaded executable: verified before use).
+  WASMTIME_SHA256: "685466455dd42a14774a86c36c8f2e45cbb9bd6d92a850139315df60a75498a5"
+  # Link flags for every Wasm executable/test product (also W03's module): a 4 MiB stack, placed FIRST in linear
+  # memory so an overflow traps instead of silently overwriting the heap and data. The default stack is far too small
+  # for debug builds and caused the W01 "aborts" (docs/windows/w02-report.md, section 1).
+  WASM_LINK: "-Xlinker -z -Xlinker stack-size=4194304 -Xlinker --stack-first -Xlinker --global-base=4194304"
+  # Tests that cannot pass under wasmtime's WASI sandbox because they exercise the real file system
+  # (DirectoryInboxStorage is native-only; the web app uses an in-memory/IndexedDB store behind InboxStorage).
+  # Each is a Swift Testing id regex. Nothing else may be skipped.
+  WASM_SKIP_FS: "DirectoryInboxStorageTests/deleteAllRemovesRoot DirectoryInboxStorageTests/pruneKeepsNewest DirectoryInboxStorageTests/symlinkIsNotFollowed"
 
 jobs:
   wasm:
     name: Core on WebAssembly (Linux, Swift ${{ matrix.swift }} + Wasm SDK)
     runs-on: ubuntu-latest
     container: swift:${{ matrix.swift }}-noble
-    timeout-minutes: 45
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        # The Wasm SDK must be built by exactly the toolchain that uses it ("module compiled with Swift 6.2
-        # cannot be imported by the Swift 6.2.4 compiler"), so the image tag and the SDK URL move together.
+        # The SDK and the compiler must be the same release ("module compiled with Swift 6.2 cannot be imported by the
+        # Swift 6.2.4 compiler"), so the image tag, the SDK URL and WASM_SDK_SHA256 move together.
         swift: ["6.2.4"]
     steps:
       - name: Check out
@@ -39,220 +52,116 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Spike (install SDK + wasmtime, build, test per target, classify)
+      - name: Install Wasm SDK (pinned checksum) and wasmtime
         env:
           SWIFT_VER: ${{ matrix.swift }}
         run: |
-          set +e
-          if [ "$SWIFT_VER" = "6.2.0" ]; then V=6.2; else V=$SWIFT_VER; fi
-          WASM_SDK_URL="https://download.swift.org/swift-$V-release/wasm-sdk/swift-$V-RELEASE/swift-$V-RELEASE_wasm.artifactbundle.tar.gz"
-          R="$RUNNER_TEMP/res.txt"; : > "$R"
-          note() { echo "$*" | tee -a "$R"; }
-          # tail of a log, newline-encoded so it fits in one annotation
-          tailenc() { tail -n "${2:-25}" "$1" | cut -c1-300 | head -c 3000 | sed ':a;N;$!ba;s/\n/%0A/g'; }
-          t0=$(date +%s)
-          lap() { local n; n=$(date +%s); echo "$((n-t0))s"; t0=$n; }
-
-          swift --version 2>&1 | tee -a "$R"
-          apt-get update -qq && apt-get install -y -qq xz-utils curl ca-certificates >/dev/null 2>&1
-
-          # ---- Wasm SDK
-          curl -fsSL -o "$RUNNER_TEMP/wasm-sdk.tar.gz" "$WASM_SDK_URL" 2>"$RUNNER_TEMP/dl.err" || { note "SDK DOWNLOAD FAILED: $(cat $RUNNER_TEMP/dl.err)"; }
-          SUM=$(sha256sum "$RUNNER_TEMP/wasm-sdk.tar.gz" | cut -d' ' -f1)
-          note "SDK sha256=$SUM size=$(stat -c %s "$RUNNER_TEMP/wasm-sdk.tar.gz")"
-          [ -n "$WASM_SDK_SHA256" ] && [ "$WASM_SDK_SHA256" != "$SUM" ] && note "SDK CHECKSUM MISMATCH (pinned $WASM_SDK_SHA256)"
-          swift sdk install "$WASM_SDK_URL" --checksum "${WASM_SDK_SHA256:-$SUM}" >"$RUNNER_TEMP/sdk.log" 2>&1 || note "SDK INSTALL FAILED: $(tailenc "$RUNNER_TEMP/sdk.log" 10)"
-          swift sdk list 2>&1 | tee "$RUNNER_TEMP/sdklist.log"
-          SDK=$(grep -i wasm "$RUNNER_TEMP/sdklist.log" | grep -iv embedded | head -1 | tr -d ' ')
-          note "SDK id=$SDK (all: $(tr '\n' ' ' < "$RUNNER_TEMP/sdklist.log")) install=$(lap)"
-
-          # ---- wasmtime
-          TAG=$(curl -fsSL https://api.github.com/repos/bytecodealliance/wasmtime/releases/latest | grep -m1 '"tag_name"' | sed -E 's/.*"(v[^"]+)".*/\1/')
-          note "wasmtime tag=$TAG"
-          curl -fsSL -o "$RUNNER_TEMP/wt.tar.xz" "https://github.com/bytecodealliance/wasmtime/releases/download/$TAG/wasmtime-$TAG-x86_64-linux.tar.xz" || note "WASMTIME DOWNLOAD FAILED"
+          set -euo pipefail
+          apt-get update -qq && apt-get install -y -qq xz-utils curl ca-certificates >/dev/null
+          swift --version
+          URL="https://download.swift.org/swift-$SWIFT_VER-release/wasm-sdk/swift-$SWIFT_VER-RELEASE/swift-$SWIFT_VER-RELEASE_wasm.artifactbundle.tar.gz"
+          scripts/wasm/annotated.sh sdk swift sdk install "$URL" --checksum "$WASM_SDK_SHA256"
+          echo "WASM_SDK=$(swift sdk list | grep -i wasm | grep -iv embedded | head -1 | tr -d ' ')" >> "$GITHUB_ENV"
+          curl -fsSL -o "$RUNNER_TEMP/wt.tar.xz" "https://github.com/bytecodealliance/wasmtime/releases/download/$WASMTIME_VERSION/wasmtime-$WASMTIME_VERSION-x86_64-linux.tar.xz"
+          echo "$WASMTIME_SHA256  $RUNNER_TEMP/wt.tar.xz" | sha256sum -c -
           mkdir -p "$RUNNER_TEMP/wt" && tar -xJf "$RUNNER_TEMP/wt.tar.xz" -C "$RUNNER_TEMP/wt" --strip-components=1
-          export PATH="$RUNNER_TEMP/wt:$PATH"
-          note "wasmtime: $(wasmtime --version 2>&1) $(lap)"
+          echo "$RUNNER_TEMP/wt" >> "$GITHUB_PATH"
 
-          # ---- build (library products first, then with tests)
+      - name: Build library products for Wasm
+        run: |
+          set -euo pipefail
+          echo "SDK $WASM_SDK"
           cd core
           for p in OMPDomain OMPSafetyCheck OMPRecipes OMPServices; do
-            swift build --swift-sdk "$SDK" --product $p >"$RUNNER_TEMP/b-$p.log" 2>&1
-            rc=$?; note "BUILD $p rc=$rc $(lap)"
-            [ $rc -ne 0 ] && note "  build log: $(tailenc "$RUNNER_TEMP/b-$p.log" 30)"
-          done
-          swift build --swift-sdk "$SDK" --build-tests >"$RUNNER_TEMP/bt.log" 2>&1
-          rc=$?; note "BUILD-TESTS rc=$rc $(lap)"
-          [ $rc -ne 0 ] && note "  build-tests log: $(tailenc "$RUNNER_TEMP/bt.log" 40)"
-          ls -la .build/*/debug/*.wasm .build/*/debug/*.xctest 2>&1 | head -20 | tee -a "$R"
-          ls .build 2>&1 | tee -a "$R"
-
-          # ---- tests: SwiftPM does not launch wasm test products itself here (Exec format error), so run the
-          # test product under wasmtime directly. Swift Testing is selected with --testing-library.
-          X=$(ls .build/wasm32-unknown-wasip1/debug/*.xctest | head -1)
-          note "test product: $X"
-          wt() { wasmtime run --dir=. "$X" -- "$@"; }
-          wt --help >"$RUNNER_TEMP/h.log" 2>&1; note "HELP rc=$? $(tailenc "$RUNNER_TEMP/h.log" 25)"
-          wt --testing-library swift-testing --list-tests >"$RUNNER_TEMP/list.log" 2>&1
-          note "LIST rc=$? lines=$(wc -l < "$RUNNER_TEMP/list.log") $(tailenc "$RUNNER_TEMP/list.log" 6)"
-          # AOT-compile once so the per-test runs below do not re-compile 100 MB of wasm each time.
-          wasmtime compile "$X" -o "$RUNNER_TEMP/tests.cwasm" 2>"$RUNNER_TEMP/cc.log"; note "COMPILE rc=$? $(lap) $(stat -c %s "$RUNNER_TEMP/tests.cwasm") bytes"
-          X="$RUNNER_TEMP/tests.cwasm"
-          BD="$PWD/.build/wasm32-unknown-wasip1/debug"; export BD; ls -d "$BD"/*.resources 2>&1 | tee -a "$R"
-          wt() { wasmtime run --allow-precompiled --dir=. --dir "$BD" "$X" "$@"; }
-          for tgt in OMPDomainTests OMPSafetySuiteTests; do
-            wt --testing-library swift-testing --filter $tgt >"$RUNNER_TEMP/t-$tgt.log" 2>&1
-            rc=$?; note "TEST(whole target) $tgt rc=$rc $(lap)"
-            grep -aE "Test run with" "$RUNNER_TEMP/t-$tgt.log" | head -3 | sed 's/^/  /' | tee -a "$R"
+            ../scripts/wasm/annotated.sh "build-$p" swift build --swift-sdk "$WASM_SDK" --product $p
           done
 
-          grep -a "recorded an issue" "$RUNNER_TEMP/t-OMPSafetySuiteTests.log" | sed -E 's/.*recorded an issue at //' | cut -c1-420 | sort -u | head -1 | sed 's/^/ISSUE: /' | tee -a "$R"
-
-          # ---- every test of the other targets on its own, in parallel, to classify crashes vs passes
-          cat > "$RUNNER_TEMP/one.sh" <<'ONE'
-          id="$1"
-          esc="${id//(/\\(}"; esc="${esc//)/\\)}"
-          nomod="${esc#*.}"
-          variant=0
-          for pat in "^${esc}\$" "${esc}" "${nomod}" "${esc%\\(\\)}"; do
-            out=$(wasmtime run --allow-precompiled --dir=. --dir "$BD" "$X" --testing-library swift-testing --filter "$pat" 2>&1); rc=$?
-            [ $rc -ne 69 ] && break
-            variant=$((variant+1))
-          done
-          sum=$(printf '%s' "$out" | grep -aE "Test run with" | head -1 | grep -aoE "with [0-9]+ tests? .*passed|failed" | head -1)
-          reason=$(printf '%s' "$out" | grep -aE "Fatal error|wasm trap|demangle|unreachable|out of bounds|recorded an issue" | grep -av "^ *[0-9]*: " | head -1 | cut -c1-330); [ -z "$reason" ] && reason=$(printf '%s' "$out" | grep -aE "Fatal error|error:|Issue recorded|trap|panic|Unexpectedly|failed|No tests|Bundle" | grep -av "^ *[0-9]*: " | head -1 | cut -c1-200); [ -z "$reason" ] && reason="first: $(printf '%s' "$out" | head -n 3 | tr '\n' '|' | cut -c1-200)"
-          [ $rc -ne 0 ] && printf '%s\n' "$out" > "$RUNNER_TEMP/fail-$(printf '%s' "$id" | tr -c 'A-Za-z0-9' _).log"
-          echo "RC=$rc :: $id :: v$variant ${sum:-nosummary} :: $reason"
-          ONE
-          sed -i 's/^          //' "$RUNNER_TEMP/one.sh"
-          export X BD
-          grep -E "^(OMPSafetySuiteTests|OMPSafetyCheckTests|OMPRecipesTests|OMPServicesTests)\." "$RUNNER_TEMP/list.log" > "$RUNNER_TEMP/ids.txt"
-          note "per-test ids: $(wc -l < "$RUNNER_TEMP/ids.txt")"
-          tr '\n' '\0' < "$RUNNER_TEMP/ids.txt" | xargs -0 -P 4 -n 1 bash "$RUNNER_TEMP/one.sh" > "$RUNNER_TEMP/per.txt" 2>&1
-          note "PER-TEST done $(lap): pass=$(grep -c '^RC=0' "$RUNNER_TEMP/per.txt") fail=$(grep -vc '^RC=0' "$RUNNER_TEMP/per.txt")"
-          for tgt in OMPSafetySuiteTests OMPSafetyCheckTests OMPRecipesTests OMPServicesTests; do
-            note "$tgt: pass=$(grep "^RC=0 :: $tgt\." "$RUNNER_TEMP/per.txt" | wc -l) fail=$(grep -v "^RC=0" "$RUNNER_TEMP/per.txt" | grep -c " :: $tgt\.")"
-          done
-          note "FAIL reasons:"
-          grep -v '^RC=0' "$RUNNER_TEMP/per.txt" | awk -F' :: ' '{print $1" :: "substr($4,1,150)}' | sort | uniq -c | sort -rn | head -12 | tee -a "$R"
-          note "FAILED tests (target.suite/test):"
-          grep -v '^RC=0' "$RUNNER_TEMP/per.txt" | awk -F' :: ' '{print $2}' | sed -E 's|/.*||' | sort | uniq -c | tr '\n' ';' | tee -a "$R"; echo >> "$R"
-          note "NON-SEED failures:"
-          for f in "$RUNNER_TEMP"/fail-OMPServicesTests*.log; do
-            echo "-- $(basename "$f")"; grep -aE "Fatal|rror|trap|wasm backtrace|demangle|recorded an issue|panic|unreachable" "$f" | grep -av "^ *[0-9]*: " | head -n 3 | cut -c1-420
-          done | tee -a "$R"
-          grep -v '^RC=0' "$RUNNER_TEMP/per.txt" | grep -av "Code=260\|catalog.jso\|NSCocoaErrorDomain" | cut -c1-360 | sort | head -40 | tee -a "$R"
-
-
-          # ---- Foundation / runtime probe: a scratch package outside core/ (nothing in core is changed)
-          mkdir -p "$RUNNER_TEMP/probe/Sources/probe"
-          cat > "$RUNNER_TEMP/probe/Package.swift" <<'PKG'
-          // swift-tools-version: 6.0
-          import PackageDescription
-          let package = Package(name: "probe", targets: [.executableTarget(name: "probe")], swiftLanguageModes: [.v5])
-          PKG
-          cat > "$RUNNER_TEMP/probe/Sources/probe/main.swift" <<'SRC'
-          import Foundation
-          func p(_ s: String) { print(s) }
-          func probe(_ name: String, _ f: () throws -> String) { do { p("\(name): \(try f())") } catch { p("\(name): THROWS \(String("\(error)".prefix(260)))") } }
-          let base = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "."
-          let file = base + "/Core_OMPRecipes.resources/seed/catalog.json"
-          probe("fm.contents") { "\(FileManager.default.contents(atPath: file)?.count ?? -1)" }
-          probe("fm.fileExists") { "\(FileManager.default.fileExists(atPath: file))" }
-          probe("Data(contentsOf:fileURL)") { "\(try Data(contentsOf: URL(fileURLWithPath: file)).count)" }
-          probe("String(contentsOfFile)") { "\(try String(contentsOfFile: file, encoding: .utf8).count)" }
-          probe("url.path roundtrip") { URL(fileURLWithPath: file).path.suffix(14).description }
-          probe("Bundle(path:).url(forResource)") {
-              let b = Bundle(path: base + "/Core_OMPRecipes.resources")
-              let u = b?.url(forResource: "catalog", withExtension: "json", subdirectory: "seed")
-              return "bundle=\(b != nil) url=\(u?.path.suffix(22) ?? "nil") resourceURL=\(b?.resourceURL?.path.suffix(24) ?? "nil")"
-          }
-          probe("Bundle(path:).url -> Data") {
-              let b = Bundle(path: base + "/Core_OMPRecipes.resources")
-              let u = b?.url(forResource: "catalog", withExtension: "json", subdirectory: "seed")
-              return "\(try Data(contentsOf: u!).count)"
-          }
-          probe("MemoryLayout<Int>.size / Int.max") { "\(MemoryLayout<Int>.size) \(Int.max)" }
-          probe("TimeZone(Asia/Kolkata)") { "\(TimeZone(identifier: "Asia/Kolkata")?.secondsFromGMT(for: Date(timeIntervalSince1970: 1_700_000_000)) ?? -1)" }
-          probe("TimeZone(America/Los_Angeles)") { "\(TimeZone(identifier: "America/Los_Angeles")?.secondsFromGMT(for: Date(timeIntervalSince1970: 1_700_000_000)) ?? -1)" }
-          probe("TimeZone.current") { TimeZone.current.identifier }
-          probe("Locale.current") { Locale.current.identifier }
-          probe("Calendar gregorian fields UTC") {
-              var c = Calendar(identifier: .gregorian); c.timeZone = TimeZone(secondsFromGMT: 0)!
-              let d = Date(timeIntervalSince1970: 1_700_000_000)
-              let x = c.dateComponents([.year,.month,.day,.weekday,.hour], from: d)
-              let n = c.date(byAdding: .day, value: 7, to: d)!
-              return "\(x.year!)-\(x.month!)-\(x.day!) wd\(x.weekday!) h\(x.hour!) +7d=\(Int(n.timeIntervalSince1970)) startOfDay=\(Int(c.startOfDay(for: d).timeIntervalSince1970)) firstWeekday=\(c.firstWeekday)"
-          }
-          probe("ISO8601DateFormatter") { ISO8601DateFormatter().string(from: Date(timeIntervalSince1970: 1_700_000_000)) }
-          probe("DateFormatter POSIX") {
-              let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.timeZone = TimeZone(secondsFromGMT: 0); f.dateFormat = "yyyy-MM-dd'T'HH:mm"
-              return f.string(from: Date(timeIntervalSince1970: 1_700_000_000))
-          }
-          probe("JSONEncoder sortedKeys") {
-              let e = JSONEncoder(); e.outputFormatting = [.sortedKeys]
-              return String(decoding: try e.encode(["b": 1, "a": 2]), as: UTF8.self)
-          }
-          probe("JSONEncoder [.sortedKeys,.prettyPrinted,.withoutEscapingSlashes]") {
-              let e = JSONEncoder(); e.outputFormatting = [.sortedKeys, .prettyPrinted, .withoutEscapingSlashes]
-              return String(decoding: try e.encode(["b": "x/y", "a": "2"]), as: UTF8.self).replacingOccurrences(of: "\n", with: "~")
-          }
-          probe("JSONDecoder iso8601 Date") {
-              struct S: Codable { var d: Date }
-              let dec = JSONDecoder(); dec.dateDecodingStrategy = .iso8601
-              return "\(Int(try dec.decode(S.self, from: Data("{\"d\":\"2023-11-14T22:13:20Z\"}".utf8)).d.timeIntervalSince1970))"
-          }
-          probe("String ops") {
-              let s = "İstanbul Crème Brûlée ½ cup"
-              return "\(s.lowercased()) | \(s.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: nil)) | \(s.precomposedStringWithCanonicalMapping.count) | \(s.range(of: "creme", options: [.caseInsensitive, .diacriticInsensitive]) != nil)"
-          }
-          probe("String(format:)") { String(format: "%.2f %5d %@", 3.14159, 42, "x") }
-          probe("UUID/Date") { "\(UUID().uuidString.count) \(Date().timeIntervalSince1970 > 1_700_000_000)" }
-          probe("NSLock") { let l = NSLock(); l.lock(); l.unlock(); return "ok" }
-          actor Counter { var n = 0; func inc() { n += 1 } }
-          let c = Counter()
-          await withTaskGroup(of: Void.self) { g in for _ in 0..<100 { g.addTask { await c.inc() } } }
-          p("actor+taskgroup: \(await c.n)")
-          p("Task.sleep: \(await { () -> String in do { try await Task.sleep(nanoseconds: 1_000_000); return "ok" } catch { return "THROWS \(error)" } }())")
-          SRC
-          sed -i 's/^          //' "$RUNNER_TEMP/probe/Package.swift" "$RUNNER_TEMP/probe/Sources/probe/main.swift"
-          (cd "$RUNNER_TEMP/probe" && swift build --swift-sdk "$SDK" >"$RUNNER_TEMP/probe-build.log" 2>&1; echo "PROBE BUILD rc=$?"; tail -n 12 "$RUNNER_TEMP/probe-build.log" | grep -a "error" | head -8) 2>&1 | tee -a "$R"
-          PW=$(ls "$RUNNER_TEMP"/probe/.build/wasm32-unknown-wasip1/debug/probe.wasm 2>/dev/null)
-          wasmtime run --dir=. --dir "$BD" "$PW" "$BD" >"$RUNNER_TEMP/probe-run.log" 2>&1; note "PROBE RUN rc=$?"
-          cut -c1-330 "$RUNNER_TEMP/probe-run.log" | head -45 | tee -a "$R"
-
-          note "wasm size: $(du -sh .build/*/debug 2>/dev/null | tr '\n' ' ')"
-          { echo '## core-wasm spike'; echo '```'; cat "$R"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-          cut -c1-400 "$R" | head -c 110000 | split -C 3800 -d - "$RUNNER_TEMP/chunk."
-          ls "$RUNNER_TEMP"/chunk.* | wc -l
-          ! grep -qE "FAILED|rc=[1-9]" "$R"
-
-      # GitHub keeps at most 10 error annotations per step, so the spike result is spread over 3 steps.
-      - name: Spike report 1/3 (annotations, while the spike runs)
-        if: always() && env.SPIKE_ANNOTATE == 'true'
+      - name: Build tests (debug and release)
         run: |
-          ls "$RUNNER_TEMP"/chunk.* 2>/dev/null | sed -n '1,10p' | while read -r f; do
-            echo "::error::$(sed ':a;N;$!ba;s/\n/%0A/g' "$f")"
-          done
-          [ 0 -eq 2 ] && exit 1
-          exit 0
+          set -euo pipefail
+          cd core
+          # Release needs -enable-testing for @testable imports. Different configurations, so both builds are kept.
+          ../scripts/wasm/annotated.sh build-debug swift build --swift-sdk "$WASM_SDK" --build-tests $WASM_LINK
+          ../scripts/wasm/annotated.sh build-release swift build --swift-sdk "$WASM_SDK" --build-tests -c release -Xswiftc -enable-testing $WASM_LINK
+          ls -la .build/wasm32-unknown-wasip1/*/CorePackageTests.xctest
 
-      # GitHub keeps at most 10 error annotations per step, so the spike result is spread over 3 steps.
-      - name: Spike report 2/3 (annotations, while the spike runs)
-        if: always() && env.SPIKE_ANNOTATE == 'true'
+      # No `--dir` for the build directory: Wasm must not need Bundle.module (the seed is embedded, W02).
+      - name: Safety suite (release build, non-skippable)
         run: |
-          ls "$RUNNER_TEMP"/chunk.* 2>/dev/null | sed -n '11,20p' | while read -r f; do
-            echo "::error::$(sed ':a;N;$!ba;s/\n/%0A/g' "$f")"
-          done
-          [ 1 -eq 2 ] && exit 1
-          exit 0
+          cd core
+          X=.build/wasm32-unknown-wasip1/release/CorePackageTests.xctest
+          set +e
+          wasmtime run -W max-wasm-stack=8388608 --dir=. "$X" --testing-library swift-testing --filter OMPSafetySuiteTests 2>&1 | tee "$RUNNER_TEMP/safety.log"
+          rc=${PIPESTATUS[0]}
+          set -e
+          if [ $rc -ne 0 ] || ! ../scripts/assert-tests-ran.sh "$RUNNER_TEMP/safety.log" 8; then
+            echo "::error::Wasm safety suite FAILED rc=$rc :: $(grep -aE 'Fatal|trap|✘|recorded an issue|failed' "$RUNNER_TEMP/safety.log" | head -8 | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')"
+            exit 1
+          fi
 
-      # GitHub keeps at most 10 error annotations per step, so the spike result is spread over 3 steps.
-      - name: Spike report 3/3 (annotations, while the spike runs)
-        if: always() && env.SPIKE_ANNOTATE == 'true'
+      - name: Golden week plan and large-household stress on Wasm (must run, not just pass)
         run: |
-          ls "$RUNNER_TEMP"/chunk.* 2>/dev/null | sed -n '21,30p' | while read -r f; do
-            echo "::error::$(sed ':a;N;$!ba;s/\n/%0A/g' "$f")"
+          cd core
+          X=.build/wasm32-unknown-wasip1/debug/CorePackageTests.xctest
+          set +e
+          wasmtime run -W max-wasm-stack=8388608 --dir=. "$X" --testing-library swift-testing --filter GoldenWeekPlanTests 2>&1 | tee "$RUNNER_TEMP/golden.log"
+          rc=${PIPESTATUS[0]}
+          wasmtime run -W max-wasm-stack=8388608 --dir=. "$X" --testing-library swift-testing --filter LargeHouseholdStressTests 2>&1 | tee "$RUNNER_TEMP/stress.log"
+          rc2=${PIPESTATUS[0]}
+          set -e
+          if [ $rc -ne 0 ] || [ $rc2 -ne 0 ] || ! ../scripts/assert-tests-ran.sh "$RUNNER_TEMP/golden.log" 2 \
+             || ! ../scripts/assert-tests-ran.sh "$RUNNER_TEMP/stress.log" 1 \
+             || ! grep -aq "GOLDEN-OK bytes=" "$RUNNER_TEMP/golden.log" || ! grep -aq "STRESS-OK" "$RUNNER_TEMP/stress.log"; then
+            echo "::error::Wasm golden/stress FAILED rc=$rc/$rc2 :: $( (grep -ahE 'Fatal|trap|✘|recorded an issue|first difference' "$RUNNER_TEMP/golden.log" "$RUNNER_TEMP/stress.log" | head -8) | cut -c1-400 | sed ':a;N;$!ba;s/\n/%0A/g')"
+            exit 1
+          fi
+
+      - name: All other core tests (debug build; exact count; fails on any failure outside the documented file-system exclusions)
+        run: |
+          cd core
+          X=.build/wasm32-unknown-wasip1/debug/CorePackageTests.xctest
+          wasmtime run --dir=. "$X" --testing-library swift-testing --list-tests > "$RUNNER_TEMP/list.log" 2>&1
+          total=$(grep -acE '^[A-Za-z0-9]+Tests\.' "$RUNNER_TEMP/list.log")
+          safety=$(grep -acE '^OMPSafetySuiteTests\.' "$RUNNER_TEMP/list.log")
+          nskip=0
+          skips=(--skip OMPSafetySuiteTests)
+          for s in $WASM_SKIP_FS; do
+            n=$(grep -acE "$s" "$RUNNER_TEMP/list.log"); nskip=$((nskip + n)); skips+=(--skip "$s")
           done
-          [ 2 -eq 2 ] && exit 1
-          exit 0
+          expected=$((total - safety - nskip))
+          echo "listed=$total safety=$safety excluded-fs=$nskip expected=$expected"
+          set +e
+          wasmtime run -W max-wasm-stack=8388608 --dir=. "$X" --testing-library swift-testing "${skips[@]}" 2>&1 | tee "$RUNNER_TEMP/rest.log"
+          rc=${PIPESTATUS[0]}
+          set -e
+          ran=$(sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g' "$RUNNER_TEMP/rest.log" | grep -aoE 'Test run with [0-9]+ tests?' | grep -oE '[0-9]+' | awk '{s+=$1} END{print s+0}')
+          echo "::notice::wasm rest: listed=$total safety=$safety excluded=$nskip expected=$expected ran=$ran"
+          if [ "$nskip" -ne 3 ] || [ $rc -ne 0 ] || [ "$ran" != "$expected" ]; then
+            echo "::error::Wasm tests FAILED rc=$rc ran=$ran expected=$expected excluded=$nskip :: $(grep -aE 'Fatal|trap|✘|recorded an issue|failed' "$RUNNER_TEMP/rest.log" | head -8 | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')"
+            exit 1
+          fi
+
+      # Informational: how much stack margin do the stress and golden tests have in a debug build? Relinks the
+      # debug test product with smaller stacks (global-base stays 4 MiB). A failure here is a margin finding, not a gate.
+      - name: Stack margin probe (informational)
+        run: |
+          cd core
+          X=.build/wasm32-unknown-wasip1/debug/CorePackageTests.xctest
+          out=""
+          for kb in 3072 2048 1536 1024; do
+            swift build --swift-sdk "$WASM_SDK" --build-tests -Xlinker -z -Xlinker stack-size=$((kb * 1024)) -Xlinker --stack-first -Xlinker --global-base=4194304 >/dev/null 2>&1 || { out="$out ${kb}KiB:link-failed"; continue; }
+            if wasmtime run -W max-wasm-stack=8388608 --dir=. "$X" --testing-library swift-testing --filter "LargeHouseholdStressTests|GoldenWeekPlanTests" >"$RUNNER_TEMP/probe.log" 2>&1; then out="$out ${kb}KiB:pass"; else out="$out ${kb}KiB:FAIL($(grep -aoE "wasm trap: [a-z ]+|Fatal error[^|]{0,60}" "$RUNNER_TEMP/probe.log" | head -1))"; fi
+          done
+          echo "::notice::stack margin (debug, stress+golden):$out (4096KiB configured)"
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo '## core-wasm'
+            echo "safety (release): $(grep -ah 'Test run with' "$RUNNER_TEMP/safety.log" 2>/dev/null | tail -1)"
+            echo "rest (debug): $(grep -ah 'Test run with' "$RUNNER_TEMP/rest.log" 2>/dev/null | tail -1)"
+            echo "golden: $(grep -ah 'GOLDEN-OK' "$RUNNER_TEMP/golden.log" 2>/dev/null | tail -1) stress: $(grep -ah 'STRESS-OK' "$RUNNER_TEMP/stress.log" 2>/dev/null | tail -1)"
+            echo "excluded (file system): $WASM_SKIP_FS"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice::safety (release): $(grep -ah 'Test run with' "$RUNNER_TEMP/safety.log" 2>/dev/null | tail -1) | rest (debug): $(grep -ah 'Test run with' "$RUNNER_TEMP/rest.log" 2>/dev/null | tail -1) | $(grep -ah 'GOLDEN-OK' "$RUNNER_TEMP/golden.log" 2>/dev/null | tail -1) | $(grep -ah 'STRESS-OK' "$RUNNER_TEMP/stress.log" 2>/dev/null | tail -1)"
