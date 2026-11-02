@@ -45,5 +45,8 @@ Branch `feat/w05`, CI branch `claude/ci-w05`. Package `platforms/web/app`. No `c
 7. The axe test uses a context with `bypassCSP` only so axe can inject itself; the shipped CSP is still tested by `e2e.spec.ts`.
 8. Dark mode, 200% zoom and reduced-motion audits are W10.
 
-## 5. Tests
-16 new browser tests (list in `tests/onboarding.spec.ts`) plus the adapted W04 suite. CI result: see the final message / board.
+9. **Build fix found by CI (shared file `scripts/build.mjs`):** the precache list only included top-level files in `dist/`. The service worker answers 504 for anything not cached, so `screens/*.js` broke every reload after the worker took control (first visit worked). The build now walks `dist/` recursively. W06 (also adds `screens/`) needs the same change; identical edit, expect a trivial merge.
+10. Local checks: the sandbox has a Chromium (`/opt/pw-browsers`) but not the Wasm module (artifact host blocked), so the reload bug was confirmed fixed with a hand-assembled stub module, not with the real core.
+
+## 5. Tests and CI
+16 new browser tests (`tests/onboarding.spec.ts`) plus the adapted W04 suite: 24 Playwright tests, all green at commit `87d2d59` (CI branch `claude/ci-w05`, all 6 jobs success: core-linux, core-wasm, web-facade, web-app wasm build, browser test, seed sheet). First push (`986e71f`) failed on the build bug above (reload tests) plus two wrong test assumptions (a helper that could not lower the adult count; the parser splitting typed markup into several rows), fixed in `87d2d59`.
