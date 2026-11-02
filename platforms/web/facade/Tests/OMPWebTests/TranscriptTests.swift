@@ -10,7 +10,7 @@ import Testing
         .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         .appendingPathComponent("Fixtures")
 
-    static let names = ["transcript", "transcript-tz"]
+    static let names = ["transcript", "transcript-tz", "transcript-w13"]
 
     @Test(arguments: TranscriptTests.names)
     func nativeReplayMatchesTheGolden(name: String) async throws {

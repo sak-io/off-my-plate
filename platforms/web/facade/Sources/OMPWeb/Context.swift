@@ -116,10 +116,29 @@ struct Engine: Sendable {
     let households: HouseholdService
     let safety: SafetyService
     let plans: PlanService
+    // W13: pantry, shopping, Notes import, learning, data. The inbox, processed-import ids and counters
+    // are session-local (not part of the state snapshot): every import gets a fresh id from the id source,
+    // so nothing depends on remembering old ids.
+    let inbox: InMemoryInboxStorage
+    let processedImports: InMemoryProcessedImportStore
+    let counters: InMemoryCounterStore
+    let pantry: PantryService
+    let shopping: ShoppingService
+    let imports: ImportService
+    let learning: LearningService
+    let data: DataService
 
-    init(repositories: Repositories, clock: FacadeClock, ids: IDSource, content: SeedContent) {
+    init(
+        repositories: Repositories, clock: FacadeClock, ids: IDSource, content: SeedContent,
+        inbox: InMemoryInboxStorage = InMemoryInboxStorage(),
+        processedImports: InMemoryProcessedImportStore = InMemoryProcessedImportStore(),
+        counters: InMemoryCounterStore = InMemoryCounterStore()
+    ) {
         self.repositories = repositories
         self.ids = ids
+        self.inbox = inbox
+        self.processedImports = processedImports
+        self.counters = counters
         let source = ids
         self.context = ServiceContext(
             repositories: repositories, clock: clock, library: content.library,
@@ -127,5 +146,11 @@ struct Engine: Sendable {
         self.households = HouseholdService(context: context)
         self.safety = SafetyService(context: context)
         self.plans = PlanService(context: context)
+        self.pantry = PantryService(context: context)
+        self.shopping = ShoppingService(context: context)
+        self.imports = ImportService(context: context, inbox: inbox, processedImports: processedImports)
+        self.learning = LearningService(context: context, counters: counters)
+        self.data = DataService(
+            context: context, inbox: inbox, processedImports: processedImports, counters: counters)
     }
 }

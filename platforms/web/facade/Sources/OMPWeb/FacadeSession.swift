@@ -64,7 +64,9 @@ public actor FacadeSession {
     }
 
     /// Operations that never depend on or change time-sensitive state.
-    static let clockExempt: Set<String> = ["meta.version", "state.export", "state.import"]
+    static let clockExempt: Set<String> = [
+        "meta.version", "state.export", "state.import", "data.deleteAll",
+    ]
 
     /// The newest timestamp in the stored household and plans.
     func latestStoredDate() async throws -> Date? {
@@ -82,6 +84,10 @@ public actor FacadeSession {
             note(plan.createdAt)
             note(plan.approval?.approvedAt)
         }
+        for item in try await repositories.pantry.fetchAll() { note(item.lastConfirmedAt) }
+        for log in try await repositories.cookLogs.fetchAll() { note(log.cookedAt) }
+        for event in try await repositories.learningEvents.fetchAll() { note(event.at) }
+        for fact in try await repositories.facts.fetchAll() { note(fact.updatedAt) }
         return latest
     }
 
@@ -90,7 +96,9 @@ public actor FacadeSession {
     /// (and a fresh lock) over the same repositories. Writes the abandoned call already made stay.
     public func recoverAfterStall() {
         guard case .success(let content) = contentResult else { return }
-        engine = Engine(repositories: engine.repositories, clock: clock, ids: engine.ids, content: content)
+        engine = Engine(
+            repositories: engine.repositories, clock: clock, ids: engine.ids, content: content,
+            inbox: engine.inbox, processedImports: engine.processedImports, counters: engine.counters)
     }
 }
 

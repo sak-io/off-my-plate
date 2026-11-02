@@ -6,7 +6,7 @@ import OMPServices
 // validator themselves); nothing here plans, edits, clears a safety block or approves on its own.
 // The ONLY approval path is `plan.approve` -> ApprovalBridge.swift.
 
-private func enc<T: Encodable>(_ value: T) throws -> Data { try CanonicalJSON.encode(value) }
+func enc<T: Encodable>(_ value: T) throws -> Data { try CanonicalJSON.encode(value) }
 
 extension FacadeSession {
     func dispatch(_ request: Request, content: SeedContent) async throws -> Data {
@@ -185,6 +185,8 @@ extension FacadeSession {
             return try enc(try await ApprovalBridge.approve(request, plans: engine.plans, repositories: engine.repositories))
 
         default:
+            // Pantry, shopping, import, learning and data operations (W13).
+            if let result = try await dispatchKitchen(request, engine: engine, content: content) { return result }
             throw FacadeError("unknown_op", "Unknown operation \"\(request.op)\".")
         }
     }

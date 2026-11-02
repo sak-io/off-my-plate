@@ -124,6 +124,15 @@ extension FacadeSession {
         guard Set(snapshot.shopping.map(\.id)).count == snapshot.shopping.count else { throw fail("Duplicate shopping ids.") }
         guard Set(snapshot.cookLogs.map(\.id)).count == snapshot.cookLogs.count else { throw fail("Duplicate cook log ids.") }
         guard Set(snapshot.facts.map(\.id)).count == snapshot.facts.count else { throw fail("Duplicate fact ids.") }
+        // Amounts: finite and inside the same bound the services enforce (a huge double would poison sums).
+        for item in snapshot.pantry where !(item.quantity.isFinite && item.quantity >= 0 && item.quantity <= Limits.maxAmount) {
+            throw fail("A pantry amount is out of range.")
+        }
+        for item in snapshot.shopping {
+            if let quantity = item.quantity, !(quantity.isFinite && quantity >= 0 && quantity <= Limits.maxAmount) {
+                throw fail("A shopping amount is out of range.")
+            }
+        }
         if let household = snapshot.household {
             guard !household.members.isEmpty else { throw fail("The household has no members.") }
             guard Set(household.members.map(\.id)).count == household.members.count else { throw fail("Duplicate member ids.") }
@@ -150,8 +159,15 @@ extension FacadeSession {
         switch tree {
         case .string(let text):
             let chars = Array(text.utf8)
-            let isDate = chars.count == 10 && chars[4] == UInt8(ascii: "-") && chars[7] == UInt8(ascii: "-")
-            let isInstant = chars.count >= 20 && chars[4] == UInt8(ascii: "-") && chars[10] == UInt8(ascii: "T")
+            // Text typed by a person (a pantry or list name) can have the same punctuation; only strings
+            // whose digit positions are really digits are dates.
+            func digits(_ indexes: [Int]) -> Bool { indexes.allSatisfy { chars[$0] >= 0x30 && chars[$0] <= 0x39 } }
+            let isDate =
+                chars.count == 10 && chars[4] == UInt8(ascii: "-") && chars[7] == UInt8(ascii: "-")
+                && digits([0, 1, 2, 3, 5, 6, 8, 9])
+            let isInstant =
+                chars.count >= 20 && chars[4] == UInt8(ascii: "-") && chars[10] == UInt8(ascii: "T")
+                && digits([0, 1, 2, 3, 5, 6, 8, 9])
             // Judged on the parsed value, not the text shape: the date must be a real one in range.
             let year: Int?
             if isDate {
@@ -202,6 +218,10 @@ extension FacadeSession {
             dates.append(plan.createdAt)
             if let approvedAt = plan.approval?.approvedAt { dates.append(approvedAt) }
         }
+        dates.append(contentsOf: snapshot.pantry.map(\.lastConfirmedAt))
+        dates.append(contentsOf: snapshot.cookLogs.map(\.cookedAt))
+        dates.append(contentsOf: snapshot.learningEvents.map(\.at))
+        dates.append(contentsOf: snapshot.facts.map(\.updatedAt))
         return dates
     }
 }

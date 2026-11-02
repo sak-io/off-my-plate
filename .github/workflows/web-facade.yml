@@ -60,7 +60,7 @@ jobs:
           swift test --package-path "$FACADE" 2>&1 | tee "$RUNNER_TEMP/native.log"
           rc=${PIPESTATUS[0]}
           set -e
-          if [ $rc -eq 0 ] && ! scripts/assert-tests-ran.sh "$RUNNER_TEMP/native.log" 35; then rc=3; fi
+          if [ $rc -eq 0 ] && ! scripts/assert-tests-ran.sh "$RUNNER_TEMP/native.log" 50; then rc=3; fi
           if [ $rc -ne 0 ]; then
             echo "::error::native facade tests FAILED rc=$rc :: $( (grep -aE 'error:|✘|Issue|recorded an issue|Fatal' "$RUNNER_TEMP/native.log" | head -14) | cut -c1-360 | sed ':a;N;$!ba;s/\n/%0A/g')"
             exit 1
@@ -71,7 +71,7 @@ jobs:
       - name: Replay output for review (only on a golden mismatch)
         if: always()
         run: |
-          for name in transcript transcript-tz; do
+          for name in transcript transcript-tz transcript-w13; do
             f="$RUNNER_TEMP/golden/$name.actual.jsonl"
             [ -f "$f" ] || continue
             if cmp -s "$f" "$FACADE/Fixtures/$name.golden.jsonl"; then continue; fi
@@ -107,7 +107,7 @@ jobs:
       - name: Transcript replays under wasmtime must equal the goldens byte for byte
         run: |
           cd "$FACADE"
-          for name in transcript transcript-tz; do
+          for name in transcript transcript-tz transcript-w13; do
             set +e
             wasmtime run -W max-wasm-stack=8388608 .build/wasm32-unknown-wasip1/release/omp-web-cli.wasm < "Fixtures/$name.jsonl" > "$RUNNER_TEMP/$name.wasm.out" 2> "$RUNNER_TEMP/$name.wasm.err"
             rc=$?
