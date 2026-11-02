@@ -8,7 +8,7 @@ import { WASI } from 'node:wasi';
 const file = process.argv[2];
 const wasi = new WASI({ version: 'preview1', args: ['omp-web-wasm'], env: {} });
 const compiled = await WebAssembly.compile(readFileSync(file));
-const instance = await WebAssembly.instantiate(compiled, wasi.getImportObject());
+const instance = await WebAssembly.instantiate(compiled, { wasi_snapshot_preview1: wasi.wasiImport });
 wasi.initialize(instance);
 const ex = instance.exports;
 for (const name of ['memory', 'omp_alloc', 'omp_free', 'omp_call', 'omp_result_ptr', 'omp_version']) {
