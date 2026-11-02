@@ -150,7 +150,7 @@ jobs:
           out=""
           for kb in 3072 2048 1536 1024; do
             swift build --swift-sdk "$WASM_SDK" --build-tests -Xlinker -z -Xlinker stack-size=$((kb * 1024)) -Xlinker --stack-first -Xlinker --global-base=4194304 >/dev/null 2>&1 || { out="$out ${kb}KiB:link-failed"; continue; }
-            if wasmtime run --dir=. "$X" --testing-library swift-testing --filter "LargeHouseholdStressTests|GoldenWeekPlanTests" >"$RUNNER_TEMP/probe.log" 2>&1; then out="$out ${kb}KiB:pass"; else out="$out ${kb}KiB:FAIL"; fi
+            if wasmtime run -W max-wasm-stack=8388608 --dir=. "$X" --testing-library swift-testing --filter "LargeHouseholdStressTests|GoldenWeekPlanTests" >"$RUNNER_TEMP/probe.log" 2>&1; then out="$out ${kb}KiB:pass"; else out="$out ${kb}KiB:FAIL($(grep -aoE "wasm trap: [a-z ]+|Fatal error[^|]{0,60}" "$RUNNER_TEMP/probe.log" | head -1))"; fi
           done
           echo "::notice::stack margin (debug, stress+golden):$out (4096KiB configured)"
 
