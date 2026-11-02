@@ -2,6 +2,8 @@
 import { Core, makeCtx, type Reply } from "./core.js";
 import { loadCore, registerWorker, type LoadStats } from "./engine.js";
 import { deleteEverything, loadSnapshot, saveSnapshot } from "./store.js";
+import { gateScreen } from "./screens/onboarding.js";
+import { reconfirmCard } from "./screens/onboarding-reconfirm.js";
 
 const READ_ONLY = /^(meta|state)\.|\.(get|current|status|catalog|parse|recheck|alternatives|working|approved|pendingDiff|approvalPreview)$/;
 
@@ -68,12 +70,16 @@ function shell(): { panel: HTMLElement } {
 }
 
 async function render(): Promise<void> {
-  const { panel } = shell();
   const house = await app.op("household.get");
+  // W05: the first-run flow and the mandatory safety question own the whole page until the core's gate opens.
+  const host = { root, op: (n: string, a?: Record<string, any>) => app.op(n, a), refresh: render, showPlan: async () => { app.tab = "plan"; await render(); } };
+  if (await gateScreen(host, house)) return;
+  const { panel } = shell();
   const gate = house.ok ? house.result.gate : { status: "error" };
   if (app.tab === "plan") {
     panel.append(el("h2", { textContent: "Plan" }));
     if (gate.status === "noHousehold") panel.append(el("p", { textContent: "Add your household first (Household tab)." }));
+    else if (gate.status === "refused" && gate.reason === "reconfirmationDue" && house.ok && house.result.household) panel.append(reconfirmCard(host, house.result.household, gate.memberIds ?? []));
     else if (gate.status === "refused") panel.append(el("p", { textContent: "Planning is paused until everyone's food safety question is answered." }));
     else {
       const plan = await app.op("plan.current");

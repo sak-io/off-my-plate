@@ -37,6 +37,12 @@ test("first visit: Wasm loads in Chromium and answers meta.version; size and tim
   console.log("METRICS " + JSON.stringify(metrics));
   expect(Number(d.rawBytes)).toBe(wasm.length);
   expect(d.restore).toBe("fresh");
+  // W05: a new profile starts in onboarding (the tabs only appear once the safety question is answered).
+  await page.locator("#children-plus").click();             // 2 adults + 1 child
+  await page.locator("#size-continue").click();
+  await page.locator("#nobody").click();
+  await page.locator("#cuisines-skip").click();
+  await expect(page.getByRole("tab", { name: "Plan", selected: true })).toBeVisible({ timeout: 60_000 });
   await page.getByRole("tab", { name: "Household" }).click();
   await expect(page.locator("#engine-stats")).toContainText("ready in");
 });
@@ -59,10 +65,7 @@ test("page cannot reach the network (CSP connect-src 'none')", async () => {
 
 test("household persists across reload (IndexedDB snapshot via state.export/import)", async () => {
   await page.getByRole("tab", { name: "Household" }).click();
-  await page.locator("#adults").fill("2");
-  await page.locator("#children").fill("1");
-  await page.locator("#create-household").click();
-  await expect(page.locator("#members")).toHaveText("3 people in this household.");
+  await expect(page.locator("#members")).toHaveText("3 people in this household.");   // created by onboarding above
   await page.reload();
   await ready();
   await expect(page.locator("html")).toHaveAttribute("data-restore", "restored");
