@@ -93,7 +93,7 @@ Transcript directives (no output line): `# comment`, `@capture NAME PATH` (value
 Golden maintenance: run the native test with `OMP_GOLDEN_OUT=/path swift test --filter TranscriptTests`, review the output, copy it over `transcript.golden.jsonl`. CI prints the actual output (gzip+base64 annotations) only on a mismatch.
 
 ## 7. .wasm size
-See section 9 (CI measurement): the release, `-Osize`, `--strip-all` reactor module is **54,377,241 bytes (about 52 MB; 19.3 MB gzip)** at commit 36d4aff. Well above what a PWA should ship; the section breakdown is in the CI notice of the latest run. Likely cause: Foundation (ICU data, JSON/ISO8601/TimeZone) linked statically. Options for W04/W12 (not done here, would touch core imports or tooling): serve brotli-compressed with a service-worker cache (one-time download), run `wasm-opt -Oz` in the release pipeline, and evaluate a FoundationEssentials-only build of the core.
+See section 9 (CI measurement): the release, `-Osize`, `--strip-all` reactor module is **54,377,241 bytes (about 52 MB; 19.3 MB gzip)** at commit 36d4aff. Well above what a PWA should ship. Section breakdown (CI, commit 68c2382): code 17.4 MB, **data 36.7 MB**, everything else < 0.3 MB. The data segment is almost certainly Foundation's ICU data linked statically. Options for W04/W12 (not done here, would touch core imports or tooling): serve brotli-compressed with a service-worker cache (one-time download), run `wasm-opt -Oz` in the release pipeline, and evaluate a FoundationEssentials-only build of the core.
 
 ## 8. Error codes
 `bad_request`, `missing_context`, `bad_context`, `unknown_op`, `invalid_input`, `seed_unavailable`, `internal_error`, `executor_stalled`;
@@ -104,7 +104,7 @@ state: `invalid_state`, `unsupported_state_version`; other service refusals: `ma
 
 ## 9. Tests and CI evidence
 Swift Testing, `platforms/web/facade/Tests/OMPWebTests` (34 tests): approval door (gesture, hash, stale preview, unasked member, one-file check), gate bypass (unanswered member on every entry point, new member, swap to non-offered recipe, rule added after approval flags the approved plan, regenerate, every non-approve op leaves plans unapproved), safety flow (parse saves nothing, unresolved items, nobody, rule removal), household, envelope (20 malformed-request cases, invalid bytes, sync entry), state (round trip byte-identical, 10 garbage/tamper cases with no partial application), transcript replay vs golden.
-CI `web-facade` (commit 36d4aff): native tests green; wasmtime replay of the transcript byte-identical to the golden (33 lines, 129,901 bytes); reactor builds; Node WASI smoke passes (alloc/call/result/free, gate, stale hash, wrong gesture, approve, export/import).
+CI `web-facade` (commits 36d4aff, 68c2382): native tests green; wasmtime replay of the transcript byte-identical to the golden (33 lines, 129,901 bytes); reactor builds; Node WASI smoke passes (alloc/call/result/free, gate, stale hash, wrong gesture, approve, export/import).
 
 ## 10. Deferred to W13 and later
 Pantry, shopping list, notes/paste import, learning/facts, cuisines (`recordCuisines`), lunchbox/school lunches, Mark cooked, prompts, delete all data. The snapshot already contains all eight repositories (pantry, shopping, cook logs, facts, learning events, prompt states), so W13 ops will persist without a format change.
