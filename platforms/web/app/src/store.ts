@@ -24,8 +24,20 @@ async function tx<T>(mode: IDBTransactionMode, run: (s: IDBObjectStore) => IDBRe
   } finally { db.close(); }
 }
 
-export async function saveSnapshot(snapshot: unknown): Promise<void> {
-  await tx("readwrite", (s) => s.put({ savedAt: new Date().toISOString(), snapshot }, KEY));
+// Saves are serialized (one at a time, in call order) and, once deleteEverything has started, refused. Without this
+// an in-flight save could finish after the delete and recreate the database with the user's data.
+let queue: Promise<unknown> = Promise.resolve();
+let closed = false;
+
+/** Resolves true if the snapshot was written, false if saving is closed because the user deleted everything. */
+export function saveSnapshot(snapshot: unknown): Promise<boolean> {
+  const job = queue.then(async () => {
+    if (closed) return false;
+    await tx("readwrite", (s) => s.put({ savedAt: new Date().toISOString(), snapshot }, KEY));
+    return true;
+  });
+  queue = job.catch(() => undefined);   // a failed save does not block later saves
+  return job;
 }
 
 export async function loadSnapshot(): Promise<unknown | undefined> {
@@ -37,6 +49,8 @@ export interface Wiped { databases: number; caches: number; registrations: numbe
 
 /** Removes the IndexedDB database(s), every Cache Storage cache, local/session storage and the service worker. */
 export async function deleteEverything(): Promise<Wiped> {
+  closed = true;          // refuse new saves first, then let the in-flight one finish before deleting
+  await queue;
   const wiped: Wiped = { databases: 0, caches: 0, registrations: 0 };
   const dbs = (await indexedDB.databases?.()) ?? [{ name: DB }];
   for (const d of dbs) {
