@@ -121,3 +121,4 @@ jobs:
             echo "rest (debug): $(grep -ah 'Test run with' "$RUNNER_TEMP/rest.log" 2>/dev/null | tail -1)"
             echo "excluded (file system): $WASM_SKIP_FS"
           } >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice::safety (release): $(grep -ah 'Test run with' "$RUNNER_TEMP/safety.log" 2>/dev/null | tail -1) | rest (debug): $(grep -ah 'Test run with' "$RUNNER_TEMP/rest.log" 2>/dev/null | tail -1) | golden ran: $(grep -ac 'weekPlanMatchesGolden' "$RUNNER_TEMP/rest.log")"
