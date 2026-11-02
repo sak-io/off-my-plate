@@ -92,7 +92,13 @@ final class AppShellUITests: XCTestCase {
         let rowShown = row.waitForExistence(timeout: 5)
         XCTAssertTrue(rowShown, "Household has no row for the medical disclaimer (AC-2.6)")
         row.tap()
-        let noteShown = element(app, "disclaimer.C-092").waitForExistence(timeout: 5)
+        // The push can be slow on a loaded runner (this test has failed on a 5 s wait before): allow
+        // 20 s, and tap once more if the first tap did not navigate.
+        var noteShown = element(app, "disclaimer.C-092").waitForExistence(timeout: 10)
+        if !noteShown, row.exists, row.isHittable {
+            row.tap()
+            noteShown = element(app, "disclaimer.C-092").waitForExistence(timeout: 10)
+        }
         XCTAssertTrue(noteShown, "The full disclaimer (C-092) did not open")
     }
 

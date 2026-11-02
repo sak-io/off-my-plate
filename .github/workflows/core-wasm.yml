@@ -6,7 +6,7 @@ name: core-wasm
 
 on:
   push:
-    branches: ["claude/ci-w01"]
+    branches: ["claude/ci-w*"]
   workflow_dispatch:
 
 permissions:

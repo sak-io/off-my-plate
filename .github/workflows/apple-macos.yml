@@ -18,7 +18,9 @@ name: apple-macos
 # Pushes: the session/agent branches and main. Local feat/* task branches are never pushed.
 on:
   push:
-    branches: ["claude/**", "main"]
+    # claude/ci-w* = Windows/web spike branches: they get the fast Linux checks (core-linux, core-wasm) on every
+    # push; the slow macOS suite runs when the work is merged to claude/integration or a batch branch.
+    branches: ["claude/**", "!claude/ci-w*", "main"]
     # Docs-only and team-bookkeeping pushes do not need a build (saves macOS minutes). If the last
     # commit on a branch is docs-only it gets no run of its own; the previous code commit's run applies.
     paths-ignore: ["docs/**", ".autocraft/**", "work/**", "**/*.md"]

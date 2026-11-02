@@ -40,8 +40,8 @@ Integration branch: `claude/integration`. not_started 11 | claimed 0 | in_review
 | T29 | Release readiness for TestFlight | N | merged | claude-lead | T06 | feat/t29 merged via batch-5, CI green (all jobs incl. iPad) |
 | T30 | Speech capture adapter (`OMPCapture`) | N | merged | claude-lead-dev2 | T02, T16 | feat/t30 merged via batch-3, CI green (5 jobs) |
 | W01 | Spike: Core builds and its tests pass on WebAssembly | N | merged | claude-lead-w01 | - | claude/ci-w01 spike accepted; verdict GO-WITH-W02 |
-| W02 | Seed content embedded as generated Swift (no Bundle) | N | **not_started - READY** |  | W01 | approved by owner 2026-11 |
-| W03 | OMPWeb JSON facade including the single approval bridge | S | **not_started - READY** |  | W01 | approved by owner 2026-11 |
+| W02 | Seed bytes from the host, Wasm correctness fixes and a native-vs-Wasm golden | N | **not_started - READY** |  | W01 | approved by owner 2026-11 |
+| W03 | OMPWeb JSON facade including the single approval bridge | S | not_started (waits for W02) |  | W01, W02 | approved by owner 2026-11 |
 | W04 | Web app skeleton: TypeScript build, local storage, PWA shell, Delete all data | N | not_started (waits for W03) |  | W03 | approved by owner 2026-11 |
 | W05 | Onboarding and mandatory safety screens | S | not_started (waits for W04) |  | W04 | approved by owner 2026-11 |
 | W06 | Plan screens and explicit approval | S | not_started (waits for W04) |  | W04 | approved by owner 2026-11 |
