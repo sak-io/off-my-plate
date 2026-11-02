@@ -152,10 +152,17 @@ extension FacadeSession {
             let chars = Array(text.utf8)
             let isDate = chars.count == 10 && chars[4] == UInt8(ascii: "-") && chars[7] == UInt8(ascii: "-")
             let isInstant = chars.count >= 20 && chars[4] == UInt8(ascii: "-") && chars[10] == UInt8(ascii: "T")
-            if isDate || isInstant {
-                guard let year = Int(String(decoding: chars[0..<4], as: UTF8.self)),
-                    (Limits.earliestYear...Limits.latestYear).contains(year)
-                else { throw FacadeError("invalid_state", "A date in the state is out of range.") }
+            // Judged on the parsed value, not the text shape: the date must be a real one in range.
+            let year: Int?
+            if isDate {
+                year = LocalDate(isoString: text)?.year
+            } else if isInstant {
+                year = ISODate.parse(text).map { Calendar(identifier: .gregorian).dateComponents(in: TimeZone(secondsFromGMT: 0)!, from: $0).year ?? 0 }
+            } else {
+                year = Limits.earliestYear
+            }
+            guard let year, (Limits.earliestYear...Limits.latestYear).contains(year) else {
+                throw FacadeError("invalid_state", "A date in the state is missing, invalid or out of range.")
             }
         case .array(let items):
             for item in items { try checkTemporalAndIDs(item) }

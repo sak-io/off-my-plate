@@ -48,12 +48,15 @@ extension FacadeSession {
             // to the removed person go first). The core otherwise keeps them (soft delete, they cover nobody).
             struct Args: Decodable { var memberId: MemberID; var removeOwnRules: Bool? }
             let args = try request.decode(Args.self)
-            if args.removeOwnRules == true, let stored = try await engine.households.household() {
-                for rule in stored.rules where rule.scope == .member(args.memberId) {
-                    _ = try await engine.safety.removeRule(rule.id)
-                }
-            }
+            // Remove the member FIRST: if that is refused (last member, unknown or deleted id) nothing has
+            // changed. Only then drop the rules tagged to them (they cover nobody after a soft delete, so a
+            // failure midway cannot weaken any other person's protection).
+            let before = try await engine.households.household()
+            let own = before?.rules.filter { $0.scope == .member(args.memberId) } ?? []
             _ = try await engine.households.removeMember(args.memberId)
+            if args.removeOwnRules == true {
+                for rule in own { _ = try await engine.safety.removeRule(rule.id) }
+            }
             return try await householdView(engine)
         case "household.setAgeBand":
             struct Args: Decodable { var memberId: MemberID; var ageBand: AgeBand? }

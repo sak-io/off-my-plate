@@ -47,3 +47,48 @@ import Testing
         #expect(farWest.string("plan.weekStart") == "2026-11-01")
     }
 }
+
+@Suite struct RemoveMemberRulesTests {
+    private func rules(_ reply: Reply) -> [[String: Any]] { reply.array("household.rules").compactMap { $0 as? [String: Any] } }
+
+    @Test func onlyThePersonsOwnRulesAreRemoved() async {
+        let c = Client()
+        await c.call("household.create", "{\"adults\":2,\"children\":1}")
+        let ids = await c.restrictionIDs()
+        let household = await c.call("household.get")
+        let members = household.array("household.members").compactMap { ($0 as? [String: Any])?["id"] as? String }
+        let items = "[{\"restriction\":\"\(ids[0])\",\"scope\":{\"kind\":\"member\",\"memberId\":\"\(members[2])\"}},"
+            + "{\"restriction\":\"\(ids[1])\",\"scope\":{\"kind\":\"member\",\"memberId\":\"\(members[1])\"}},"
+            + "{\"restriction\":\"\(ids[2])\",\"scope\":{\"kind\":\"household\"}}]"
+        #expect((await c.call("safety.confirm", "{\"items\":\(items)}")).ok)
+        let removed = await c.call("household.removeMember", "{\"memberId\":\"\(members[2])\",\"removeOwnRules\":true}")
+        #expect(removed.ok, "\(removed.raw.prefix(300))")
+        let left = rules(removed).compactMap { $0["restriction"] as? String }
+        #expect(Set(left) == Set([ids[1], ids[2]]))
+        #expect(removed.string("gate.status") == "open")
+        // Without the flag the core keeps the rule of a removed person.
+        let c2 = Client()
+        await c2.call("household.create", "{\"adults\":2,\"children\":0}")
+        let m2 = (await c2.call("household.get")).array("household.members").compactMap { ($0 as? [String: Any])?["id"] as? String }
+        _ = await c2.call("safety.confirm", "{\"items\":[{\"restriction\":\"\(ids[0])\",\"scope\":{\"kind\":\"member\",\"memberId\":\"\(m2[1])\"}}]}")
+        let kept = await c2.call("household.removeMember", "{\"memberId\":\"\(m2[1])\"}")
+        #expect(rules(kept).count == 1)
+    }
+
+    @Test func aRefusedRemovalLeavesEverythingIntact() async {
+        let c = Client()
+        await c.call("household.create", "{\"adults\":1,\"children\":0}")
+        let ids = await c.restrictionIDs()
+        let member = (await c.call("household.get")).string("household.members.0.id") ?? ""
+        let saved = await c.call("safety.confirm", "{\"items\":[{\"restriction\":\"\(ids[0])\",\"scope\":{\"kind\":\"member\",\"memberId\":\"\(member)\"}}]}")
+        #expect(saved.ok)
+        let before = (await c.call("state.export")).raw
+        let sole = await c.call("household.removeMember", "{\"memberId\":\"\(member)\",\"removeOwnRules\":true}")
+        #expect(sole.code == "safety_transition")
+        let unknown = await c.call("household.removeMember", "{\"memberId\":\"ghost\",\"removeOwnRules\":true}")
+        #expect(!unknown.ok)
+        #expect((await c.call("state.export")).raw == before, "a refused removal must change nothing")
+        let after = await c.call("household.get")
+        #expect(after.array("household.rules").count == 1)
+    }
+}
