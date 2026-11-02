@@ -23,7 +23,7 @@ run_cfg() { # name config-dir build-args...
   local BD="$PWD/.build/wasm32-unknown-wasip1/$cfg"
   local X="$BD/CorePackageTests.xctest"
   wasmtime compile "$X" -o "$RUNNER_TEMP/$name.cwasm" 2>"$RUNNER_TEMP/cc.log"; note "COMPILE $name rc=$?"
-  for stk in default big; do
+  for stk in default; do
     local opt=""; [ $stk = big ] && opt="-W max-wasm-stack=33554432"
     for t in $TESTS; do
       wasmtime run $opt --allow-precompiled --dir=. --dir "$BD" "$RUNNER_TEMP/$name.cwasm" --testing-library swift-testing --filter "$t" >"$RUNNER_TEMP/o.txt" 2>&1
@@ -37,7 +37,12 @@ run_cfg() { # name config-dir build-args...
     done
   done
 }
-run_cfg dbg debug
-run_cfg rel release -c release -Xswiftc -enable-testing
-
+for d in ~/.swiftpm/swift-sdks/*/; do grep -rIl "stack" "$d" 2>/dev/null | head -5 | while read f; do note "SDKFILE $f: $(grep -ao '.\{40\}stack.\{40\}' $f | head -3 | tr '\n' '|')"; done; done
+for sz in 1048576 8388608; do
+  run_cfg dbg$sz debug -Xlinker -z -Xlinker stack-size=$sz
+done
+BD="$PWD/.build/wasm32-unknown-wasip1/debug"
+wasmtime run --allow-precompiled --dir=. --dir "$BD" "$RUNNER_TEMP/dbg8388608.cwasm" --testing-library swift-testing --filter OMPServicesTests --skip DirectoryInboxStorageTests --skip ImportServiceTests >"$RUNNER_TEMP/svc.txt" 2>&1
+note "SERVICES whole target (8MiB) rc=$?: $(grep -a 'Test run with' $RUNNER_TEMP/svc.txt | cut -c1-120)"
+grep -a "✘" "$RUNNER_TEMP/svc.txt" | head -8 | cut -c1-250 | tee -a "$R"
 cut -c1-400 "$R" | head -c 110000 | split -C 3800 -d - "$RUNNER_TEMP/chunk."
