@@ -64,8 +64,8 @@ import Testing
     }
 }
 
-func request(_ op: String, _ args: String) -> String {
-    "{\"op\":\"\(op)\",\"args\":\(args),\"ctx\":{\"now\":\"2026-11-02T04:30:00Z\",\"timeZone\":\"Asia/Kolkata\",\"locale\":\"en-IN\"}}"
+func request(_ op: String, _ args: String, now: String = "2026-11-02T04:30:00Z") -> String {
+    "{\"op\":\"\(op)\",\"args\":\(args),\"ctx\":{\"now\":\"\(now)\",\"timeZone\":\"Asia/Kolkata\",\"locale\":\"en-IN\"}}"
 }
 
 /// A bare session for raw byte tests.

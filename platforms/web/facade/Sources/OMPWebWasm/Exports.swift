@@ -10,7 +10,7 @@ import OMPWeb
 //   3. JS calls omp_result_ptr() -> p and reads m bytes at p, then omp_free(ptr) for the request buffer.
 //
 // Never keep p across another omp_call. omp_call returns a negative number only if the request buffer is
-// invalid; every other failure is a JSON error document.
+// not one omp_alloc returned (or the length exceeds it); omp_alloc returns 0 for sizes outside 1...9 MiB; every other failure is a JSON error document.
 
 private final class ResultStore: @unchecked Sendable {
     var pointer: UnsafeMutableRawPointer?
@@ -31,24 +31,50 @@ private final class ResultStore: @unchecked Sendable {
 
 private let store = ResultStore()
 
+/// Request buffers handed out by omp_alloc and not yet freed (address -> size). omp_free and omp_call
+/// accept only these, so a double free, a free of the result buffer or a wild pointer cannot corrupt the heap.
+private final class Allocations: @unchecked Sendable {
+    private var live: [UInt: Int] = [:]
+    static let maxSize = 9 * 1024 * 1024
+
+    func allocate(_ size: Int) -> UnsafeMutableRawPointer? {
+        guard size > 0, size <= Allocations.maxSize, let pointer = malloc(size) else { return nil }
+        live[UInt(bitPattern: pointer)] = size
+        return pointer
+    }
+
+    func size(of pointer: UnsafeRawPointer) -> Int? { live[UInt(bitPattern: pointer)] }
+
+    func release(_ pointer: UnsafeMutableRawPointer) {
+        if live.removeValue(forKey: UInt(bitPattern: pointer)) != nil { free(pointer) }
+    }
+}
+
+private let allocations = Allocations()
+
+/// Returns null (0) for a size that is not 1...9 MiB.
 @_expose(wasm, "omp_alloc")
 @_cdecl("omp_alloc")
 public func omp_alloc(_ size: Int32) -> UnsafeMutableRawPointer? {
-    malloc(Int(max(size, 1)))
+    allocations.allocate(Int(size))
 }
 
+/// Frees a buffer from omp_alloc; anything else (unknown pointer, second free, the result buffer) is ignored.
 @_expose(wasm, "omp_free")
 @_cdecl("omp_free")
 public func omp_free(_ pointer: UnsafeMutableRawPointer?) {
-    free(pointer)
+    guard let pointer else { return }
+    allocations.release(pointer)
 }
 
+/// Returns the response length, -1 for a buffer that omp_alloc did not hand out or a length outside it.
 @_expose(wasm, "omp_call")
 @_cdecl("omp_call")
 public func omp_call(_ pointer: UnsafeRawPointer?, _ length: Int32) -> Int32 {
-    guard let pointer, length >= 0 else { return -1 }
+    guard let pointer, length >= 0, let size = allocations.size(of: pointer), Int(length) <= size else { return -1 }
     let request = Data(bytes: pointer, count: Int(length))
     let response = Facade.handleSync(request)
+    guard response.count <= Int(Int32.max) else { return -2 }
     return Int32(store.replace(with: response))
 }
 

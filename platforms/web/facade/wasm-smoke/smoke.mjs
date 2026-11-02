@@ -63,6 +63,20 @@ expect(r.ok && r.result.snapshot.version === 1, 'state.export', r);
 const snapshot = r.result.snapshot;
 r = call('state.import', { snapshot });
 expect(r.ok && r.result.imported === true, 'state.import', r);
+// Memory protocol hardening.
+expect(ex.omp_alloc(-1) === 0 && ex.omp_alloc(0) === 0 && ex.omp_alloc(2147483647) === 0, 'omp_alloc must refuse bad sizes');
+expect(ex.omp_call(0, 0) === -1 && ex.omp_call(123456, 4) === -1, 'omp_call must refuse unknown buffers');
+{
+  const ptr = ex.omp_alloc(16);
+  expect(ptr !== 0 && ex.omp_call(ptr, -5) === -1 && ex.omp_call(ptr, 17) === -1, 'omp_call must refuse bad lengths');
+  ex.omp_free(ptr);
+  ex.omp_free(ptr); // double free: ignored
+  ex.omp_free(ex.omp_result_ptr()); // the result buffer is not the host's to free: ignored
+  ex.omp_free(99999999); // wild pointer: ignored
+  expect(ex.omp_call(ptr, 4) === -1, 'omp_call must refuse a freed buffer');
+}
+r = call('meta.version');
+expect(r.ok, 'module still works after the abuse above', r);
 r = call('nope');
 expect(!r.ok && r.error.code === 'unknown_op', 'unknown op', r);
 console.log('SMOKE-OK');

@@ -26,6 +26,10 @@ extension FacadeSession {
         case "household.create":
             struct Args: Decodable { var adults: Int; var children: Int }
             let args = try request.decode(Args.self)
+            // Bounded before the core adds the two counts (an overflow would trap).
+            guard (0...Limits.maxMembersPerRole).contains(args.adults),
+                (0...Limits.maxMembersPerRole).contains(args.children)
+            else { throw FacadeError("household_size", "The household size is out of range.") }
             _ = try await engine.households.createHousehold(adults: args.adults, children: args.children)
             return try await householdView(engine)
         case "household.addMember":
@@ -36,11 +40,19 @@ extension FacadeSession {
         case "household.setName":
             struct Args: Decodable { var memberId: MemberID; var name: String? }
             let args = try request.decode(Args.self)
+            try Limits.require((args.name?.count ?? 0) <= Limits.maxNameCharacters, "The name is too long.")
             _ = try await engine.households.setName(args.name, for: args.memberId)
             return try await householdView(engine)
         case "household.removeMember":
-            struct Args: Decodable { var memberId: MemberID }
+            // removeOwnRules: true is the onboarding "fewer people" path of the iOS app (rules tagged only
+            // to the removed person go first). The core otherwise keeps them (soft delete, they cover nobody).
+            struct Args: Decodable { var memberId: MemberID; var removeOwnRules: Bool? }
             let args = try request.decode(Args.self)
+            if args.removeOwnRules == true, let stored = try await engine.households.household() {
+                for rule in stored.rules where rule.scope == .member(args.memberId) {
+                    _ = try await engine.safety.removeRule(rule.id)
+                }
+            }
             _ = try await engine.households.removeMember(args.memberId)
             return try await householdView(engine)
         case "household.setAgeBand":
@@ -57,6 +69,7 @@ extension FacadeSession {
         case "safety.parse":
             struct Args: Decodable { var text: String }
             let args = try request.decode(Args.self)
+            try Limits.require(args.text.count <= Limits.maxTextCharacters, "The text is too long.")
             return try enc(ParseView(candidates: content.parser.parse(args.text).map(CandidateView.init)))
         case "safety.confirm":
             struct Args: Decodable { var items: [SafetyItemArg] }
@@ -93,6 +106,7 @@ extension FacadeSession {
         case "safety.reconfirm":
             struct Args: Decodable { var memberIds: [MemberID]? }
             let args = try request.decode(Args.self)
+            try Limits.require((args.memberIds?.count ?? 0) <= Limits.maxIDs, "Too many member ids.")
             return try await safetyChange(engine, try await engine.safety.reconfirm(args.memberIds))
         case "safety.recheck":
             var outcome = try await engine.safety.recheckOpenPlans()
@@ -105,6 +119,7 @@ extension FacadeSession {
         case "plan.generate":
             struct Args: Decodable { var absences: [MealAbsence]? }
             let args = try request.decode(Args.self)
+            try Limits.require((args.absences?.count ?? 0) <= Limits.maxAbsences, "Too many absences.")
             return try enc(PlanView(try await engine.plans.generateWeek(absences: Set(args.absences ?? []))))
         case "plan.get":
             struct Args: Decodable { var planId: MealPlanID }
@@ -301,6 +316,10 @@ struct SafetyItemArg: Decodable {
     static func ruleRequests(
         _ items: [SafetyItemArg], requireItems: Bool, defaultScope: RuleScope = .household
     ) throws -> [RuleRequest] {
+        try Limits.require(items.count <= Limits.maxItems, "Too many items.")
+        for item in items {
+            try Limits.require((item.unresolvedText?.count ?? 0) <= 2_000, "An item text is too long.")
+        }
         if requireItems && items.isEmpty {
             throw FacadeError("no_items", "Add at least one restriction, or choose that nobody avoids anything.")
         }

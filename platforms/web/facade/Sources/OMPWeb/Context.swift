@@ -28,6 +28,9 @@ struct CallContext: Sendable {
         guard !locale.isEmpty, locale.count <= 35 else {
             throw FacadeError.badContext("ctx.locale is empty or too long.")
         }
+        guard instant >= Limits.earliestNow, instant < Limits.latestNow else {
+            throw FacadeError.badContext("ctx.now must be between the years 2000 and 2100.")
+        }
         // Whole seconds: stored dates are written with second precision, so nothing is lost on export/import.
         let whole = Date(timeIntervalSince1970: instant.timeIntervalSince1970.rounded(.down))
         return CallContext(now: whole, timeZone: zone, locale: locale)

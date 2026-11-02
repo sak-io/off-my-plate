@@ -10,15 +10,18 @@ import Testing
         .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         .appendingPathComponent("Fixtures")
 
-    @Test func nativeReplayMatchesTheGolden() async throws {
-        let transcript = try String(contentsOf: Self.fixtures.appendingPathComponent("transcript.jsonl"), encoding: .utf8)
+    static let names = ["transcript", "transcript-tz"]
+
+    @Test(arguments: TranscriptTests.names)
+    func nativeReplayMatchesTheGolden(name: String) async throws {
+        let transcript = try String(contentsOf: Self.fixtures.appendingPathComponent("\(name).jsonl"), encoding: .utf8)
         let output = await TranscriptRunner.run(lines: TranscriptRunner.lines(of: transcript), session: FacadeSession())
         #expect(output.failures.isEmpty, "transcript expectations failed: \(output.failures)")
         let actual = output.responses.joined(separator: "\n") + "\n"
-        if let target = ProcessInfo.processInfo.environment["OMP_GOLDEN_OUT"] {
-            try actual.write(toFile: target, atomically: true, encoding: .utf8)
+        if let directory = ProcessInfo.processInfo.environment["OMP_GOLDEN_OUT"] {
+            try actual.write(toFile: directory + "/\(name).actual.jsonl", atomically: true, encoding: .utf8)
         }
-        let golden = (try? String(contentsOf: Self.fixtures.appendingPathComponent("transcript.golden.jsonl"), encoding: .utf8)) ?? ""
+        let golden = (try? String(contentsOf: Self.fixtures.appendingPathComponent("\(name).golden.jsonl"), encoding: .utf8)) ?? ""
         #expect(!golden.isEmpty, "the golden file is missing or empty")
         let expectedLines = golden.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
         let actualLines = actual.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)

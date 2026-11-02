@@ -55,11 +55,12 @@ jobs:
       - name: Native tests (swift test)
         run: |
           set +e
-          export OMP_GOLDEN_OUT="$RUNNER_TEMP/golden.actual.jsonl"
+          mkdir -p "$RUNNER_TEMP/golden"
+          export OMP_GOLDEN_OUT="$RUNNER_TEMP/golden"
           swift test --package-path "$FACADE" 2>&1 | tee "$RUNNER_TEMP/native.log"
           rc=${PIPESTATUS[0]}
           set -e
-          if [ $rc -eq 0 ] && ! scripts/assert-tests-ran.sh "$RUNNER_TEMP/native.log" 25; then rc=3; fi
+          if [ $rc -eq 0 ] && ! scripts/assert-tests-ran.sh "$RUNNER_TEMP/native.log" 35; then rc=3; fi
           if [ $rc -ne 0 ]; then
             echo "::error::native facade tests FAILED rc=$rc :: $( (grep -aE 'error:|✘|Issue|recorded an issue|Fatal' "$RUNNER_TEMP/native.log" | head -14) | cut -c1-360 | sed ':a;N;$!ba;s/\n/%0A/g')"
             exit 1
@@ -70,14 +71,16 @@ jobs:
       - name: Replay output for review (only on a golden mismatch)
         if: always()
         run: |
-          f="$RUNNER_TEMP/golden.actual.jsonl"
-          [ -f "$f" ] || exit 0
-          if cmp -s "$f" "$FACADE/Fixtures/transcript.golden.jsonl"; then exit 0; fi
-          b64=$(gzip -9 -n -c "$f" | base64 -w0)
-          echo "::notice::GOLDEN-LENGTH ${#b64}"
-          i=0
-          while [ -n "$b64" ]; do
-            i=$((i + 1)); echo "::notice::GOLDEN-B64-$i ${b64:0:3800}"; b64="${b64:3800}"
+          for name in transcript transcript-tz; do
+            f="$RUNNER_TEMP/golden/$name.actual.jsonl"
+            [ -f "$f" ] || continue
+            if cmp -s "$f" "$FACADE/Fixtures/$name.golden.jsonl"; then continue; fi
+            b64=$(gzip -9 -n -c "$f" | base64 -w0)
+            echo "::notice::GOLDEN-$name-LENGTH ${#b64}"
+            i=0
+            while [ -n "$b64" ]; do
+              i=$((i + 1)); echo "::notice::GOLDEN-$name-B64-$i ${b64:0:3800}"; b64="${b64:3800}"
+            done
           done
 
       - name: Install Wasm SDK (pinned checksum) and wasmtime
@@ -101,23 +104,21 @@ jobs:
           ../../../scripts/wasm/annotated.sh build-cli swift build --swift-sdk "$WASM_SDK" --product omp-web-cli -c release $WASM_LINK
           ls -la .build/wasm32-unknown-wasip1/release/omp-web-cli.wasm
 
-      - name: Transcript replay under wasmtime must equal the golden byte for byte
+      - name: Transcript replays under wasmtime must equal the goldens byte for byte
         run: |
-          set +e
           cd "$FACADE"
-          wasmtime run -W max-wasm-stack=8388608 .build/wasm32-unknown-wasip1/release/omp-web-cli.wasm < Fixtures/transcript.jsonl > "$RUNNER_TEMP/wasm.out" 2> "$RUNNER_TEMP/wasm.err"
-          rc=$?
-          set -e
-          lines=$(wc -l < "$RUNNER_TEMP/wasm.out")
-          if [ $rc -ne 0 ] || ! cmp -s "$RUNNER_TEMP/wasm.out" Fixtures/transcript.golden.jsonl; then
-            echo "::error::Wasm replay FAILED rc=$rc lines=$lines :: $( (head -c 600 "$RUNNER_TEMP/wasm.err"; cmp "$RUNNER_TEMP/wasm.out" Fixtures/transcript.golden.jsonl 2>&1 | head -2) | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')"
-            if [ ! -f "$RUNNER_TEMP/golden.actual.jsonl" ] || ! cmp -s "$RUNNER_TEMP/golden.actual.jsonl" "$RUNNER_TEMP/wasm.out"; then
-              echo "::error::native output and Wasm output DIFFER"
-              diff <(cat "$RUNNER_TEMP/golden.actual.jsonl" 2>/dev/null) "$RUNNER_TEMP/wasm.out" | head -4 | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g' | sed 's/^/::error::first difference :: /'
+          for name in transcript transcript-tz; do
+            set +e
+            wasmtime run -W max-wasm-stack=8388608 .build/wasm32-unknown-wasip1/release/omp-web-cli.wasm < "Fixtures/$name.jsonl" > "$RUNNER_TEMP/$name.wasm.out" 2> "$RUNNER_TEMP/$name.wasm.err"
+            rc=$?
+            set -e
+            lines=$(wc -l < "$RUNNER_TEMP/$name.wasm.out")
+            if [ $rc -ne 0 ] || ! cmp -s "$RUNNER_TEMP/$name.wasm.out" "Fixtures/$name.golden.jsonl"; then
+              echo "::error::Wasm replay $name FAILED rc=$rc lines=$lines :: $( (head -c 600 "$RUNNER_TEMP/$name.wasm.err"; cmp "$RUNNER_TEMP/$name.wasm.out" "Fixtures/$name.golden.jsonl" 2>&1 | head -2) | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')"
+              exit 1
             fi
-            exit 1
-          fi
-          echo "::notice::Wasm replay identical to the golden ($lines response lines, $(wc -c < "$RUNNER_TEMP/wasm.out") bytes)"
+            echo "::notice::Wasm replay $name identical to the golden ($lines response lines, $(wc -c < "$RUNNER_TEMP/$name.wasm.out") bytes)"
+          done
 
       - name: Build the browser module (WASI reactor, release, -Osize, stripped)
         run: |

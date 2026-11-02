@@ -55,10 +55,10 @@ struct Client {
 
     /// Household of `adults` + `children`, everybody answered "nobody avoids anything".
     @discardableResult
-    func onboard(adults: Int = 2, children: Int = 1) async -> Reply {
-        let created = await call("household.create", "{\"adults\":\(adults),\"children\":\(children)}")
+    func onboard(adults: Int = 2, children: Int = 1, now: String = Client.defaultNow, zone: String = "Asia/Kolkata") async -> Reply {
+        let created = await call("household.create", "{\"adults\":\(adults),\"children\":\(children)}", now: now, zone: zone)
         #expect(created.ok)
-        let answered = await call("safety.confirmNobody", "{\"pendingItemCount\":0}")
+        let answered = await call("safety.confirmNobody", "{\"pendingItemCount\":0}", now: now, zone: zone)
         #expect(answered.ok)
         #expect(answered.string("gate.status") == "open")
         return answered

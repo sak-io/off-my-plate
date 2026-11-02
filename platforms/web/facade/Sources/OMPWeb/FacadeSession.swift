@@ -44,6 +44,14 @@ public actor FacadeSession {
             let content = try contentResult.get()
             let request = try Request.parse(requestJSON)
             clock.set(request.context)
+            if !Self.clockExempt.contains(request.op) {
+                // The host clock is trusted (it decides the 180-day re-confirmation), but never to run
+                // backwards past data already stored: that would make elapsed times negative.
+                if let latest = try await latestStoredDate(), request.context.now < latest {
+                    throw FacadeError(
+                        "clock_behind_state", "ctx.now is earlier than data already stored; check the device clock.")
+                }
+            }
             let result = try await dispatch(request, content: content)
             return Response.success(result)
         } catch {
@@ -54,6 +62,36 @@ public actor FacadeSession {
     func replaceEngine(_ new: Engine) {
         engine = new
     }
+
+    /// Operations that never depend on or change time-sensitive state.
+    static let clockExempt: Set<String> = ["meta.version", "state.export", "state.import"]
+
+    /// The newest timestamp in the stored household and plans.
+    func latestStoredDate() async throws -> Date? {
+        let repositories = engine.repositories
+        var latest: Date?
+        func note(_ date: Date?) {
+            if let date, latest == nil || date > latest! { latest = date }
+        }
+        if let household = try await repositories.household.fetch() {
+            note(household.createdAt)
+            note(household.updatedAt)
+            for member in household.members { note(member.safetyConfirmedAt) }
+        }
+        for plan in try await repositories.mealPlans.fetchAll() {
+            note(plan.createdAt)
+            note(plan.approval?.approvedAt)
+        }
+        return latest
+    }
+
+    /// After a call that never finished (see `SyncRunner`): its task may still hold the service lock,
+    /// which would stall every later call. The data lives in the repositories, so build fresh services
+    /// (and a fresh lock) over the same repositories. Writes the abandoned call already made stay.
+    public func recoverAfterStall() {
+        guard case .success(let content) = contentResult else { return }
+        engine = Engine(repositories: engine.repositories, clock: clock, ids: engine.ids, content: content)
+    }
 }
 
 /// A parsed request envelope.
@@ -63,11 +101,17 @@ struct Request: Sendable {
     let context: CallContext
 
     static func parse(_ data: Data) throws -> Request {
+        guard data.count <= Limits.maxRequestBytes else {
+            throw FacadeError("request_too_large", "The request is larger than \(Limits.maxRequestBytes) bytes.")
+        }
         let value: JSONValue
         do {
             value = try JSONDecoder().decode(JSONValue.self, from: data)
         } catch {
             throw FacadeError.badRequest("The request is not valid JSON.")
+        }
+        if let key = DuplicateKeys.firstDuplicate(in: data) {
+            throw FacadeError("duplicate_key", "The request repeats the key \"\(key.prefix(40))\".")
         }
         guard case .object = value, let op = value["op"]?.stringValue, !op.isEmpty else {
             throw FacadeError.badRequest("The request needs an \"op\" string.")
@@ -130,6 +174,14 @@ public enum Facade {
     /// Synchronous variant for hosts without threads (the Wasm exports). Drives the async services to
     /// completion on the calling thread; see `SyncRunner`.
     public static func handleSync(_ requestJSON: Data) -> Data {
-        SyncRunner.run { await shared.handle(requestJSON) }
+        let outcome = SyncRunner.run { await shared.handle(requestJSON) }
+        if outcome.stalled {
+            // The abandoned call may hold the service lock: give the session fresh services.
+            _ = SyncRunner.run {
+                await shared.recoverAfterStall()
+                return Data()
+            }
+        }
+        return outcome.data
     }
 }

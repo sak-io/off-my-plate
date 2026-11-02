@@ -60,6 +60,7 @@ extension FacadeSession {
         guard case .int(let version)? = raw["version"], version == Int64(SnapshotFormat.version) else {
             throw FacadeError("unsupported_state_version", "This state was written by another version of the app.")
         }
+        try Self.checkTemporalAndIDs(raw)
         let snapshot: StateSnapshot
         do {
             snapshot = try CanonicalJSON.decoder().decode(StateSnapshot.self, from: JSONEncoder().encode(raw))
@@ -67,6 +68,15 @@ extension FacadeSession {
             throw FacadeError("invalid_state", "The state snapshot is damaged.")
         }
         try Self.validate(snapshot)
+        // Never below an id already in use: a low counter would make new ids overwrite stored entities.
+        let counter = max(snapshot.idCounter, Self.highestGeneratedID(in: raw))
+        guard counter <= Limits.maxIDCounter else { throw FacadeError("invalid_state", "An id is out of range.") }
+        // The host clock must not be behind the stored data (see `clock_behind_state`).
+        var newest: Date?
+        for date in Self.storedDates(snapshot) where newest == nil || date > newest! { newest = date }
+        if let newest, request.context.now < newest {
+            throw FacadeError("clock_behind_state", "ctx.now is earlier than the imported data; check the device clock.")
+        }
 
         let repositories = Repositories.inMemory()
         if let household = snapshot.household { try await repositories.household.replace(with: household) }
@@ -79,7 +89,7 @@ extension FacadeSession {
         for state in snapshot.promptStates { try await repositories.promptStates.save(state) }
 
         let fresh = Engine(
-            repositories: repositories, clock: clock, ids: IDSource(counter: snapshot.idCounter), content: content)
+            repositories: repositories, clock: clock, ids: IDSource(counter: counter), content: content)
         // R1 on load (also repairs a re-check interrupted by a closed tab, and handles a new seed version).
         var outcome = try await fresh.safety.recheckOpenPlans()
         if let library = try await fresh.safety.recheckIfLibraryChanged() { outcome = library }
@@ -92,7 +102,23 @@ extension FacadeSession {
     /// must not carry one.
     static func validate(_ snapshot: StateSnapshot) throws {
         func fail(_ text: String) -> FacadeError { FacadeError("invalid_state", text) }
-        guard snapshot.idCounter >= 0 else { throw fail("The id counter is negative.") }
+        guard snapshot.idCounter >= 0, snapshot.idCounter <= Limits.maxIDCounter else {
+            throw fail("The id counter is out of range.")
+        }
+        if snapshot.household == nil && !snapshot.mealPlans.isEmpty { throw fail("Plans without a household.") }
+        if let household = snapshot.household {
+            let known = Set(household.members.map(\.id))
+            for rule in household.rules {
+                if case .member(let id) = rule.scope, !known.contains(id) { throw fail("A rule names an unknown member.") }
+            }
+        }
+        var approvedSeries = Set<PlanSeriesID>()
+        for plan in snapshot.mealPlans {
+            guard (1...Limits.maxRevision).contains(plan.revision) else { throw fail("A plan revision is out of range.") }
+            if plan.status == PlanStatus.approved, !approvedSeries.insert(plan.seriesId).inserted {
+                throw fail("Two approved plans in one series.")
+            }
+        }
         guard Set(snapshot.mealPlans.map(\.id)).count == snapshot.mealPlans.count else { throw fail("Duplicate plan ids.") }
         guard Set(snapshot.pantry.map(\.id)).count == snapshot.pantry.count else { throw fail("Duplicate pantry ids.") }
         guard Set(snapshot.shopping.map(\.id)).count == snapshot.shopping.count else { throw fail("Duplicate shopping ids.") }
@@ -114,5 +140,61 @@ extension FacadeSession {
                 break
             }
         }
+    }
+}
+
+extension FacadeSession {
+    /// Every date and instant in the snapshot must be a sane one (a year outside 2000...2100 would make
+    /// calendar arithmetic in the core trap), and ids that look generated must not be absurd.
+    static func checkTemporalAndIDs(_ tree: JSONValue) throws {
+        switch tree {
+        case .string(let text):
+            let chars = Array(text.utf8)
+            let isDate = chars.count == 10 && chars[4] == UInt8(ascii: "-") && chars[7] == UInt8(ascii: "-")
+            let isInstant = chars.count >= 20 && chars[4] == UInt8(ascii: "-") && chars[10] == UInt8(ascii: "T")
+            if isDate || isInstant {
+                guard let year = Int(String(decoding: chars[0..<4], as: UTF8.self)),
+                    (Limits.earliestYear...Limits.latestYear).contains(year)
+                else { throw FacadeError("invalid_state", "A date in the state is out of range.") }
+            }
+        case .array(let items):
+            for item in items { try checkTemporalAndIDs(item) }
+        case .object(let fields):
+            for item in fields.values { try checkTemporalAndIDs(item) }
+        default:
+            break
+        }
+    }
+
+    /// The highest n among ids of the form "w<n>" or "w<n>:..." anywhere in the snapshot.
+    static func highestGeneratedID(in tree: JSONValue) -> Int {
+        switch tree {
+        case .string(let text):
+            guard text.hasPrefix("w") else { return 0 }
+            let digits = text.dropFirst().prefix { $0.isASCII && $0.isNumber }
+            let rest = text.dropFirst(1 + digits.count)
+            guard !digits.isEmpty, digits.count <= 10, rest.isEmpty || rest.hasPrefix(":") else { return 0 }
+            return Int(digits) ?? 0
+        case .array(let items):
+            return items.map(highestGeneratedID).max() ?? 0
+        case .object(let fields):
+            return fields.values.map(highestGeneratedID).max() ?? 0
+        default:
+            return 0
+        }
+    }
+
+    static func storedDates(_ snapshot: StateSnapshot) -> [Date] {
+        var dates: [Date] = []
+        if let household = snapshot.household {
+            dates.append(household.createdAt)
+            dates.append(household.updatedAt)
+            dates.append(contentsOf: household.members.compactMap(\.safetyConfirmedAt))
+        }
+        for plan in snapshot.mealPlans {
+            dates.append(plan.createdAt)
+            if let approvedAt = plan.approval?.approvedAt { dates.append(approvedAt) }
+        }
+        return dates
     }
 }
