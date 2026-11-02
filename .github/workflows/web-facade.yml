@@ -129,7 +129,7 @@ jobs:
           ls -la "$W"
           echo "::notice::omp-web-wasm.wasm size: $(wc -c < "$W") bytes raw, $(gzip -9 -c "$W" | wc -c) bytes gzip"
           echo "WASM_FILE=$FACADE/$W" >> "$GITHUB_ENV"
-          echo "::notice::wasm sections: $(node "$FACADE/wasm-smoke/sections.mjs" "$W")"
+          echo "::notice::wasm sections: $(node "$FACADE/wasm-smoke/sections.mjs" "$W" 2>&1 | head -c 1500)"
 
       - name: Memory protocol under Node WASI
         run: |
