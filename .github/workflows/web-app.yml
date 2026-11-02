@@ -1,0 +1,117 @@
+# The offline web app (W04, docs/windows/plan.md, ADR 0016), platforms/web/app.
+#   1. wasm: build the browser module exactly as web-facade.yml does (same SDK pin, same link flags);
+#   2. browser: build the TypeScript app, run the Playwright test in real Chromium (Wasm loads, state persists,
+#      offline after the first visit, CSP blocks page network, Delete all data empties storage).
+# Failures are echoed as ::error:: annotations so they are readable without a token.
+name: web-app
+
+on:
+  push:
+    branches: ["claude/ci-w*"]
+    paths: ["platforms/web/**", "core/**", "scripts/wasm/**", ".github/workflows/web-app.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  WASM_SDK_SHA256: "32fdb8772d73bb174f77b5c59bc88a0d55003d75712832129394d3465158fb43"
+  WASM_LINK: "-Xlinker -z -Xlinker stack-size=4194304 -Xlinker --stack-first -Xlinker --global-base=4194304"
+  FACADE: platforms/web/facade
+
+jobs:
+  wasm:
+    name: Build the browser module (Swift ${{ matrix.swift }})
+    runs-on: ubuntu-latest
+    container: swift:${{ matrix.swift }}-noble
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        swift: ["6.2.4"]
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Tools
+        run: apt-get update -qq && apt-get install -y -qq xz-utils curl ca-certificates >/dev/null
+      - name: Install Wasm SDK (pinned checksum)
+        env:
+          SWIFT_VER: ${{ matrix.swift }}
+        run: |
+          set -euo pipefail
+          URL="https://download.swift.org/swift-$SWIFT_VER-release/wasm-sdk/swift-$SWIFT_VER-RELEASE/swift-$SWIFT_VER-RELEASE_wasm.artifactbundle.tar.gz"
+          scripts/wasm/annotated.sh sdk swift sdk install "$URL" --checksum "$WASM_SDK_SHA256"
+          echo "WASM_SDK=$(swift sdk list | grep -i wasm | grep -iv embedded | head -1 | tr -d ' ')" >> "$GITHUB_ENV"
+      - name: Build omp-web-wasm (WASI reactor, release, -Osize, stripped)
+        run: |
+          set -euo pipefail
+          cd "$FACADE"
+          ../../../scripts/wasm/annotated.sh build-wasm swift build --swift-sdk "$WASM_SDK" --product omp-web-wasm -c release \
+            -Xswiftc -Osize -Xswiftc -Xclang-linker -Xswiftc -mexec-model=reactor $WASM_LINK -Xlinker --strip-all
+          W=.build/wasm32-unknown-wasip1/release/omp-web-wasm.wasm
+          mkdir -p "$GITHUB_WORKSPACE/out" && cp "$W" "$GITHUB_WORKSPACE/out/omp-web-wasm.wasm"
+          echo "::notice::omp-web-wasm.wasm $(wc -c < "$W") bytes raw, $(gzip -9 -c "$W" | wc -c) bytes gzip"
+      - name: Upload module
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: omp-web-wasm
+          path: out/omp-web-wasm.wasm
+          retention-days: 3
+          compression-level: 6
+
+  browser:
+    name: Browser test (Chromium, Playwright)
+    needs: wasm
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+        working-directory: platforms/web/app
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Download module
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: omp-web-wasm
+          path: ${{ runner.temp }}/wasm
+      - name: Install (lockfile) and typecheck
+        run: |
+          set -euo pipefail
+          node --version
+          npm ci --ignore-scripts
+          npm run typecheck
+      - name: Build app
+        run: OMP_WASM="$RUNNER_TEMP/wasm/omp-web-wasm.wasm" npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Playwright
+        run: |
+          set +e
+          npx playwright test 2>&1 | tee "$RUNNER_TEMP/pw.log"
+          rc=${PIPESTATUS[0]}
+          set -e
+          m=$(cat metrics/metrics.json 2>/dev/null | tr -d '\n ' || true)
+          echo "::notice::METRICS $m"
+          if [ $rc -ne 0 ]; then
+            echo "::error::playwright FAILED rc=$rc :: $(grep -aE '✘|Error|expect|Received|Expected|Timeout|›' "$RUNNER_TEMP/pw.log" | head -24 | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')"
+            exit 1
+          fi
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: playwright-results
+          path: |
+            platforms/web/app/test-results
+            platforms/web/app/metrics
+          if-no-files-found: ignore
+          retention-days: 3

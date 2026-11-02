@@ -1,0 +1,17 @@
+{
+  "name": "off-my-plate-web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "OffMyPlate offline web app (W04). No runtime dependencies; dev tools only.",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.sw.json --noEmit",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.49.1",
+    "@types/node": "22.10.2",
+    "typescript": "5.7.2"
+  }
+}

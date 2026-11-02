@@ -1,0 +1,3 @@
+{ "name": "OffMyPlate", "short_name": "OffMyPlate", "start_url": "./", "scope": "./", "display": "standalone",
+  "background_color": "#FFFFFF", "theme_color": "#1B6E3A",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }] }
