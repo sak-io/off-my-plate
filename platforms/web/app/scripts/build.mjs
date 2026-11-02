@@ -18,7 +18,12 @@ const wasm = process.env.OMP_WASM;
 if (!wasm || !existsSync(wasm)) throw new Error('set OMP_WASM to the built omp-web-wasm.wasm');
 cpSync(wasm, join(dist, 'omp-web-wasm.wasm'));
 
-const files = readdirSync(dist).filter((f) => statSync(join(dist, f)).isFile() && f !== 'sw.js');
+// Recursive: sub-folders such as screens/ must be precached too (the service worker answers 504 for anything else).
+const walk = (dir) => readdirSync(join(dist, dir)).flatMap((f) => {
+  const rel = dir ? `${dir}/${f}` : f;
+  return statSync(join(dist, rel)).isDirectory() ? walk(rel) : [rel];
+});
+const files = walk('').filter((f) => f !== 'sw.js');
 const hash = createHash('sha256');
 for (const f of files.sort()) { hash.update(f); hash.update(readFileSync(join(dist, f))); }
 const version = hash.digest('hex').slice(0, 12);

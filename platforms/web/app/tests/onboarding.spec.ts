@@ -25,6 +25,7 @@ const noShell = async (page: Page) => {
 async function toSafety(page: Page, adults = 2, children = 0): Promise<void> {
   await screen(page, "size");
   for (let n = 2; n < adults; n++) await page.locator("#adults-plus").click();
+  for (let n = 2; n > adults; n--) await page.locator("#adults-minus").click();
   for (let n = 0; n < children; n++) await page.locator("#children-plus").click();
   await page.locator("#size-continue").click();
   await screen(page, "safety");
@@ -243,7 +244,9 @@ test("typed text is data, never markup (no innerHTML)", async ({ browser }) => {
   const evil = `<img src=x onerror="window.__xss=1"><b>x</b>`;
   await page.locator("#avoid-text").fill(evil);
   await page.locator("#avoid-add").click();
-  await expect(page.locator('#avoid-list li[data-kind="unmapped"]')).toContainText(evil);
+  // The parser splits the text into unmapped pieces; whatever it keeps is shown as plain text, never as elements.
+  expect(await page.locator('#avoid-list li[data-kind="unmapped"]').count()).toBeGreaterThan(0);
+  await expect(page.locator("#avoid-list")).toContainText("onerror");
   await expect(page.locator("#avoid-list img, #avoid-list b")).toHaveCount(0);
   expect(await page.evaluate(() => (window as any).__xss)).toBeUndefined();
 });
