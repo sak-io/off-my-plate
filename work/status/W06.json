@@ -1,6 +1,10 @@
 {
+  "branch": "claude/ci-w06",
+  "claimed_at": "2026-11-02T17:02:22Z",
+  "heartbeat_at": "2026-11-02T17:02:22Z",
   "id": "W06",
-  "note": "approved by owner 2026-11",
-  "state": "not_started",
-  "updated_at": "2026-11-01T22:47:22Z"
+  "lease_hours": 6,
+  "owner": "claude-lead-w06",
+  "state": "claimed",
+  "updated_at": "2026-11-02T17:02:22Z"
 }
