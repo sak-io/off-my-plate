@@ -127,14 +127,36 @@ public struct SeedLibrary: Sendable, Hashable {
     }
 }
 
-/// Reads the seed files bundled with `OMPRecipes` (`Bundle.module`, which also works on Linux).
+/// Reads the seed files. Native builds read the files bundled with `OMPRecipes` (`Bundle.module`,
+/// which also works on Linux). WebAssembly has no resource bundle, so there `bundledFiles()` uses
+/// the same JSON embedded as Swift source (`SeedEmbedded.generated.swift`, W02) and never touches
+/// `Bundle`; a host may also pass its own bytes straight to `load(_:)`.
 public enum SeedLoader {
     /// The bundled seed files, unvalidated.
     public static func bundledFiles() throws -> SeedFiles {
-        SeedFiles(
+        #if os(WASI)
+        return try embeddedFiles()
+        #else
+        return SeedFiles(
             catalog: try bundledData(.catalog),
             ingredients: try bundledData(.ingredients),
             recipes: try bundledData(.recipes))
+        #endif
+    }
+
+    /// The seed JSON embedded in the binary as generated Swift source, on every platform. Equal to
+    /// the bundle bytes (a test proves it); needs no `Bundle` and no file system.
+    public static func embeddedFiles() throws -> SeedFiles {
+        func decode(_ file: SeedFile, _ base64: String) throws -> Data {
+            guard let data = Data(base64Encoded: base64, options: .ignoreUnknownCharacters) else {
+                throw SeedLoadError.resourceMissing(file)
+            }
+            return data
+        }
+        return SeedFiles(
+            catalog: try decode(.catalog, SeedEmbeddedBase64.catalog),
+            ingredients: try decode(.ingredients, SeedEmbeddedBase64.ingredients),
+            recipes: try decode(.recipes, SeedEmbeddedBase64.recipes))
     }
 
     /// Reads and validates the bundled seed library.
@@ -151,6 +173,7 @@ public enum SeedLoader {
         return library
     }
 
+    #if !os(WASI)
     private static func bundledData(_ file: SeedFile) throws -> Data {
         guard let url = bundledURL(file) else { throw SeedLoadError.resourceMissing(file) }
         return try Data(contentsOf: url)
@@ -158,17 +181,14 @@ public enum SeedLoader {
 
     private static func bundledURL(_ file: SeedFile) -> URL? {
         let bundle = Bundle.module
-        #if !os(WASI)
-        // W01 spike: on WASI `Bundle.url(forResource:withExtension:subdirectory:)` returns a path one
-        // character short ("catalog.jso"), so WASI goes straight to the explicit path below.
         if let url = bundle.url(forResource: file.resourceName, withExtension: "json", subdirectory: "seed") {
             return url
         }
-        #endif
         // Fallback for bundle layouts where the lookup above misses a copied directory.
         guard let base = bundle.resourceURL else { return nil }
         let url = base.appendingPathComponent("seed", isDirectory: true)
             .appendingPathComponent(file.rawValue, isDirectory: false)
         return FileManager.default.fileExists(atPath: url.path) ? url : nil
     }
+    #endif
 }

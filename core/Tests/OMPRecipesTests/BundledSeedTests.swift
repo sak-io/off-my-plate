@@ -19,6 +19,16 @@ struct BundledSeedTests {
         #expect(library.recipes.contains { $0.lunchboxSuitable })
     }
 
+    @Test("the embedded seed bytes equal the bundle bytes, and load to the same library (W02 drift check)")
+    func embeddedEqualsBundle() throws {
+        let bundled = try SeedLoader.bundledFiles()
+        let embedded = try SeedLoader.embeddedFiles()
+        for file in [SeedFile.catalog, .ingredients, .recipes] {
+            #expect(embedded[file] == bundled[file], "\(file.rawValue): run scripts/gen-seed-embedded.py")
+        }
+        #expect(try SeedLoader.load(embedded) == SeedLoader.loadBundled())
+    }
+
     @Test("restriction chips are the AC-2.5 list, in display order")
     func chipList() throws {
         let catalog = try SeedLoader.loadBundled().catalog
