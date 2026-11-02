@@ -1,0 +1,151 @@
+# The OMPWeb JSON facade (W03, docs/windows/plan.md, ADR 0016), platforms/web/facade.
+#   1. native `swift test` (Linux): facade tests incl. the transcript replay against the committed golden;
+#   2. the same transcript replayed by `omp-web-cli` built for wasm32-wasi and run under wasmtime; its output
+#      must equal the golden byte for byte (so native == Wasm);
+#   3. the browser module (WASI reactor, release, -Osize, stripped) is built, its size reported, and its memory
+#      protocol exercised under Node's WASI (smoke.mjs).
+# SDK / wasmtime pins are the ones of core-wasm.yml and must move together with it. Failures are echoed as
+# ::error:: annotations so they are readable without a token.
+name: web-facade
+
+on:
+  push:
+    branches: ["claude/ci-w*", "claude/integration", "main"]
+    paths: ["platforms/web/**", "core/**", "scripts/wasm/**", ".github/workflows/web-facade.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  WASM_SDK_SHA256: "32fdb8772d73bb174f77b5c59bc88a0d55003d75712832129394d3465158fb43"
+  WASMTIME_VERSION: "v50.0.1"
+  WASMTIME_SHA256: "685466455dd42a14774a86c36c8f2e45cbb9bd6d92a850139315df60a75498a5"
+  # Same link flags as core-wasm.yml / W02: 4 MiB stack placed first so an overflow traps.
+  WASM_LINK: "-Xlinker -z -Xlinker stack-size=4194304 -Xlinker --stack-first -Xlinker --global-base=4194304"
+  FACADE: platforms/web/facade
+
+jobs:
+  facade:
+    name: Web facade (Linux, Swift ${{ matrix.swift }}; native tests + Wasm replay)
+    runs-on: ubuntu-latest
+    container: swift:${{ matrix.swift }}-noble
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        swift: ["6.2.4"]
+    steps:
+      - name: Check out
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Tools
+        run: |
+          set -euo pipefail
+          apt-get update -qq && apt-get install -y -qq xz-utils curl ca-certificates nodejs >/dev/null
+          swift --version
+          node --version
+
+      - name: Native tests (swift test)
+        run: |
+          set +e
+          export OMP_GOLDEN_OUT="$RUNNER_TEMP/golden.actual.jsonl"
+          swift test --package-path "$FACADE" 2>&1 | tee "$RUNNER_TEMP/native.log"
+          rc=${PIPESTATUS[0]}
+          set -e
+          if [ $rc -eq 0 ] && ! scripts/assert-tests-ran.sh "$RUNNER_TEMP/native.log" 25; then rc=3; fi
+          if [ $rc -ne 0 ]; then
+            echo "::error::native facade tests FAILED rc=$rc :: $( (grep -aE 'error:|✘|Issue|recorded an issue|Fatal' "$RUNNER_TEMP/native.log" | head -14) | cut -c1-360 | sed ':a;N;$!ba;s/\n/%0A/g')"
+            exit 1
+          fi
+
+      # Only when the replay differs from the committed golden: print the actual output (gzip + base64, in
+      # annotations) so it can be reviewed and committed. Never changes the committed file.
+      - name: Replay output for review (only on a golden mismatch)
+        if: always()
+        run: |
+          f="$RUNNER_TEMP/golden.actual.jsonl"
+          [ -f "$f" ] || exit 0
+          if cmp -s "$f" "$FACADE/Fixtures/transcript.golden.jsonl"; then exit 0; fi
+          b64=$(gzip -9 -n -c "$f" | base64 -w0)
+          echo "::notice::GOLDEN-LENGTH ${#b64}"
+          i=0
+          while [ -n "$b64" ]; do
+            i=$((i + 1)); echo "::notice::GOLDEN-B64-$i ${b64:0:30000}"; b64="${b64:30000}"
+          done
+
+      - name: Install Wasm SDK (pinned checksum) and wasmtime
+        env:
+          SWIFT_VER: ${{ matrix.swift }}
+        run: |
+          set -euo pipefail
+          URL="https://download.swift.org/swift-$SWIFT_VER-release/wasm-sdk/swift-$SWIFT_VER-RELEASE/swift-$SWIFT_VER-RELEASE_wasm.artifactbundle.tar.gz"
+          scripts/wasm/annotated.sh sdk swift sdk install "$URL" --checksum "$WASM_SDK_SHA256"
+          echo "WASM_SDK=$(swift sdk list | grep -i wasm | grep -iv embedded | head -1 | tr -d ' ')" >> "$GITHUB_ENV"
+          curl -fsSL -o "$RUNNER_TEMP/wt.tar.xz" "https://github.com/bytecodealliance/wasmtime/releases/download/$WASMTIME_VERSION/wasmtime-$WASMTIME_VERSION-x86_64-linux.tar.xz"
+          echo "$WASMTIME_SHA256  $RUNNER_TEMP/wt.tar.xz" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/wt" && tar -xJf "$RUNNER_TEMP/wt.tar.xz" -C "$RUNNER_TEMP/wt" --strip-components=1
+          echo "$RUNNER_TEMP/wt" >> "$GITHUB_PATH"
+
+      - name: Build omp-web-cli for Wasm (release)
+        run: |
+          set -euo pipefail
+          echo "SDK $WASM_SDK"
+          cd "$FACADE"
+          ../../../scripts/wasm/annotated.sh build-cli swift build --swift-sdk "$WASM_SDK" --product omp-web-cli -c release $WASM_LINK
+          ls -la .build/wasm32-unknown-wasip1/release/omp-web-cli.wasm
+
+      - name: Transcript replay under wasmtime must equal the golden byte for byte
+        run: |
+          set +e
+          cd "$FACADE"
+          wasmtime run -W max-wasm-stack=8388608 .build/wasm32-unknown-wasip1/release/omp-web-cli.wasm < Fixtures/transcript.jsonl > "$RUNNER_TEMP/wasm.out" 2> "$RUNNER_TEMP/wasm.err"
+          rc=$?
+          set -e
+          lines=$(wc -l < "$RUNNER_TEMP/wasm.out")
+          if [ $rc -ne 0 ] || ! cmp -s "$RUNNER_TEMP/wasm.out" Fixtures/transcript.golden.jsonl; then
+            echo "::error::Wasm replay FAILED rc=$rc lines=$lines :: $( (head -c 600 "$RUNNER_TEMP/wasm.err"; cmp "$RUNNER_TEMP/wasm.out" Fixtures/transcript.golden.jsonl 2>&1 | head -2) | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')"
+            if [ ! -f "$RUNNER_TEMP/golden.actual.jsonl" ] || ! cmp -s "$RUNNER_TEMP/golden.actual.jsonl" "$RUNNER_TEMP/wasm.out"; then
+              echo "::error::native output and Wasm output DIFFER"
+              diff <(cat "$RUNNER_TEMP/golden.actual.jsonl" 2>/dev/null) "$RUNNER_TEMP/wasm.out" | head -4 | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g' | sed 's/^/::error::first difference :: /'
+            fi
+            exit 1
+          fi
+          echo "::notice::Wasm replay identical to the golden ($lines response lines, $(wc -c < "$RUNNER_TEMP/wasm.out") bytes)"
+
+      - name: Build the browser module (WASI reactor, release, -Osize, stripped)
+        run: |
+          set -euo pipefail
+          cd "$FACADE"
+          ../../../scripts/wasm/annotated.sh build-wasm swift build --swift-sdk "$WASM_SDK" --product omp-web-wasm -c release \
+            -Xswiftc -Osize -Xswiftc -Xclang-linker -Xswiftc -mexec-model=reactor $WASM_LINK -Xlinker --strip-all
+          W=.build/wasm32-unknown-wasip1/release/omp-web-wasm.wasm
+          ls -la "$W"
+          echo "::notice::omp-web-wasm.wasm size: $(wc -c < "$W") bytes raw, $(gzip -9 -c "$W" | wc -c) bytes gzip"
+          echo "WASM_FILE=$FACADE/$W" >> "$GITHUB_ENV"
+
+      - name: Memory protocol under Node WASI
+        run: |
+          set +e
+          node --no-warnings "$FACADE/wasm-smoke/smoke.mjs" "$WASM_FILE" 2>&1 | tee "$RUNNER_TEMP/smoke.log"
+          rc=${PIPESTATUS[0]}
+          set -e
+          if [ $rc -ne 0 ] || ! grep -aq SMOKE-OK "$RUNNER_TEMP/smoke.log"; then
+            echo "::error::Node smoke FAILED rc=$rc :: $(head -c 1500 "$RUNNER_TEMP/smoke.log" | cut -c1-300 | sed ':a;N;$!ba;s/\n/%0A/g')"
+            exit 1
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo '## web-facade'
+            echo "native: $(grep -ah 'Test run with' "$RUNNER_TEMP/native.log" 2>/dev/null | tail -1)"
+            echo "wasm module: $( [ -n "${WASM_FILE:-}" ] && wc -c < "$WASM_FILE" ) bytes"
+          } >> "$GITHUB_STEP_SUMMARY"

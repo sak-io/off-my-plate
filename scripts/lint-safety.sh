@@ -22,8 +22,10 @@
 #      re-plan no longer has the recipe that was blocked; the plan is validated again before it
 #      is saved);
 #   5. `UserConfirmation(` (or `.init(`, or `confirmation: .init(`) appears outside tests and
-#      the two exact approval files platforms/ios/Apple/Sources/OMPFeatures/Plan/ApprovalWeekBar.swift
-#      and .../Plan/ApprovalSheet.swift (not a glob: a new file needs a reviewed change here);
+#      the three exact approval files platforms/ios/Apple/Sources/OMPFeatures/Plan/ApprovalWeekBar.swift,
+#      .../Plan/ApprovalSheet.swift and the web bridge
+#      platforms/web/facade/Sources/OMPWeb/ApprovalBridge.swift (not a glob: a new file needs a
+#      reviewed change here; W03, ADR 0016);
 #      and any alias of the type (`typealias X = UserConfirmation`, `= UserConfirmation.self`,
 #      `UserConfirmation.init` without a call, `extension UserConfirmation`) outside tests;
 #   6. the safety suite (core/Tests/OMPSafetySuiteTests/) contains `.disabled`,
@@ -151,9 +153,9 @@ unblock_allowed() {
 scan "(^|$w)blockedBySafety[[:space:]]*=[[:space:]]*false($w|\$)" \
   "a safety block may be cleared only in $lifecycle_file, the OMPData mapping and tests (ADR 0008, R1)" unblock_allowed
 
-# 5. UserConfirmation is created only by the two approval buttons (and tests). Exact paths:
-#    CODEOWNERS covers the same two files.
-approval_ui_files="platforms/ios/Apple/Sources/OMPFeatures/Plan/ApprovalWeekBar.swift platforms/ios/Apple/Sources/OMPFeatures/Plan/ApprovalSheet.swift"
+# 5. UserConfirmation is created only by the two approval buttons, the single web approval bridge
+#    (and tests). Exact paths: CODEOWNERS covers the same three files.
+approval_ui_files="platforms/ios/Apple/Sources/OMPFeatures/Plan/ApprovalWeekBar.swift platforms/ios/Apple/Sources/OMPFeatures/Plan/ApprovalSheet.swift platforms/web/facade/Sources/OMPWeb/ApprovalBridge.swift"
 confirmation_allowed() {
   is_test "$1" && return 0
   local f
@@ -248,7 +250,7 @@ confirmation_awk='
     emit("(^|[^A-Za-z0-9_])UserConfirmation ?\\. ?init ?([^( A-Za-z0-9_]|$)", "alias", 1)
     emit("(^|[^A-Za-z0-9_])extension ([A-Za-z0-9_]+ ?\\. ?)*UserConfirmation([^A-Za-z0-9_]|$)", "alias", 1)
   }'
-construct_message="UserConfirmation may be created only in the approval sheet (the exact files OMPFeatures/Plan/ApprovalWeekBar.swift and ApprovalSheet.swift) and tests (ADR 0008, AC-5.6)"
+construct_message="UserConfirmation may be created only in the approval sheet (the exact files OMPFeatures/Plan/ApprovalWeekBar.swift and ApprovalSheet.swift, and the web bridge platforms/web/facade/Sources/OMPWeb/ApprovalBridge.swift) and tests (ADR 0008, AC-5.6)"
 alias_message="UserConfirmation must not be aliased, referenced as a metatype/initialiser or extended: construct it only in the approval buttons (ADR 0008, AC-5.6)"
 while IFS= read -r file; do
   rel="${file#"$root"/}"
