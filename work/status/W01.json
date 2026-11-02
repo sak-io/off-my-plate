@@ -1,11 +1,8 @@
 {
   "branch": "claude/ci-w01",
-  "claimed_at": "2026-11-01T22:49:02Z",
-  "heartbeat_at": "2026-11-01T22:49:02Z",
   "id": "W01",
-  "lease_hours": 6,
-  "note": "GO-WITH-W02: safety suite 8/8 + domain/safety-check/recipes pass under wasmtime; see docs/windows/w01-spike-report.md",
+  "note": "spike accepted; verdict GO-WITH-W02",
   "owner": "claude-lead-w01",
-  "state": "in_review",
+  "state": "merged",
   "updated_at": "2026-11-02T00:16:06Z"
 }
