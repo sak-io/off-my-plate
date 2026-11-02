@@ -11,7 +11,8 @@ async function fresh(): Promise<Core> {
 }
 
 export class Seed {
-  private constructor(readonly core: Core) {}
+  readonly core: Core;
+  private constructor(core: Core) { this.core = core; }
   static async empty(): Promise<Seed> { return new Seed(await fresh()); }
   static async fromSnapshot(snapshot: unknown): Promise<Seed> {
     const s = await Seed.empty();
