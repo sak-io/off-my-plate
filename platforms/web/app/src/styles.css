@@ -15,3 +15,27 @@ input { min-height: 44px; font: inherit; width: 5rem; }
 .muted { color: var(--muted); font-size: .875rem; }
 .dialog { margin-top: 1rem; padding: 1rem; background: var(--bg2); border-radius: .75rem; }
 .dialog button { margin-right: .5rem; }
+/* W06 plan screens */
+.card { margin: .75rem 0; padding: .75rem 1rem; background: var(--bg2); border-radius: .75rem; }
+.card.warn { border: 2px solid var(--danger); }
+.sheet { border: 2px solid var(--accent); }
+.meals { list-style: none; margin: 0; padding: 0; }
+.meal { display: flex; flex-wrap: wrap; gap: .5rem; justify-content: space-between; align-items: center; padding: .5rem 0; border-bottom: 1px solid var(--bg2); }
+.meal-main { display: flex; flex-direction: column; gap: .125rem; flex: 1 1 14rem; }
+.slot { font-size: .875rem; color: var(--muted); }
+.title { font-weight: 600; }
+.tag { font-size: .875rem; }
+.tag.warn { color: var(--danger); }
+.day { margin: 1rem 0 .25rem; font-size: 1rem; text-transform: uppercase; }
+button.link { background: none; border: 0; color: var(--fg); padding: 0; text-align: left; text-decoration: underline; min-height: 44px; }
+.row-actions, .actions, .chips { display: flex; flex-wrap: wrap; gap: .5rem; margin: .5rem 0; }
+button.primary { font-weight: 600; }
+button.soft-disabled { border-style: dashed; cursor: not-allowed; }
+button:disabled { opacity: .6; cursor: not-allowed; }
+.chip { background: none; color: var(--fg); border-color: var(--muted); }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.options { list-style: none; margin: 0; padding: 0; }
+.options li { display: flex; flex-direction: column; margin: .5rem 0; }
+.option { text-align: left; background: none; color: var(--fg); border-color: var(--muted); }
+.bar { position: sticky; bottom: 0; padding: .75rem 0; background: var(--bg); border-top: 1px solid var(--bg2); }
+.toast { padding: .5rem 1rem; background: var(--bg2); border-radius: .5rem; }

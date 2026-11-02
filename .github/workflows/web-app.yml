@@ -83,6 +83,10 @@ jobs:
         with:
           name: omp-web-wasm
           path: ${{ runner.temp }}/wasm
+      - name: Approval call-site lint (W06)
+        run: |
+          ../../../scripts/lint-web-approval.sh
+          ../../../scripts/tests/test-lint-web-approval.sh
       - name: Install (lockfile) and typecheck
         run: |
           set -euo pipefail

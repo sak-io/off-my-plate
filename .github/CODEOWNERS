@@ -7,6 +7,8 @@
 /platforms/ios/Apple/Sources/OMPFeatures/Plan/ApprovalWeekBar.swift @sak-io
 /platforms/ios/Apple/Sources/OMPFeatures/Plan/ApprovalSheet.swift @sak-io
 /platforms/web/facade/Sources/OMPWeb/ApprovalBridge.swift @sak-io
+/platforms/web/app/src/screens/plan-approve-button.ts @sak-io
+/platforms/web/app/src/screens/plan-approval.ts @sak-io
 /platforms/web/facade/Package.swift @sak-io
 /core/Sources/OMPSafetyCheck/ @sak-io
 /core/Sources/OMPDomain/Safety/ @sak-io

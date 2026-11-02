@@ -1,6 +1,7 @@
 // App shell: four tabs, engine loading, snapshot persistence, Delete all data.
 import { Core, makeCtx, type Reply } from "./core.js";
 import { loadCore, registerWorker, type LoadStats } from "./engine.js";
+import { renderPlanTab } from "./screens/plan.js";
 import { deleteEverything, loadSnapshot, saveSnapshot } from "./store.js";
 
 const READ_ONLY = /^(meta|state)\.|\.(get|current|status|catalog|parse|recheck|alternatives|working|approved|pendingDiff|approvalPreview)$/;
@@ -72,13 +73,7 @@ async function render(): Promise<void> {
   const house = await app.op("household.get");
   const gate = house.ok ? house.result.gate : { status: "error" };
   if (app.tab === "plan") {
-    panel.append(el("h2", { textContent: "Plan" }));
-    if (gate.status === "noHousehold") panel.append(el("p", { textContent: "Add your household first (Household tab)." }));
-    else if (gate.status === "refused") panel.append(el("p", { textContent: "Planning is paused until everyone's food safety question is answered." }));
-    else {
-      const plan = await app.op("plan.current");
-      panel.append(el("p", { textContent: plan.ok && plan.result.working ? "You have a plan in progress." : "No plan yet." }));
-    }
+    await renderPlanTab(panel, { op: (n, a) => app.op(n, a), goTo: (t) => { app.tab = t; void render(); } });   // W06
   } else if (app.tab === "household") {
     panel.append(el("h2", { textContent: "Household" }));
     const hh = house.ok ? house.result.household : undefined;

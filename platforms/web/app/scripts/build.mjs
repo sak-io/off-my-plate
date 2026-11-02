@@ -18,7 +18,24 @@ const wasm = process.env.OMP_WASM;
 if (!wasm || !existsSync(wasm)) throw new Error('set OMP_WASM to the built omp-web-wasm.wasm');
 cpSync(wasm, join(dist, 'omp-web-wasm.wasm'));
 
-const files = readdirSync(dist).filter((f) => statSync(join(dist, f)).isFile() && f !== 'sw.js');
+// W06: recipe titles, minutes, ingredients and steps for the plan screens, generated from the same seed files the
+// Wasm core embeds (the page may not fetch, so this is a plain ES module under script-src 'self').
+const seedDir = join(root, '..', '..', '..', 'core', 'Sources', 'OMPRecipes', 'Resources', 'seed');
+const seedRecipes = JSON.parse(readFileSync(join(seedDir, 'recipes.json'), 'utf8')).recipes;
+const seedIngredients = JSON.parse(readFileSync(join(seedDir, 'ingredients.json'), 'utf8')).ingredients;
+const recipes = Object.fromEntries(seedRecipes.map((r) => [r.id, {
+  title: r.title, servings: r.servings, minutes: r.prepMinutes + r.cookMinutes,
+  ingredients: r.ingredients.map((i) => [i.ingredientId, i.quantity, i.unit]), steps: r.steps ?? [],
+}]));
+const ingredients = Object.fromEntries(seedIngredients.map((i) => [i.id, i.name]));
+writeFileSync(join(dist, 'recipes-data.js'), `export const RECIPES = ${JSON.stringify(recipes)};\nexport const INGREDIENT_NAMES = ${JSON.stringify(ingredients)};\n`);
+
+// Every file under dist/ (screens/ is a subfolder), as posix paths, except the service worker itself.
+const walk = (dir, prefix = '') => readdirSync(dir).flatMap((name) => {
+  const full = join(dir, name);
+  return statSync(full).isDirectory() ? walk(full, `${prefix}${name}/`) : [`${prefix}${name}`];
+});
+const files = walk(dist).filter((f) => f !== 'sw.js');
 const hash = createHash('sha256');
 for (const f of files.sort()) { hash.update(f); hash.update(readFileSync(join(dist, f))); }
 const version = hash.digest('hex').slice(0, 12);
