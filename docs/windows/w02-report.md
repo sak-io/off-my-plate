@@ -57,3 +57,9 @@ now = 2026-10-12T00:00:00Z, time zone Asia/Kolkata. The plan JSON (sorted keys, 
 ## Not done / follow-ups
 - wasmtime tarball is pinned by version, not checksum. Production wasm size and browser/Node behaviour remain W03.
 - A worst-case stack-depth measurement was not made; 4 MiB is a safe round value (1 MiB already passes in debug).
+
+## Review round 1 follow-ups
+- Seed drift: `scripts/check-core.sh --lint-only` runs `gen-seed-embedded.py --check`; `scripts/tests/test-gen-seed-embedded.sh` proves exit 0 clean, 1 on a changed seed, 1 on an edited or missing generated file (temp copy via `OMP_RECIPES_DIR`).
+- Wasm proof of run: dedicated step runs `GoldenWeekPlanTests` (2 tests, prints `GOLDEN-OK bytes=7988`) and `LargeHouseholdStressTests` (12 members, 14 days, 42 meals, 21 rerolls per week, R1 rule; `STRESS-OK`). The "rest" step asserts the exact count (listed 624 - 8 safety - 3 excluded = 613 = ran).
+- wasmtime tarball is pinned by sha256.
+- Stack margin (debug, stress+golden, informational CI probe): passes at 3072, 2048, 1536 and 1024 KiB; 4 MiB configured = at least 4x headroom on the largest household the product allows.
